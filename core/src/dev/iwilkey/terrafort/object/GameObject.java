@@ -6,22 +6,34 @@ public abstract class GameObject {
 	
 	protected State state;
 	protected long id;
+	protected boolean shouldRender = true;
 	protected boolean shouldDispose = false;
 	
 	public GameObject(State state) {
 		this.state = state;
 	}
 	
-	public void remove() {
-		shouldDispose = true;
+	public boolean shouldRender() {
+		return shouldRender;
 	}
 	
 	public boolean shouldDispose() {
 		return shouldDispose;
 	}
 	
-	public void setID(long id) {
+	public GameObject setID(long id) {
 		this.id = id;
+		return this;
+	}
+	
+	public GameObject setShouldDispose() {
+		shouldDispose = true;
+		return this;
+	}
+	
+	public GameObject setShouldRender(boolean verdict) {
+		shouldRender = verdict;
+		return this;
 	}
 	
 	public abstract void instantiation();

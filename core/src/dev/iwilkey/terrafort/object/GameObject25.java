@@ -24,24 +24,28 @@ public abstract class GameObject25 extends GameObject implements RenderableProvi
 		scale = 1.0f;
 	}
 	
-	public void setPosition(Vector3 pos) {
+	public GameObject25 setPosition(Vector3 pos) {
 		setPosition(pos.x, pos.y, pos.z);
+		return this;
 	}
 	
-	public void setPosition(float x, float y, float z) {
+	public GameObject25 setPosition(float x, float y, float z) {
 		position.set(x, y, z);
 		decal.setPosition(position);
+		return this;
 	}
 	
-	public void setRotation(Vector3 axis, float deg) {
+	public GameObject25 setRotation(Vector3 axis, float deg) {
 		decal.setRotationX(deg * axis.x);
 		decal.setRotationY(deg * axis.y);
 		decal.setRotationZ(deg * axis.z);
+		return this;
 	}
 	
-	public void setScale(float scale) {
+	public GameObject25 setScale(float scale) {
 		this.scale = scale;
 		decal.setScale(scale);
+		return this;
 	}
 	
 	public Vector3 getPosition() {

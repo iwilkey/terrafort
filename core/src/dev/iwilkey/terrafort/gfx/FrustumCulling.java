@@ -19,7 +19,6 @@ public class FrustumCulling {
 		culled3.clear();
 		for(RenderableProvider3 prov : providers) {
 			ModelInstance instance = prov.getModelInstance();
-			// Check to see if it should be rendered.
 			if(sphericalTestWith(instance, prov.getBoundingBox(), camera))
 				culled3.add(instance);
 		}
@@ -34,7 +33,6 @@ public class FrustumCulling {
 				decal.lookAt(camera.position, camera.up);
 			position = decal.getPosition();
 	        float radius = Math.max(decal.getWidth() * decal.getScaleX(), decal.getHeight() * decal.getScaleY()) / 2f;
-			// Check to see if it should be rendered using a sphere approximation.
 			if(camera.frustum.sphereInFrustum(position, radius))
 				culled25.add(decal);
 		}

@@ -17,10 +17,12 @@ import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.HdpiUtils;
+import com.badlogic.gdx.physics.bullet.DebugDrawer;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 import dev.iwilkey.terrafort.TerrafortEngine;
+import dev.iwilkey.terrafort.physics.PhysicsEngine;
 import dev.iwilkey.terrafort.state.State;
 
 import imgui.ImGui;
@@ -110,6 +112,16 @@ public class Renderer implements ViewportResizable, Disposable {
 			batch3.render(nullObjectRenderable, state.getRenderable3Environment());
 			batch3.end();
 		}
+		
+		// If physics debug mode is on, draw it.
+		PhysicsEngine physics = state.getObjectHandler().getPhysicsEngine();
+		if(physics.debugMode) {
+			DebugDrawer physics3Batch = physics.getDebugDrawer();
+			physics3Batch.begin(state.getCamera());
+		    physics.getDynamicsWorld().debugDrawWorld();
+		    physics3Batch.end();
+		}
+		
 		// Render 25D.
 		if(batch25 != null) {
 			Array<RenderableProvider25> providers25 = state.getProvider25();

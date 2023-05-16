@@ -11,10 +11,11 @@ import dev.iwilkey.terrafort.gfx.Camera;
 import dev.iwilkey.terrafort.gfx.RenderableProvider2;
 import dev.iwilkey.terrafort.gfx.RenderableProvider25;
 import dev.iwilkey.terrafort.gfx.RenderableProvider3;
+import dev.iwilkey.terrafort.gfx.ViewportResizable;
 import dev.iwilkey.terrafort.object.GameObject;
 import dev.iwilkey.terrafort.object.GameObjectHandler;
 
-public abstract class State implements Disposable {
+public abstract class State implements ViewportResizable, Disposable {
 	
 	// Engine and assets.
 	private TerrafortEngine engine;
@@ -122,6 +123,10 @@ public abstract class State implements Disposable {
 		return assetBuffer;
 	}
 	
+	public final GameObjectHandler getObjectHandler() {
+		return objectHandler;
+	}
+	
 	protected final TerrafortEngine getEngine() {
 		return engine;
 	}
@@ -131,7 +136,13 @@ public abstract class State implements Disposable {
 	 */
 	
 	@Override
+	public void onViewportResize(int newWidth, int newHeight) {
+		objectHandler.onViewportResize(newWidth, newHeight);
+	}
+	
+	@Override
 	public void dispose() {
+		objectHandler.dispose();
 		if(assets != null)
 			assets.dispose();
 	}

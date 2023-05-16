@@ -5,19 +5,26 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.badlogic.gdx.utils.Disposable;
+
+import dev.iwilkey.terrafort.gfx.ViewportResizable;
+import dev.iwilkey.terrafort.physics.PhysicsEngine;
 import dev.iwilkey.terrafort.state.State;
 
-public final class GameObjectHandler {
+public final class GameObjectHandler implements ViewportResizable, Disposable {
 	
 	public static final int MAX_OBJS = (int)Math.pow(2, 20);
 	
 	private final State state;
+	private final PhysicsEngine physics;
 	private final AtomicLong idGenerator;
 	private final HashMap<Long, GameObject> activeObjects;
+	
 	private Iterator<Map.Entry<Long, GameObject>> iterator;
 
 	public GameObjectHandler(State state) {
 		this.state = state;
+		physics = new PhysicsEngine();
 		idGenerator = new AtomicLong(0);
 		activeObjects = new HashMap<>();
 		iterator = activeObjects.entrySet().iterator();
@@ -32,7 +39,14 @@ public final class GameObjectHandler {
 		long id = idGenerator.incrementAndGet();
 		activeObjects.put(id, o);
 		o.setID(id);
-		// Add renderable.
+		// Handle adding 3D objects to the physics engine.
+		if(o instanceof GameObject3) {
+			GameObject3 obj3 = (GameObject3)o;
+			PhysicsIdentity iden = obj3.getPhysicsIdentity();
+			iden.getBody().setUserValue((int)id);
+			iden.getBody().proceedToTransform(obj3.getModelInstance().transform);
+			physics.getDynamicsWorld().addRigidBody(iden.getBody());
+		}
 		modifyRenderables(o, true);
 		o.instantiation();
 		System.out.println("[Terrafort Engine] Created a new GameObject with ID " + id);
@@ -49,6 +63,8 @@ public final class GameObjectHandler {
 	}
 	
 	public void tick() {
+		// Tick the physics engine.
+		physics.tick();
 		// Tick objs and see if they should be disposed of.
 		iterator = activeObjects.entrySet().iterator();
 		while(iterator.hasNext()) {
@@ -58,21 +74,32 @@ public final class GameObjectHandler {
 		    if(obj.shouldDispose()) {
 		    	// Update State RenderableProviders based on GameObject type.
 		    	modifyRenderables(obj, false);
+		    	// Handle removing 3D from physics engine.
+		    	if(obj instanceof GameObject3) {
+		    		GameObject3 obj3 = (GameObject3)obj;
+		    		PhysicsIdentity iden = obj3.getPhysicsIdentity();
+		    		physics.getDynamicsWorld().removeRigidBody(iden.getBody());
+		    		iden.dispose();
+		    		obj3.getMotion().dispose();
+		    	}
 		    	obj.dispose();
 		        iterator.remove();
 		        System.out.println("[Terrafort Engine] Removed GameObject with ID " + id);
 		    } else {
+		    	if(!obj.shouldRender()) {
+		    		if(isRendering(obj))
+		    			modifyRenderables(obj, false);
+		    	} else {
+		    		if(!isRendering(obj))
+		    			modifyRenderables(obj, true);
+		    	}
 		        obj.tick();
 		    }
 		}
 	}
 	
 	private void modifyRenderables(GameObject o, boolean add) {
-		String type = "";
-		if(o instanceof GameObject3)
-			type = "go3";
-		else if(o instanceof GameObject25)
-			type = "go25";
+		String type = getType(o);
 		// TODO: Add support for other types of GameObjectX.
 		switch(type) {
 			case "go3":
@@ -84,10 +111,33 @@ public final class GameObjectHandler {
 				else state.getProvider25().removeValue((GameObject25)o, false);
 				break;
 			case "go2":
-				
+				if(add) state.getProvider2().add((GameObject2)o);
+				else state.getProvider2().removeValue((GameObject2)o, false);
 				break;
 			default: return;
 		}
+	}
+	
+	private boolean isRendering(GameObject o) {
+		String type = getType(o);
+		switch(type) {
+			case "go3":
+				return state.getProvider3().contains((GameObject3)o, false);
+			case "go25":
+				return state.getProvider25().contains((GameObject25)o, false);
+			case "go2":
+				return state.getProvider2().contains((GameObject2)o, false);
+			default: return false;
+		}
+	}
+	
+	private String getType(GameObject o) {
+		if(o instanceof GameObject3)
+			return "go3";
+		else if(o instanceof GameObject25)
+			return "go25";
+		else 
+			return "go2";
 	}
 	
 	/**
@@ -96,5 +146,29 @@ public final class GameObjectHandler {
 	
 	public State getState() {
 		return state;
+	}
+	
+	public PhysicsEngine getPhysicsEngine() {
+		return physics;
+	}
+	
+	/**
+	 * Interfaces
+	 */
+
+	@Override
+	public void onViewportResize(int newWidth, int newHeight) {
+		for(Map.Entry<Long, GameObject> entry : activeObjects.entrySet()) {
+			if(entry.getValue() instanceof ViewportResizable) {
+				ViewportResizable obj = (ViewportResizable)(entry.getValue());
+				obj.onViewportResize(newWidth, newHeight);
+			}
+		}
+	}
+
+	@Override
+	public void dispose() {
+		physics.dispose();
+		activeObjects.clear();
 	}
 }

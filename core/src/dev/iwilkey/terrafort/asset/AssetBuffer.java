@@ -3,9 +3,9 @@ package dev.iwilkey.terrafort.asset;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
@@ -42,25 +42,31 @@ public class AssetBuffer {
 	public void finalizeMemory(AssetManager memory) {
 		buffer.clear();
 		// Process the loaded voxel models to work well with the Terrafort Engine.
-		Array<Model> loadedModels = new Array<>();
-		memory.getAll(Model.class, loadedModels);
-		for(Model model : loadedModels) {
-			// Tag and materialize Model.
-			ModelBuilder builder = new ModelBuilder();
-			builder.begin();
-			builder.node().id = "root";
-			builder.part(model.meshParts.first(), new Material(model.materials.get(0)));
-			model = builder.end();
-			// Get Model bounding box.
-			BoundingBox box = new BoundingBox();
-			model.calculateBoundingBox(box);
-			Vector3 dim = new Vector3();
-			box.getDimensions(dim);
-			// Calculate center offset.
-			Vector3 center = new Vector3(0, -(dim.y / 2f), 0);
-			// Transform Model to be center.
-			model.getNode("root").translation.add(center);
-			model.calculateTransforms();
+		Array<String> assetNames = memory.getAssetNames();
+		for(String name : assetNames) {
+			Object asset = memory.get(name);
+			if(asset instanceof Model) {
+				Model model = (Model)asset;
+				// Process Model.
+				if (!model.nodes.isEmpty()) {
+					Node node = model.nodes.get(0);
+					node.id = "root";
+					if (!model.materials.isEmpty() && !model.meshParts.isEmpty()) {
+						node.parts.clear();
+						node.parts.add(new NodePart(model.meshParts.first(), model.materials.get(0)));
+					}
+					// Get Model bounding box.
+					BoundingBox box = new BoundingBox();
+					model.calculateBoundingBox(box);
+					Vector3 dim = new Vector3();
+					box.getDimensions(dim);
+					// Calculate center offset.
+					Vector3 center = new Vector3(0, -(dim.y / 2f), 0);
+					// Transform Model to be center.
+					node.translation.add(center);
+					model.calculateTransforms();
+				}
+			}
 		}
 		finalized = true;
 	}

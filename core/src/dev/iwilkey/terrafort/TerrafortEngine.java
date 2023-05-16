@@ -72,6 +72,8 @@ public class TerrafortEngine extends ApplicationAdapter {
 	@Override
 	public void resize(int width, int height) {
 		renderer.onViewportResize(width, height);
+		if(currentState != null)
+			currentState.onViewportResize(width, height);
 	}
 	
 	@Override
@@ -89,8 +91,10 @@ public class TerrafortEngine extends ApplicationAdapter {
 	
 	public void setState(State state) {
 		renderer.disposeBatch25();
-		if(currentState != null) 
+		if(currentState != null) {
 			currentState.end();
+			currentState.dispose();
+		}
 		currentState = state;
 		if(currentState != null) 
 			currentState.init();

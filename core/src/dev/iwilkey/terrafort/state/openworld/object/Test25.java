@@ -12,18 +12,10 @@ public class Test25 extends GameObject25 {
 	}
 
 	@Override
-	public void instantiation() {
-
-	}
-
+	public void instantiation() {}
 	@Override
-	public void tick() {
-		
-	}
-
+	public void tick() {}
 	@Override
-	public void dispose() {
-		
-	}
+	public void dispose() {}
 
 }

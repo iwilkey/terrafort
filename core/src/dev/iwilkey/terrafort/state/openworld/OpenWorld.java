@@ -8,9 +8,10 @@ import dev.iwilkey.terrafort.gfx.Alignment;
 import dev.iwilkey.terrafort.gfx.Anchor;
 import dev.iwilkey.terrafort.state.State;
 import dev.iwilkey.terrafort.state.openworld.gfx.WorldEnvironment;
+import dev.iwilkey.terrafort.state.openworld.object.Crosshair;
 import dev.iwilkey.terrafort.state.openworld.object.Cube;
-import dev.iwilkey.terrafort.state.openworld.object.Player;
 import dev.iwilkey.terrafort.state.openworld.object.Test25;
+
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 
@@ -21,31 +22,28 @@ public class OpenWorld extends State {
 
 	public OpenWorld(TerrafortEngine engine) {
 		super(engine, new AssetBuffer(
-				new TerrafortAsset("cube", "vox/cube/cube.vox.obj", AssetType.MODEL),
-				new TerrafortAsset("crosshair", "texture/crosshair.png", AssetType.TEXTURE)
+				new TerrafortAsset("vox/cube/cube.vox.obj", AssetType.MODEL),
+				new TerrafortAsset("texture/crosshair.png", AssetType.TEXTURE)
 			));
 	}
 	
+	long crosshair;
 	long cube;
 	long test25;
 	@Override
 	public void begin() {
-		// Initialize the rendering environment.
 		env = new WorldEnvironment();
 		environment3 = env;
-		// Set up the player.
-		player = new Player(this);
-		// Set up camera controller.
+		crosshair = addGameObject(new Crosshair(this).setShouldRender(false));
+		player = new Player(this, crosshair);
 		camera3.setController(player);
-		// Test 3D object.
-		cube = addGameObject(new Cube(this));
-		// Test 25.
+		cube = addGameObject(new Cube(this).setPosition(0, 0, 0));
 		test25 = addGameObject(new Test25(this, true));
 	}
 
 	@Override
 	public void tick() {
-
+		
 	}
 
 	@Override
@@ -58,7 +56,6 @@ public class OpenWorld extends State {
 
 	@Override
 	public void end() {
-		// TODO Auto-generated method stub
 		
 	}
 

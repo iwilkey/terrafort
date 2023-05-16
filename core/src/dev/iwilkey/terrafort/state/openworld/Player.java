@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.state.openworld.object;
+package dev.iwilkey.terrafort.state.openworld;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Interpolation;
@@ -9,34 +9,33 @@ import dev.iwilkey.terrafort.InputHandler.KeyBinding;
 import dev.iwilkey.terrafort.gfx.Camera;
 import dev.iwilkey.terrafort.gfx.Camera.CameraController;
 import dev.iwilkey.terrafort.state.State;
-import dev.iwilkey.terrafort.state.openworld.gfx.Crosshair;
 
 public class Player implements CameraController {
-	
-	private final State state;
 
+	private final State state;
 	private boolean isFocused = false;
-	private Crosshair crosshair = null;
+	private long crosshair;
+	
+	public Player(State state, long crosshair) {
+		this.state = state;
+		this.crosshair = crosshair;
+	}
 	
 	/**
 	 * Translation and perspective variables
 	 */
 	
 	private static final float VERT_DEGREE_CLAMP = 88.0f;
-	private Vector3 xzDirection = new Vector3(Vector3.X);
+	private Vector3 xzDirection = Vector3.X.cpy();
 	private Vector3 position = new Vector3(0, 2, 0);
 	private double rotVertAngle = 0.0f;
 	private float horLookSens = 0.2f;
 	private float vertLookSens = 0.2f;
-	private float forwardSpeed = 1.0f;
-	private float strafeSpeed = 1.0f;
-	private float upSpeed = 1.0f;
-	private float translationSmoothingConstant = 0.01f;
+	private float forwardSpeed = 0.8f;
+	private float strafeSpeed = 0.8f;
+	private float upSpeed = 0.6f;
+	private float translationSmoothingConstant = 0.03f;
 	private Interpolation translationInterpolationType = Interpolation.exp10Out;
-	
-	public Player(State state) {
-		this.state = state;
-	}
 	
 	@Override
 	public void control(Camera camera) {
@@ -54,9 +53,9 @@ public class Player implements CameraController {
 		if(InputHandler.keyCurrent(KeyBinding.getBinding("Strafe Left")))
 			position.sub(new Vector3(-xzDirection.z * strafeSpeed, 0, xzDirection.x * strafeSpeed));
 		if(InputHandler.keyCurrent(KeyBinding.getBinding("Ascend")))
-			position.add(Vector3.Y.scl(upSpeed));
+			position.add(Vector3.Y.cpy().scl(upSpeed));
 		if(InputHandler.keyCurrent(KeyBinding.getBinding("Descend")))
-			position.sub(Vector3.Y.scl(upSpeed));
+			position.sub(Vector3.Y.cpy().scl(upSpeed));
 		// Handle look.
 		int deltaX = Gdx.input.getDeltaX();
 		int deltaY = Gdx.input.getDeltaY();
@@ -78,18 +77,7 @@ public class Player implements CameraController {
 				isFocused = true;
 		if(InputHandler.keyJustDown(KeyBinding.getBinding("Focus / Unfocus")))
 			isFocused = !isFocused;
-		if(isFocused) {
-			if(crosshair == null) 
-				crosshair = new Crosshair(state, 10, 10);
-			Gdx.input.setCursorCatched(true);
-		} else {
-			if(crosshair != null) {
-				crosshair.dispose();
-				crosshair = null;
-			}
-			Gdx.input.setCursorCatched(false);
-		}
-		
+		state.getObjectHandler().get(crosshair).setShouldRender(isFocused);
+		Gdx.input.setCursorCatched(isFocused);
 	}
-
 }

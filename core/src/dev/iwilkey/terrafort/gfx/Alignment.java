@@ -1,7 +1,9 @@
 package dev.iwilkey.terrafort.gfx;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.math.Vector2;
 
+import dev.iwilkey.terrafort.object.GameObject2;
 import imgui.ImGui;
 import imgui.ImVec2;
 
@@ -76,6 +78,26 @@ public class Alignment {
 		float x = anc.x + ((center.x - anc.x) * (lerpCenter / 100.0f));
 		float y = anc.y + ((center.y - anc.y) * (lerpCenter / 100.0f));
 		ImGui.setWindowPos(x, y);
+	}
+	
+	public static Vector2 alignGameObject2(GameObject2 go, Anchor anchor) {
+		ImVec2 pos = anchorTo(new ImVec2(go.getWidth(), go.getHeight()), anchor);
+		return new Vector2((int)pos.x, (int)pos.y);
+	}
+	
+	public static Vector2 alignGameObject2(GameObject2 go, Anchor anchor, float padX, float padY) {
+		ImVec2 pos = anchorTo(new ImVec2(go.getWidth(), go.getHeight()), anchor);
+		return new Vector2((int)pos.x + padX, (int)pos.y + padY);
+	}
+	
+	public static Vector2 alignGameObject2(GameObject2 go, Anchor anchor, float lerpCenter) {
+		lerpCenter = (float)Math.min(100.0f, lerpCenter);
+		lerpCenter = (float)Math.max(0.0f, lerpCenter);
+		ImVec2 center = anchorTo(new ImVec2(go.getWidth(), go.getHeight()), Anchor.CENTER);
+		ImVec2 anc = anchorTo(new ImVec2(go.getWidth(), go.getHeight()), anchor);
+		float x = anc.x + ((center.x - anc.x) * (lerpCenter / 100.0f));
+		float y = anc.y + ((center.y - anc.y) * (lerpCenter / 100.0f));
+		return new Vector2((int)x, (int)y);
 	}
 	
 }
