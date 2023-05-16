@@ -12,7 +12,7 @@ public abstract class GameObject {
 		this.state = state;
 	}
 	
-	public void destroy() {
+	public void remove() {
 		shouldDispose = true;
 	}
 	

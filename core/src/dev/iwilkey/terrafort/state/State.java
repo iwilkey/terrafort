@@ -42,6 +42,11 @@ public abstract class State implements Disposable {
 		init3();
 	}
 	
+	private void init3() {
+		environment3 = new Environment();
+		camera3 = new Camera(64);
+	}
+	
 	public final void init() {
 		if(assetBuffer == null) {
 			assets = null;
@@ -60,19 +65,29 @@ public abstract class State implements Disposable {
 		return false;
 	}
 	
+	public final void update() {
+		objectHandler.tick();
+		camera3.tick();
+		tick();
+	}
+	
 	public abstract void begin();
 	public abstract void tick();
 	public abstract void gui();
 	public abstract void end();
+	
+	
+	/**
+	 * GameObject methods.
+	 */
 	
 	protected long addGameObject(GameObject o) {
 		long id = objectHandler.create(o);
 		return id;
 	}
 	
-	private void init3() {
-		environment3 = new Environment();
-		camera3 = new Camera(64);
+	protected GameObject getGameObject(long id) {
+		return objectHandler.get(id);
 	}
 	
 	/**

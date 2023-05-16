@@ -10,6 +10,7 @@ import dev.iwilkey.terrafort.gfx.Anchor;
 import dev.iwilkey.terrafort.gfx.Renderer;
 import dev.iwilkey.terrafort.state.State;
 import dev.iwilkey.terrafort.state.openworld.OpenWorld;
+
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 
@@ -23,7 +24,7 @@ public class TerrafortEngine extends ApplicationAdapter {
 	public void create() {
 		input = new InputHandler();
 		Gdx.input.setInputProcessor(input);
-		renderer = new Renderer();
+		renderer = new Renderer(this);
 		// Set the initial state.
 		setState(new OpenWorld(this));
 		GLFW.glfwShowWindow(renderer.getWindowHandle());
@@ -31,10 +32,11 @@ public class TerrafortEngine extends ApplicationAdapter {
 	
 	@Override
 	public void render() {
-		renderer.clearGl();
 		// Return if null state.
-		if(currentState == null)
+		if(currentState == null) {
+			renderer.clearGl(false);
 			return;
+		}
 		// Check to see if the currentState is done loading. If not, show progress.
 		if(!currentState.load()) {
 			System.out.println("[Terrafort Engine] Loading state...");
@@ -46,9 +48,10 @@ public class TerrafortEngine extends ApplicationAdapter {
 			// Finalize assets after loading.
 			currentState.getAssetBuffer().finalizeMemory(currentState.getAssetManager());
 			currentState.begin();
+			renderer.initBatch25();
 		}
 		// Differentiate GUI input vs engine input
-		if(ImGui.getIO().getWantCaptureMouse() || ImGui.getIO().getWantCaptureKeyboard()) {
+		if(InputHandler.guiWantsInteraction()) {
 			if(Gdx.input.getInputProcessor() != null)
 				Gdx.input.setInputProcessor(null);
 		} else {
@@ -56,7 +59,7 @@ public class TerrafortEngine extends ApplicationAdapter {
 				Gdx.input.setInputProcessor(input);
 		}
 		// Tick and render state.
-		currentState.tick();
+		currentState.update();
 		renderer.render(currentState);
 		// Render state GUI.
 		renderer.clearGui();
@@ -85,6 +88,7 @@ public class TerrafortEngine extends ApplicationAdapter {
 	}
 	
 	public void setState(State state) {
+		renderer.disposeBatch25();
 		if(currentState != null) 
 			currentState.end();
 		currentState = state;
@@ -112,6 +116,10 @@ public class TerrafortEngine extends ApplicationAdapter {
 	
 	public InputHandler getInputHandler() {
 		return input;
+	}
+	
+	public State getCurrentState() {
+		return currentState;
 	}
 	
 }

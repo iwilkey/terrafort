@@ -32,12 +32,20 @@ public final class GameObjectHandler {
 		long id = idGenerator.incrementAndGet();
 		activeObjects.put(id, o);
 		o.setID(id);
-		
-		// Update State RenderableProviders based on GameObject type?
-		
+		// Add renderable.
+		modifyRenderables(o, true);
 		o.instantiation();
 		System.out.println("[Terrafort Engine] Created a new GameObject with ID " + id);
 		return id;
+	}
+	
+	public GameObject get(long id) {
+		if(activeObjects.containsKey(id)) {
+			return activeObjects.get(id);
+		} else {
+			System.out.println("[Terrafort Engine] You cannot retrieve a GameObject that doesn't exist. ID " + id);
+			return null;
+		}
 	}
 	
 	public void tick() {
@@ -45,15 +53,40 @@ public final class GameObjectHandler {
 		iterator = activeObjects.entrySet().iterator();
 		while(iterator.hasNext()) {
 		    Map.Entry<Long, GameObject> entry = iterator.next();
+		    long id = entry.getKey();
 		    GameObject obj = entry.getValue();
 		    if(obj.shouldDispose()) {
 		    	// Update State RenderableProviders based on GameObject type.
-		    	
+		    	modifyRenderables(obj, false);
 		    	obj.dispose();
 		        iterator.remove();
+		        System.out.println("[Terrafort Engine] Removed GameObject with ID " + id);
 		    } else {
 		        obj.tick();
 		    }
+		}
+	}
+	
+	private void modifyRenderables(GameObject o, boolean add) {
+		String type = "";
+		if(o instanceof GameObject3)
+			type = "go3";
+		else if(o instanceof GameObject25)
+			type = "go25";
+		// TODO: Add support for other types of GameObjectX.
+		switch(type) {
+			case "go3":
+				if(add) state.getProvider3().add((GameObject3)o);
+				else state.getProvider3().removeValue((GameObject3)o, false);
+				break;
+			case "go25":
+				if(add) state.getProvider25().add((GameObject25)o);
+				else state.getProvider25().removeValue((GameObject25)o, false);
+				break;
+			case "go2":
+				
+				break;
+			default: return;
 		}
 	}
 	

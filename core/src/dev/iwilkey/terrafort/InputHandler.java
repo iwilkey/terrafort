@@ -1,14 +1,39 @@
 package dev.iwilkey.terrafort;
 
+import java.util.HashMap;
+
+import com.badlogic.gdx.Input.Buttons;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.math.Vector2;
 
-public class InputHandler implements InputProcessor {
+import imgui.ImGui;
+
+public final class InputHandler implements InputProcessor {
+	
+	public static final class KeyBinding {
+
+		private static HashMap<String, Integer> bindings;
+		
+		public KeyBinding() {
+			bindings = new HashMap<>();
+		}
+		
+		public static void setBinding(String name, int key) {
+			bindings.put(name, key);
+		}
+		
+		public static int getBinding(String binding) {
+			return bindings.get(binding);
+		}
+		
+	}
 	
 	public static final byte ACTIVATE = 1 << 2;
 	public static final byte CURRENT = ACTIVATE >> 1;
 	public static final byte DISABLE = ACTIVATE >> 2;
 	public static final byte NONE = ACTIVATE >> 3;
+	
 	private static byte[] keyState;
 	private static byte[] cursorState;
 	private static Vector2 cursorPos;
@@ -19,9 +44,21 @@ public class InputHandler implements InputProcessor {
 		cursorState = new byte[0x10];
 		cursorPos = new Vector2();
 		scrollWheelPos = new Vector2();
+		setBindings();
 	}
 	
-
+	public void setBindings() {
+		new KeyBinding();
+		KeyBinding.setBinding("Move Foward", Keys.W);
+		KeyBinding.setBinding("Move Backward", Keys.S);
+		KeyBinding.setBinding("Strafe Right", Keys.D);
+		KeyBinding.setBinding("Strafe Left", Keys.A);
+		KeyBinding.setBinding("Ascend", Keys.SPACE);
+		KeyBinding.setBinding("Descend", Keys.SHIFT_LEFT);
+		KeyBinding.setBinding("Focus / Unfocus", Keys.ESCAPE);
+		KeyBinding.setBinding("Action", Buttons.LEFT);
+	}
+	
 	@Override
 	public boolean keyDown(int keycode) {
 		keyState[keycode] = ACTIVATE;
@@ -98,6 +135,10 @@ public class InputHandler implements InputProcessor {
 
 	public static Vector2 getScrollwheelPosition() {
 		return scrollWheelPos;
+	}
+	
+	public static boolean guiWantsInteraction() {
+		return ImGui.getIO().getWantCaptureMouse() || ImGui.getIO().getWantCaptureKeyboard();
 	}
 	
 	public void poll() {

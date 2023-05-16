@@ -7,7 +7,7 @@ public class TerrafortDesktopLauncher {
 	
 	public static class TerrafortDesktopApplicationConfiguration extends Lwjgl3ApplicationConfiguration {
 		
-		public static final float MIN_SCREEN_WIDTH_RATIO = 0.25f;
+		public static final float MIN_SCREEN_WIDTH_RATIO = 0.50f;
 		public static final float DEFAULT_SCREEN_WIDTH_RATIO = 0.50f;
 		public static final float DEFAULT_ASPECT_RATIO = (16 / 9.0f);
 		
