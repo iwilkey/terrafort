@@ -9,8 +9,7 @@ import dev.iwilkey.terrafort.gfx.Alignment;
 import dev.iwilkey.terrafort.gfx.Anchor;
 import dev.iwilkey.terrafort.gfx.Renderer;
 import dev.iwilkey.terrafort.state.State;
-import dev.iwilkey.terrafort.state.openworld.OpenWorld;
-
+import dev.iwilkey.terrafort.state.game.SinglePlayer;
 import imgui.ImGui;
 import imgui.flag.ImGuiWindowFlags;
 
@@ -26,7 +25,7 @@ public class TerrafortEngine extends ApplicationAdapter {
 		Gdx.input.setInputProcessor(input);
 		renderer = new Renderer(this);
 		// Set the initial state.
-		setState(new OpenWorld(this));
+		setState(new SinglePlayer(this));
 		GLFW.glfwShowWindow(renderer.getWindowHandle());
 	}
 	

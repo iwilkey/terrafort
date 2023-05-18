@@ -10,11 +10,13 @@ public class Camera extends PerspectiveCamera {
 		public void control(Camera camera);
 	}
 	
+	public static Vector3 INITIAL_POSITION;
+	public static Vector3 INITIAL_DIRECTION;
 	private CameraController controller = null;
 
 	public Camera(int fov) {
 		super(fov, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		position.set(0, 2, 0);
+		position.set(0, 10, -10);
 		direction.set(Vector3.X);
 		near = 0.1f;
 		far = 200.0f;

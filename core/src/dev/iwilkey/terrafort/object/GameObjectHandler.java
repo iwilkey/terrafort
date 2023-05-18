@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.badlogic.gdx.utils.Disposable;
 
 import dev.iwilkey.terrafort.gfx.ViewportResizable;
-import dev.iwilkey.terrafort.physics.PhysicsEngine;
+import dev.iwilkey.terrafort.physics.bullet.BulletWrapper;
 import dev.iwilkey.terrafort.state.State;
 
 public final class GameObjectHandler implements ViewportResizable, Disposable {
@@ -16,7 +16,7 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 	public static final int MAX_OBJS = (int)Math.pow(2, 20);
 	
 	private final State state;
-	private final PhysicsEngine physics;
+	private final BulletWrapper physics;
 	private final AtomicLong idGenerator;
 	private final HashMap<Long, GameObject> activeObjects;
 	
@@ -24,7 +24,7 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 
 	public GameObjectHandler(State state) {
 		this.state = state;
-		physics = new PhysicsEngine();
+		physics = new BulletWrapper();
 		idGenerator = new AtomicLong(0);
 		activeObjects = new HashMap<>();
 		iterator = activeObjects.entrySet().iterator();
@@ -148,7 +148,7 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 		return state;
 	}
 	
-	public PhysicsEngine getPhysicsEngine() {
+	public BulletWrapper getPhysicsEngine() {
 		return physics;
 	}
 	

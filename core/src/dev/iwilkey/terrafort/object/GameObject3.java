@@ -7,8 +7,8 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 
 import dev.iwilkey.terrafort.gfx.RenderableProvider3;
-import dev.iwilkey.terrafort.physics.Motion;
-import dev.iwilkey.terrafort.physics.Primitive;
+import dev.iwilkey.terrafort.physics.bullet.BulletMotion;
+import dev.iwilkey.terrafort.physics.bullet.BulletPrimitive;
 import dev.iwilkey.terrafort.state.State;
 
 public abstract class GameObject3 extends GameObject implements RenderableProvider3 {
@@ -17,16 +17,16 @@ public abstract class GameObject3 extends GameObject implements RenderableProvid
 	private final  ModelInstance renderable;
 	private Vector3 position;
 	private PhysicsIdentity identity;
-	private Motion motion;
+	private BulletMotion motion;
 	
-	public GameObject3(State state, String pathToLoadedModel, Primitive primitive, float mass) {
+	public GameObject3(State state, String pathToLoadedModel, BulletPrimitive primitive, float mass) {
 		super(state);
 		renderable = new ModelInstance(state.getAssetManager().get(pathToLoadedModel, Model.class));
 		boundingBox = new BoundingBox();
 		renderable.calculateBoundingBox(boundingBox);
 		position = new Vector3();
 		identity = new PhysicsIdentity(state.getAssetManager().get(pathToLoadedModel, Model.class), getDimensions(), primitive, mass);
-		motion = new Motion();
+		motion = new BulletMotion();
 		motion.setTransform(renderable.transform);
 		identity.getBody().setMotionState(motion);
 	}
@@ -38,7 +38,7 @@ public abstract class GameObject3 extends GameObject implements RenderableProvid
 	
 	public GameObject3 setPosition(float x, float y, float z) {
 		position.set(x, y, z);
-		renderable.transform.setToTranslation(position);
+		renderable.transform.translate(x - renderable.transform.getTranslation(new Vector3()).x, y - renderable.transform.getTranslation(new Vector3()).y, z - renderable.transform.getTranslation(new Vector3()).z);
 		resetPhysicsIdentity();
 		return this;
 	}
@@ -53,7 +53,7 @@ public abstract class GameObject3 extends GameObject implements RenderableProvid
 	}
 	
 	public GameObject3 setRotation(Vector3 axis, float deg) {
-		renderable.transform.setToRotation(axis, deg);
+		renderable.transform.rotate(axis, deg);
 		resetPhysicsIdentity();
 		return this;
 	}
@@ -71,7 +71,7 @@ public abstract class GameObject3 extends GameObject implements RenderableProvid
 		return identity;
 	}
 	
-	public Motion getMotion() {
+	public BulletMotion getMotion() {
 		return motion;
 	}
 

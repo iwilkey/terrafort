@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.physics;
+package dev.iwilkey.terrafort.physics.bullet;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector3;
@@ -17,7 +17,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSol
 import com.badlogic.gdx.physics.bullet.linearmath.btIDebugDraw;
 import com.badlogic.gdx.utils.Disposable;
 
-public final class PhysicsEngine implements Disposable {
+public final class BulletWrapper implements Disposable {
 	
 	public final static byte KINEMATIC_FLAG = 1 << 1;
 	public final static byte STATIC_FLAG = 1 << 2;
@@ -31,12 +31,12 @@ public final class PhysicsEngine implements Disposable {
 	private final btBroadphaseInterface broadphase;
 	private final btDiscreteDynamicsWorld dynamicsWorld;
 	private final btConstraintSolver constraintSolver;
-	private final CollisionListener listener;
+	private final BulletCollisionListener listener;
 	private final DebugDrawer debugRenderer;
 	
-	public boolean debugMode = true;
+	public boolean debugMode = false;
 
-	public PhysicsEngine() {
+	public BulletWrapper() {
 		Bullet.init();
 		collisionConfig = new btDefaultCollisionConfiguration();
 		dispatcher = new btCollisionDispatcher(collisionConfig);
@@ -44,11 +44,11 @@ public final class PhysicsEngine implements Disposable {
 		constraintSolver = new btSequentialImpulseConstraintSolver();
 		dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, 
 				broadphase, constraintSolver, collisionConfig);
-		listener = new CollisionListener();
+		listener = new BulletCollisionListener();
 		debugRenderer = new DebugDrawer();
 		debugRenderer.setDebugMode(btIDebugDraw.DebugDrawModes.DBG_MAX_DEBUG_DRAW_MODE);
 		dynamicsWorld.setDebugDrawer(debugRenderer);
-		setWorldGravity(new Vector3(0, -9.8f, 0));
+		setWorldGravity(new Vector3(0, 0, 0));
 	}
 	
 	public void tick() {
@@ -59,7 +59,7 @@ public final class PhysicsEngine implements Disposable {
 		dynamicsWorld.setGravity(grav);
 	}
 	
-	public CollisionListener getCollisionListener() {
+	public BulletCollisionListener getCollisionListener() {
 		return listener;
 	}
 	

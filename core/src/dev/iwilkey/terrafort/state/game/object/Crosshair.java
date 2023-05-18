@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.state.openworld.object;
+package dev.iwilkey.terrafort.state.game.object;
 
 import dev.iwilkey.terrafort.gfx.Anchor;
 import dev.iwilkey.terrafort.object.GameObject2;

@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.state.openworld;
+package dev.iwilkey.terrafort.state.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Interpolation;
@@ -27,14 +27,14 @@ public class Player implements CameraController {
 	
 	private static final float VERT_DEGREE_CLAMP = 88.0f;
 	private Vector3 xzDirection = Vector3.X.cpy();
-	private Vector3 position = new Vector3(0, 2, 0);
+	private Vector3 position = new Vector3(0, 10, -10);
 	private double rotVertAngle = 0.0f;
 	private float horLookSens = 0.2f;
 	private float vertLookSens = 0.2f;
-	private float forwardSpeed = 0.8f;
-	private float strafeSpeed = 0.8f;
-	private float upSpeed = 0.6f;
-	private float translationSmoothingConstant = 0.03f;
+	private float forwardSpeed = 0.05f;
+	private float strafeSpeed = 0.05f;
+	private float upSpeed = 0.02f;
+	private float translationSmoothingConstant = 0.01f;
 	private Interpolation translationInterpolationType = Interpolation.exp10Out;
 	
 	@Override
@@ -79,5 +79,9 @@ public class Player implements CameraController {
 			isFocused = !isFocused;
 		state.getObjectHandler().get(crosshair).setShouldRender(isFocused);
 		Gdx.input.setCursorCatched(isFocused);
+	}
+	
+	public boolean isFocused() {
+		return isFocused;
 	}
 }

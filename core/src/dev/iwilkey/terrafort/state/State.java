@@ -2,6 +2,7 @@ package dev.iwilkey.terrafort.state;
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
@@ -14,6 +15,9 @@ import dev.iwilkey.terrafort.gfx.RenderableProvider3;
 import dev.iwilkey.terrafort.gfx.ViewportResizable;
 import dev.iwilkey.terrafort.object.GameObject;
 import dev.iwilkey.terrafort.object.GameObjectHandler;
+import dev.iwilkey.terrafort.physics.bullet.BulletRaycaster;
+import dev.iwilkey.terrafort.physics.bullet.BulletRigidbody;
+import dev.iwilkey.terrafort.utilities.Pair;
 
 public abstract class State implements ViewportResizable, Disposable {
 	
@@ -28,9 +32,10 @@ public abstract class State implements ViewportResizable, Disposable {
 	protected final Array<RenderableProvider2> provider2;
 	protected final GameObjectHandler objectHandler;
 	
-	// For 3D rendering.
+	// For 3D rendering and physics.
 	protected Camera camera3;
 	protected Environment environment3;
+	protected BulletRaycaster raycaster;
 	
 	public State(TerrafortEngine engine, AssetBuffer assetBuffer) {
 		this.engine = engine;
@@ -46,6 +51,7 @@ public abstract class State implements ViewportResizable, Disposable {
 	private void init3() {
 		environment3 = new Environment();
 		camera3 = new Camera(64);
+		raycaster = new BulletRaycaster();
 	}
 	
 	public final void init() {
@@ -82,13 +88,33 @@ public abstract class State implements ViewportResizable, Disposable {
 	 * GameObject methods.
 	 */
 	
-	protected long addGameObject(GameObject o) {
+	public long addGameObject(GameObject o) {
 		long id = objectHandler.create(o);
 		return id;
 	}
 	
-	protected GameObject getGameObject(long id) {
+	public GameObject getGameObject(long id) {
 		return objectHandler.get(id);
+	}
+	
+	/**
+	 * Raycasting methods.
+	 */
+	
+	public Vector3 doRaycastForPoint(float distance) {
+		return raycaster.hitPoint(camera3, objectHandler.getPhysicsEngine().getDynamicsWorld(), distance);
+	}
+	
+	public BulletRigidbody doRaycastForObject(float distance) {
+		return raycaster.hitObject(camera3, objectHandler.getPhysicsEngine().getDynamicsWorld(), distance);
+	}
+	
+	public Pair<BulletRigidbody, Vector3> doRaycast(float distance) {
+		return raycaster.hit(camera3, objectHandler.getPhysicsEngine().getDynamicsWorld(), distance);
+	}
+	
+	public boolean doRaycastCheckObstruction(float distance) {
+		return raycaster.hitPoint(camera3, objectHandler.getPhysicsEngine().getDynamicsWorld(), distance) != null;
 	}
 	
 	/**

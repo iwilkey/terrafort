@@ -14,21 +14,21 @@ import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Disposable;
 
-import dev.iwilkey.terrafort.physics.PhysicsEngine;
-import dev.iwilkey.terrafort.physics.PhysicsTag;
-import dev.iwilkey.terrafort.physics.Primitive;
-import dev.iwilkey.terrafort.physics.Rigidbody;
+import dev.iwilkey.terrafort.physics.bullet.BulletWrapper;
+import dev.iwilkey.terrafort.physics.bullet.BulletPhysicsTag;
+import dev.iwilkey.terrafort.physics.bullet.BulletPrimitive;
+import dev.iwilkey.terrafort.physics.bullet.BulletRigidbody;
 
 public final class PhysicsIdentity implements Disposable {
 	
 	private final btRigidBody.btRigidBodyConstructionInfo constructionInfo;
 	private final btCollisionShape shape;
-	private final Rigidbody rigidbody;
+	private final BulletRigidbody rigidbody;
 	private float mass;
 	private byte bodyType;
 	private Vector3 localInertia;
 	
-	public PhysicsIdentity(Model model, Vector3 dimensions, Primitive primitive, float mass) {
+	public PhysicsIdentity(Model model, Vector3 dimensions, BulletPrimitive primitive, float mass) {
 		this.mass = mass;
 		localInertia = new Vector3();
 		
@@ -59,31 +59,35 @@ public final class PhysicsIdentity implements Disposable {
 		else localInertia.set(0, 0, 0);
 		
 		constructionInfo = new btRigidBody.btRigidBodyConstructionInfo(mass, null, shape, localInertia);
-		rigidbody = new Rigidbody(constructionInfo);
+		rigidbody = new BulletRigidbody(constructionInfo);
 		constructionInfo.dispose();
-		rigidbody.setTag(PhysicsTag.ALL);
-		setBodyType(PhysicsEngine.DYNAMIC_FLAG);
+		rigidbody.setTag(BulletPhysicsTag.ALL);
+		setBodyType(BulletWrapper.DYNAMIC_FLAG);
 	}
 	
 	public void setBodyType(byte flag) {
-		bodyType = flag;
-		switch(bodyType) {
-			case PhysicsEngine.STATIC_FLAG:
-				rigidbody.setMassProps(0, new Vector3(0, 0, 0));
-				rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_STATIC_OBJECT);
-				rigidbody.setContactCallbackFlag(PhysicsEngine.STATIC_FLAG);
-				break;
-			case PhysicsEngine.KINEMATIC_FLAG:
-				rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
-				rigidbody.setActivationState(Collision.DISABLE_DEACTIVATION);
-				rigidbody.setContactCallbackFlag(PhysicsEngine.KINEMATIC_FLAG);
-				break;
-			case PhysicsEngine.DYNAMIC_FLAG:
-				rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-				rigidbody.setContactCallbackFlag(PhysicsEngine.DYNAMIC_FLAG);
-				rigidbody.setContactCallbackFilter(PhysicsEngine.STATIC_FLAG | PhysicsEngine.KINEMATIC_FLAG);
-				break;
-		}
+	    bodyType = flag;
+	    switch(bodyType) {
+	        case BulletWrapper.STATIC_FLAG:
+	            rigidbody.setMassProps(0, new Vector3(0, 0, 0));
+	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_STATIC_OBJECT);
+	            rigidbody.setContactCallbackFlag(BulletWrapper.STATIC_FLAG);
+	            break;
+	        case BulletWrapper.KINEMATIC_FLAG:
+	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_STATIC_OBJECT);
+	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+	            rigidbody.setActivationState(Collision.DISABLE_DEACTIVATION);
+	            rigidbody.setContactCallbackFlag(BulletWrapper.KINEMATIC_FLAG);
+	            break;
+	        case BulletWrapper.DYNAMIC_FLAG:
+	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_STATIC_OBJECT);
+	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
+	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
+	            rigidbody.setContactCallbackFlag(BulletWrapper.DYNAMIC_FLAG);
+	            rigidbody.setContactCallbackFilter(BulletWrapper.STATIC_FLAG | BulletWrapper.KINEMATIC_FLAG);
+	            break;
+	    }
 	}
 	
 	public btRigidBody getBody() {

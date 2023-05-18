@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.state.openworld.gfx;
+package dev.iwilkey.terrafort.state.game.gfx;
 
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;

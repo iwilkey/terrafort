@@ -22,7 +22,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 import dev.iwilkey.terrafort.TerrafortEngine;
-import dev.iwilkey.terrafort.physics.PhysicsEngine;
+import dev.iwilkey.terrafort.physics.bullet.BulletWrapper;
 import dev.iwilkey.terrafort.state.State;
 
 import imgui.ImGui;
@@ -49,6 +49,7 @@ public class Renderer implements ViewportResizable, Disposable {
 		this.engine = engine;
 		graphics = (Lwjgl3Graphics)Gdx.graphics;
 		window = graphics.getWindow();
+		Gdx.gl.glClearColor(0.14f, 0.13f, 0.13f, 1.0f);
 		registerViewportDimensions(graphics.getWidth(), graphics.getHeight());
 		// Init GUI
 		ImGui.createContext();
@@ -114,7 +115,7 @@ public class Renderer implements ViewportResizable, Disposable {
 		}
 		
 		// If physics debug mode is on, draw it.
-		PhysicsEngine physics = state.getObjectHandler().getPhysicsEngine();
+		BulletWrapper physics = state.getObjectHandler().getPhysicsEngine();
 		if(physics.debugMode) {
 			DebugDrawer physics3Batch = physics.getDebugDrawer();
 			physics3Batch.begin(state.getCamera());
