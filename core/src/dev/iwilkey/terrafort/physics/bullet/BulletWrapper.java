@@ -34,7 +34,7 @@ public final class BulletWrapper implements Disposable {
 	private final BulletCollisionListener listener;
 	private final DebugDrawer debugRenderer;
 	
-	public boolean debugMode = false;
+	public boolean debugMode = true;
 
 	public BulletWrapper() {
 		Bullet.init();

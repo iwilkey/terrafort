@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
 
+import dev.iwilkey.terrafort.asset.TerrafortAssetHandler;
 import dev.iwilkey.terrafort.gfx.Alignment;
 import dev.iwilkey.terrafort.gfx.Anchor;
 import dev.iwilkey.terrafort.gfx.RenderableProvider2;
@@ -45,7 +46,7 @@ public abstract class GameObject2 extends GameObject implements RenderableProvid
 	}
 	
 	private void initProperties(State state, String pathToLoadedTexture, int width, int height, Anchor anchor) {
-		bindedRaster = new TextureRegion((Texture)state.getAssetManager().get(pathToLoadedTexture));
+		bindedRaster = new TextureRegion(TerrafortAssetHandler.getTexture(pathToLoadedTexture));
 		color = Color.WHITE;
 		this.width = width;
 		this.height = height;

@@ -53,6 +53,9 @@ public class Renderer implements ViewportResizable, Disposable {
 		registerViewportDimensions(graphics.getWidth(), graphics.getHeight());
 		// Init GUI
 		ImGui.createContext();
+		ImGui.getIO().setIniFilename(null);
+		ImGui.getIO().setWantCaptureKeyboard(false);
+		ImGui.getIO().setWantCaptureMouse(false);
 		DI_GLFW.init(window.getWindowHandle(), true);
 		DI_GL3.init("#version 120");
 		// Create the Null Object. See notes on "createNullObject()" method to understand why.
@@ -229,7 +232,8 @@ public class Renderer implements ViewportResizable, Disposable {
 		// Dispose of batches.
 		batch3.dispose();
 		batch3Cache.dispose();
-		batch25.dispose();
+		if(batch25 != null)
+			batch25.dispose();
 		batch2.dispose();
 		// Dispose of ImGui artifacts.
 		DI_GLFW.dispose();

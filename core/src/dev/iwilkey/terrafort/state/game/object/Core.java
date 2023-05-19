@@ -16,7 +16,7 @@ public class Core extends GameObject3 {
 		Vector3 rotAxis = new Vector3(0, 1, 0);
 		
 		public Clouds(State state) {
-			super(state, "vox/clouds/clouds.vox.obj", BulletPrimitive.SPHERE, 1.0f);
+			super(state, "cube.txt", BulletPrimitive.SPHERE, 1.0f);
 		}
 		
 		@Override
@@ -34,12 +34,12 @@ public class Core extends GameObject3 {
 
 	}
 
-	long clouds;
+	// long clouds;
 	Vector3 rotAxis = new Vector3(0, 1, 0);
 
 	public Core(State state) {
-		super(state, "vox/core/core.vox.obj", BulletPrimitive.CUBOID, 100.0f);
-		clouds = state.addGameObject(new Clouds(state).setPosition(0, 0, 0));
+		super(state, "cube.txt", BulletPrimitive.CUBOID, 100.0f);
+		// clouds = state.addGameObject(new Clouds(state).setPosition(0, 0, 0));
 	}
 
 	@Override

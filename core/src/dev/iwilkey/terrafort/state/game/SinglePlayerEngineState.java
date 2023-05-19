@@ -1,32 +1,23 @@
 package dev.iwilkey.terrafort.state.game;
 
 import dev.iwilkey.terrafort.TerrafortEngine;
-import dev.iwilkey.terrafort.asset.AssetBuffer;
-import dev.iwilkey.terrafort.asset.AssetType;
-import dev.iwilkey.terrafort.asset.TerrafortAsset;
 import dev.iwilkey.terrafort.state.State;
 import dev.iwilkey.terrafort.state.game.gfx.WorldEnvironment;
 import dev.iwilkey.terrafort.state.game.object.Core;
 import dev.iwilkey.terrafort.state.game.object.Crosshair;
+import dev.iwilkey.terrafort.state.game.object.decal.Hitpoint;
 
-public class SinglePlayer extends State {
+public class SinglePlayerEngineState extends State {
 	
 	private Player player;
 	private WorldEnvironment env;
-	
-	// GUI
-	private ControlPanel panel;
-	
-	// GameObjects.
+	// private SinglePlayerGameState game;
+	// private BuildingHandler builder;
 	private long crosshair;
 	private long core;
 
-	public SinglePlayer(TerrafortEngine engine) {
-		super(engine, new AssetBuffer(
-				new TerrafortAsset("vox/core/core.vox.obj", AssetType.MODEL),
-				new TerrafortAsset("vox/clouds/clouds.vox.obj", AssetType.MODEL),
-				new TerrafortAsset("texture/crosshair.png", AssetType.TEXTURE)
-			));
+	public SinglePlayerEngineState(TerrafortEngine engine) {
+		super(engine);
 	}
 	
 	public Player getPlayer() {
@@ -37,30 +28,26 @@ public class SinglePlayer extends State {
 		return core;
 	}
 	
-	public ControlPanel getPanel() {
-		return panel;
-	}
-	
 	@Override
 	public void begin() {
-		// Init 3D env.
 		env = new WorldEnvironment();
 		environment3 = env;
 		crosshair = addGameObject(new Crosshair(this).setShouldRender(false));
 		player = new Player(this, crosshair);
 		camera3.setController(player);
-		// GUI
-		panel = new ControlPanel(this);
-		// Create core.
 		core = addGameObject(new Core(this).setPosition(0, 0, 0));
+		addGameObject(new Hitpoint(this));
 	}
 
 	@Override
-	public void tick() {}
+	public void tick() {
+		// game.tick();
+		// builder.tick();
+	}
 
 	@Override
 	public void gui() {
-		panel.render();
+		// game.render();
 	}
 
 	@Override

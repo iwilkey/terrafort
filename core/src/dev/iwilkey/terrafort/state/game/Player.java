@@ -9,11 +9,13 @@ import dev.iwilkey.terrafort.InputHandler.KeyBinding;
 import dev.iwilkey.terrafort.gfx.Camera;
 import dev.iwilkey.terrafort.gfx.Camera.CameraController;
 import dev.iwilkey.terrafort.state.State;
+import imgui.ImGui;
+import imgui.ImGuiIO;
 
 public class Player implements CameraController {
 
 	private final State state;
-	private boolean isFocused = false;
+	private boolean isFocused = true;
 	private long crosshair;
 	
 	public Player(State state, long crosshair) {
@@ -39,8 +41,8 @@ public class Player implements CameraController {
 	
 	@Override
 	public void control(Camera camera) {
-		camera.position.interpolate(position, translationSmoothingConstant, translationInterpolationType);
 		handleFocus();
+		camera.position.interpolate(position, translationSmoothingConstant, translationInterpolationType);
 		if(!isFocused)
 			return;
 		// Handle translation.
@@ -72,13 +74,18 @@ public class Player implements CameraController {
 	}
 	
 	private void handleFocus() {
-		if(InputHandler.cursorJustDown(KeyBinding.getBinding("Action")) && !isFocused)
-			if(!InputHandler.guiWantsInteraction())
-				isFocused = true;
+		Gdx.input.setCursorCatched(isFocused);
+		ImGuiIO io = ImGui.getIO();
+		if(!isFocused) {
+			io.setWantCaptureMouse(true);
+			io.setWantCaptureKeyboard(true);
+		} else {
+			io.setWantCaptureMouse(false);
+			io.setWantCaptureKeyboard(false);
+		}
 		if(InputHandler.keyJustDown(KeyBinding.getBinding("Focus / Unfocus")))
 			isFocused = !isFocused;
 		state.getObjectHandler().get(crosshair).setShouldRender(isFocused);
-		Gdx.input.setCursorCatched(isFocused);
 	}
 	
 	public boolean isFocused() {

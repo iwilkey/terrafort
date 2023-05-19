@@ -1,11 +1,11 @@
 package dev.iwilkey.terrafort.object;
 
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 
+import dev.iwilkey.terrafort.asset.TerrafortAssetHandler;
 import dev.iwilkey.terrafort.gfx.RenderableProvider3;
 import dev.iwilkey.terrafort.physics.bullet.BulletMotion;
 import dev.iwilkey.terrafort.physics.bullet.BulletPrimitive;
@@ -14,18 +14,18 @@ import dev.iwilkey.terrafort.state.State;
 public abstract class GameObject3 extends GameObject implements RenderableProvider3 {
 	
 	private final BoundingBox boundingBox;
-	private final  ModelInstance renderable;
+	private ModelInstance renderable;
 	private Vector3 position;
 	private PhysicsIdentity identity;
 	private BulletMotion motion;
 	
 	public GameObject3(State state, String pathToLoadedModel, BulletPrimitive primitive, float mass) {
 		super(state);
-		renderable = new ModelInstance(state.getAssetManager().get(pathToLoadedModel, Model.class));
+		renderable = new ModelInstance(TerrafortAssetHandler.getVoxelModel(pathToLoadedModel));
 		boundingBox = new BoundingBox();
 		renderable.calculateBoundingBox(boundingBox);
 		position = new Vector3();
-		identity = new PhysicsIdentity(state.getAssetManager().get(pathToLoadedModel, Model.class), getDimensions(), primitive, mass);
+		identity = new PhysicsIdentity(TerrafortAssetHandler.getVoxelModel(pathToLoadedModel), getDimensions(), primitive, mass);
 		motion = new BulletMotion();
 		motion.setTransform(renderable.transform);
 		identity.getBody().setMotionState(motion);

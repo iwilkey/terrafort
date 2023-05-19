@@ -1,10 +1,10 @@
 package dev.iwilkey.terrafort.object;
 
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
 import com.badlogic.gdx.math.Vector3;
 
+import dev.iwilkey.terrafort.asset.TerrafortAssetHandler;
 import dev.iwilkey.terrafort.gfx.RenderableProvider25;
 import dev.iwilkey.terrafort.state.State;
 
@@ -17,8 +17,7 @@ public abstract class GameObject25 extends GameObject implements RenderableProvi
 	
 	public GameObject25(State state, String pathToLoadedTexture, boolean shouldBillboard) {
 		super(state);
-		Texture texture = (Texture)state.getAssetManager().get(pathToLoadedTexture);
-		decal = Decal.newDecal(new TextureRegion(texture), true);
+		decal = Decal.newDecal(new TextureRegion(TerrafortAssetHandler.getTexture(pathToLoadedTexture)), true);
 		this.shouldBillboard = shouldBillboard;
 		position = new Vector3();
 		scale = 1.0f;

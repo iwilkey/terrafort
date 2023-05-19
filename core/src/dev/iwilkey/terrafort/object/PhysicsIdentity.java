@@ -31,8 +31,6 @@ public final class PhysicsIdentity implements Disposable {
 	public PhysicsIdentity(Model model, Vector3 dimensions, BulletPrimitive primitive, float mass) {
 		this.mass = mass;
 		localInertia = new Vector3();
-		
-		System.out.println("Model node: " + model.getNode("root").id);
 
 		switch (primitive) {
 			case CUBOID:

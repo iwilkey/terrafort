@@ -7,7 +7,7 @@ import dev.iwilkey.terrafort.state.State;
 public class Crosshair extends GameObject2 {
 
 	public Crosshair(State state) {
-		super(state, "texture/crosshair.png", 10, 10, Anchor.CENTER);
+		super(state, "crosshair.png", 10, 10, Anchor.CENTER);
 	}
 
 	@Override

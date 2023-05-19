@@ -1,13 +1,11 @@
 package dev.iwilkey.terrafort.state;
 
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 import dev.iwilkey.terrafort.TerrafortEngine;
-import dev.iwilkey.terrafort.asset.AssetBuffer;
 import dev.iwilkey.terrafort.gfx.Camera;
 import dev.iwilkey.terrafort.gfx.RenderableProvider2;
 import dev.iwilkey.terrafort.gfx.RenderableProvider25;
@@ -23,8 +21,6 @@ public abstract class State implements ViewportResizable, Disposable {
 	
 	// Engine and assets.
 	private TerrafortEngine engine;
-	private AssetBuffer assetBuffer;
-	private AssetManager assets;
 	
 	// GameObject handler and RenderableProviders.
 	protected final Array<RenderableProvider3> provider3;
@@ -37,10 +33,8 @@ public abstract class State implements ViewportResizable, Disposable {
 	protected Environment environment3;
 	protected BulletRaycaster raycaster;
 	
-	public State(TerrafortEngine engine, AssetBuffer assetBuffer) {
+	public State(TerrafortEngine engine) {
 		this.engine = engine;
-		this.assetBuffer = assetBuffer;
-		this.assets = null;
 		provider3 = new Array<>();
 		provider25 = new Array<>();
 		provider2 = new Array<>();
@@ -55,21 +49,11 @@ public abstract class State implements ViewportResizable, Disposable {
 	}
 	
 	public final void init() {
-		if(assetBuffer == null) {
-			assets = null;
-			return;
-		}
-		assets = new AssetManager();
-		assetBuffer.loadIntoMemory(assets);
+		
 	}
 	
 	public final boolean load() {
-		if(assetBuffer == null || assets == null) 
-			return true;
-		if(assets.isFinished())
-			return true;
-		assets.update();
-		return false;
+		return true;
 	}
 	
 	public final void update() {
@@ -140,15 +124,7 @@ public abstract class State implements ViewportResizable, Disposable {
 	public final Camera getCamera() {
 		return camera3;
 	}
-	
-	public final AssetManager getAssetManager() {
-		return assets;
-	}
-	
-	public final AssetBuffer getAssetBuffer() {
-		return assetBuffer;
-	}
-	
+
 	public final GameObjectHandler getObjectHandler() {
 		return objectHandler;
 	}
@@ -169,8 +145,6 @@ public abstract class State implements ViewportResizable, Disposable {
 	@Override
 	public void dispose() {
 		objectHandler.dispose();
-		if(assets != null)
-			assets.dispose();
 	}
 	
 }
