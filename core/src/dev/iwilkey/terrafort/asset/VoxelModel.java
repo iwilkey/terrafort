@@ -14,9 +14,38 @@ public final class VoxelModel {
 	
 	public VoxelModel(final Array<Voxel> voxels) {
 		this.voxels = voxels;
+		findContext();
 		findDimensions();
 	}
 	
+	private void findContext() {
+		// Sets each Voxel's context. TODO: This is O(n^2). It would be beneficial to find a solution with lower complexity.
+		for(int i = 0; i < voxels.size; i++) {
+			for(int j = 0; j < voxels.size; j++) {
+				if(i != j) {
+					final int v1x = voxels.get(i).getX();
+					final int v1y = voxels.get(i).getY();
+					final int v1z = voxels.get(i).getZ();
+					final int v2x = voxels.get(j).getX();
+					final int v2y = voxels.get(j).getY();
+					final int v2z = voxels.get(j).getZ();
+					if(v1x == v2x && v1y == v2y + 1 && v1z == v2z)
+						voxels.get(i).setHasTopNeighbor(true);
+					if(v1x == v2x && v1y == v2y - 1 && v1z == v2z)
+						voxels.get(i).setHasBottomNeighbor(true);
+					if(v1x == v2x && v1y == v2y && v1z == v2z + 1)
+						voxels.get(i).setHasForwardNeighbor(true);
+					if(v1x == v2x && v1y == v2y && v1z == v2z - 1)
+						voxels.get(i).setHasBackwardNeighbor(true);
+					if(v1x == v2x + 1 && v1y == v2y && v1z == v2z)
+						voxels.get(i).setHasRightNeighbor(true);
+					if(v1x == v2x - 1 && v1y == v2y && v1z == v2z)
+						voxels.get(i).setHasLeftNeighbor(true);
+				}
+			}
+		}
+	}
+
 	private void findDimensions() {
 		int maxX = Integer.MIN_VALUE;
 		int minX = Integer.MAX_VALUE;
@@ -24,22 +53,16 @@ public final class VoxelModel {
 		int minY = Integer.MAX_VALUE;
 		int maxZ = Integer.MIN_VALUE;
 		int minZ = Integer.MAX_VALUE;
-		for(Voxel vox : voxels) {
+		for(final Voxel vox : voxels) {
 			int x = vox.getX();
 			int y = vox.getY();
 			int z = vox.getZ();
-			if(x < minX)
-				minX = x;
-			if(x > maxX)
-				maxX = x;
-			if(y < minY)
-				minY = y;
-			if(y > maxY)
-				maxY = y;
-			if(z < minZ)
-				minZ = z;
-			if(z > maxZ)
-				maxZ = z;
+			if(x < minX) minX = x;
+			if(x > maxX) maxX = x;
+			if(y < minY) minY = y;
+			if(y > maxY) maxY = y;
+			if(z < minZ) minZ = z;
+			if(z > maxZ) maxZ = z;
 		}
 		width = maxX - minX;
 		height = maxY - minY;
@@ -51,17 +74,6 @@ public final class VoxelModel {
 	
 	public Array<Voxel> getVoxels() {
 		return voxels;
-	}
-	
-	public boolean hasVoxelAt(int x, int y, int z) {
-		for(Voxel vox : voxels) {
-			if(vox.getX() == x && vox.getY() == y && vox.getZ() == z) {
-				System.out.println("Yes, voxel!");
-				return true;
-			}
-		}
-		System.out.println("No Voxel!");
-		return false;
 	}
 	
 	public int getWidth() {

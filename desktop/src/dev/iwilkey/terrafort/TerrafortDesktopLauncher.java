@@ -1,7 +1,12 @@
 package dev.iwilkey.terrafort;
 
+import org.lwjgl.glfw.GLFW;
+import org.lwjgl.glfw.GLFWVidMode;
+
 import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
+
+import dev.iwilkey.terrafort.gfx.Renderer;
 
 public class TerrafortDesktopLauncher {
 	
@@ -15,8 +20,13 @@ public class TerrafortDesktopLauncher {
 			// Set window title.
 			this.setTitle(appName);
 			// Set FPS target.
-			this.setForegroundFPS(120);
+			this.setForegroundFPS(60);
+			// No VSync.
+			this.useVsync(false);
+			
 			DisplayMode display = Lwjgl3ApplicationConfiguration.getDisplayMode();
+			
+			this.setWindowPosition(-1, -1);
 			// Set fullscreen mode, if desired.
 			if(fullscreen) 
 				this.setFullscreenMode(display);
@@ -33,21 +43,22 @@ public class TerrafortDesktopLauncher {
 			// Resizable by default.
 			this.setResizable(true);
 			// Try to set the window visible later to try and combat the focusing issue referenced on Trello.
-			this.setInitialVisible(false);
+			this.setInitialVisible(true);
 			// Set up OpenGL back buffer.
-			this.setBackBufferConfig(1 << 3, 
-					1 << 3, 
-					1 << 3, 
-					1 << 3, 
-					1 << 5, 
-					0x00, 
-					0x03);
+			this.setBackBufferConfig(
+							Renderer.RED_BITS, 
+							Renderer.GREEN_BITS, 
+							Renderer.BLUE_BITS, 
+							Renderer.ALPHA_BITS, 
+							Renderer.DEPTH_BITS, 
+							Renderer.STENCIL_BITS, 
+							Renderer.MSAA_SAMPLES
+										 );
 			// Enable OpenGL debug output.
 			this.enableGLDebugOutput(true, System.out);
 			// Configure OpenAL.
 			this.setAudioConfig(16, 512, 9);
 		}
-		
 	}
 
 	public static void main(String[] args) {

@@ -22,19 +22,18 @@ public final class BulletWrapper implements Disposable {
 	public final static byte KINEMATIC_FLAG = 1 << 1;
 	public final static byte STATIC_FLAG = 1 << 2;
 	public final static byte DYNAMIC_FLAG = 1 << 3;
-	
 	private final static short MAX_SUB_STEPS = 5;
 	private final static float FIXED_TIME_STEP = 1f / 60;
-	
+	// Bullet Physics collision processors.
 	private final btCollisionConfiguration collisionConfig;
 	private final btDispatcher dispatcher;
 	private final btBroadphaseInterface broadphase;
 	private final btDiscreteDynamicsWorld dynamicsWorld;
 	private final btConstraintSolver constraintSolver;
 	private final BulletCollisionListener listener;
+	// Visual GL debugger for physics colliders.
 	private final DebugDrawer debugRenderer;
-	
-	public boolean debugMode = true;
+	public boolean debugMode = false;
 
 	public BulletWrapper() {
 		Bullet.init();

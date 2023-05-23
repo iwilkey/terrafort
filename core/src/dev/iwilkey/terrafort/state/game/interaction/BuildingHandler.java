@@ -2,10 +2,13 @@ package dev.iwilkey.terrafort.state.game.interaction;
 
 import com.badlogic.gdx.math.Vector3;
 
+import dev.iwilkey.terrafort.InputHandler;
+import dev.iwilkey.terrafort.InputHandler.KeyBinding;
 import dev.iwilkey.terrafort.state.game.SinglePlayerEngineState;
 import dev.iwilkey.terrafort.state.game.SinglePlayerGameState;
 import dev.iwilkey.terrafort.state.game.object.creatable.Creatables;
 import dev.iwilkey.terrafort.state.game.object.decal.Hitpoint;
+import dev.iwilkey.terrafort.state.game.object.truss.Cube;
 
 public final class BuildingHandler {
 	
@@ -21,12 +24,18 @@ public final class BuildingHandler {
 	}
 	
 	public void tick() {
-		if(game.getTools().getCurrentCreatable() != Creatables.NONE) {
+		if(game.getTools().getCurrentCreatable() != Creatables.NONE && engine.getPlayer().isFocused()) {
 			Vector3 hitpoint = engine.doRaycastForPoint(50.0f);
 			if(hitpoint != null) {
+				
+				if(InputHandler.cursorJustDown(KeyBinding.getBinding("Action"))) {
+					engine.addGameObject(new Cube(engine).setPosition(hitpoint));
+				}
+				
 				posSel.setShouldRender(true);
 				posSel.setPosition(hitpoint);
 			} else posSel.setShouldRender(false);
 		} else posSel.setShouldRender(false);
 	}
+	
 }

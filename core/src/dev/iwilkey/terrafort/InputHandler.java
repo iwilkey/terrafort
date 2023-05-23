@@ -4,9 +4,11 @@ import java.util.HashMap;
 
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.math.Vector2;
 
+import dev.iwilkey.terrafort.gfx.Renderer;
 import imgui.ImGui;
 
 public final class InputHandler implements InputProcessor {
@@ -33,11 +35,12 @@ public final class InputHandler implements InputProcessor {
 	public static final byte CURRENT = ACTIVATE >> 1;
 	public static final byte DISABLE = ACTIVATE >> 2;
 	public static final byte NONE = ACTIVATE >> 3;
-	
 	private static byte[] keyState;
 	private static byte[] cursorState;
 	private static Vector2 cursorPos;
 	private static Vector2 scrollWheelPos;
+	private static boolean catchedCursor = true;
+	private static boolean acceptImGuiInteraction = false;
 	
 	public InputHandler() {
 		keyState = new byte[0x100];
@@ -62,13 +65,13 @@ public final class InputHandler implements InputProcessor {
 	@Override
 	public boolean keyDown(int keycode) {
 		keyState[keycode] = ACTIVATE;
-		return true;
+		return false;
 	}
 
 	@Override
 	public boolean keyUp(int keycode) {
 		keyState[keycode] = DISABLE;
-		return true;
+		return false;
 	}
 
 	@Override
@@ -79,13 +82,13 @@ public final class InputHandler implements InputProcessor {
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		cursorState[button] = ACTIVATE;
-		return true;
+		return false;
 	}
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
 		cursorState[button] = DISABLE;
-		return true;
+		return false;
 	}
 
 	@Override
@@ -96,13 +99,13 @@ public final class InputHandler implements InputProcessor {
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
 		cursorPos.set(new Vector2(screenX, screenY));
-		return true;
+		return false;
 	}
 
 	@Override
 	public boolean scrolled(float amountX, float amountY) {
 		scrollWheelPos.set(new Vector2(amountX, amountY));
-		return true;
+		return false;
 	}
 	
 	public static boolean keyJustDown(int keycode) {
@@ -141,8 +144,32 @@ public final class InputHandler implements InputProcessor {
 		return ImGui.getIO().getWantCaptureMouse() || ImGui.getIO().getWantCaptureKeyboard();
 	}
 	
+	public static void denyImGuiInteraction() {
+		acceptImGuiInteraction = false;
+	}
+	
+	public static void acceptImGuiInteraction() {
+		acceptImGuiInteraction = true;
+	}
+	
+	public static void catchCursor() {
+		catchedCursor = true;
+	}
+	
+	public static void releaseCursor() {
+		catchedCursor = false;
+	}
+	
+	public static void centerCursor() {
+		Gdx.input.setCursorPosition(Renderer.getWidth() / 2, Renderer.getHeight() / 2);
+	}
+	
 	public void poll() {
-		// Update the states of input data structures
+		// Enforce catching and GUI interaction.
+		ImGui.getIO().setWantCaptureMouse(acceptImGuiInteraction);
+		ImGui.getIO().setWantCaptureKeyboard(acceptImGuiInteraction);
+		Gdx.input.setCursorCatched(catchedCursor);
+		// Update the states of input data structures.
 		for(int i = 0; i < 256; i++) {
 			// Handle keys.
 			switch(keyState[i]) {
@@ -168,5 +195,4 @@ public final class InputHandler implements InputProcessor {
 		// Reset scrollwheel
 		scrollWheelPos = Vector2.Zero;
 	}
-	
 }

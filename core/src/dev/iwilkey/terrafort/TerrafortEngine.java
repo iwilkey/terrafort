@@ -6,82 +6,51 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 
 import dev.iwilkey.terrafort.asset.TerrafortAssetHandler;
-import dev.iwilkey.terrafort.gfx.Alignment;
-import dev.iwilkey.terrafort.gfx.Anchor;
 import dev.iwilkey.terrafort.gfx.Renderer;
 import dev.iwilkey.terrafort.state.State;
 import dev.iwilkey.terrafort.state.game.SinglePlayerEngineState;
-import imgui.ImGui;
-import imgui.flag.ImGuiWindowFlags;
 
 public class TerrafortEngine extends ApplicationAdapter {
 	
-	private InputHandler input;
-	private Renderer renderer;
-	private Thread loadingThread;
-	private TerrafortAssetHandler assets;
-	private State currentState;
+	private InputHandler input = null;
+	private Renderer renderer = null;
+	private TerrafortAssetHandler assets = null;
+	private State currentState = null;
 	
 	@Override
 	public void create() {
-		// Set up renderer and input.
+		// Set up renderer.
 		renderer = new Renderer(this);
+		
+		// Load the Terrafort assets.
+		assets = new TerrafortAssetHandler(this);
+        assets.load();
+        
+		// Initialize the input.
 		input = new InputHandler();
 		Gdx.input.setInputProcessor(input);
-		// Create asset manager and begin loading thread.
-		assets = new TerrafortAssetHandler(this);
-		loadingThread = new Thread(assets);
-		loadingThread.run();
+		
 		// Set the initial state.
-		setState(new SinglePlayerEngineState(this));
-		// Show the window, as initialization is done.
+        setState(new SinglePlayerEngineState(this));
+        currentState.begin();
+		renderer.initBatch25();
+		
+		// Show the window, as all of the initial application construction has been completed.
 		GLFW.glfwShowWindow(renderer.getWindowHandle());
 	}
 	
 	@Override
 	public void render() {
-		renderer.clearGl(false);
-		if(!assets.isFinished()) {
-			renderLoading();
-			return;
-		} else {
-			if(loadingThread != null) {
-				try {
-					loadingThread.join();
-				} catch (InterruptedException e) {
-					System.out.println("[Terrafort Engine] A InterruptedException has occurred when waiting for the loading thread to finish!");
-					e.printStackTrace();
-					System.exit(-1);
-				}
-				loadingThread = null;
-				// The current state is ready to begin.
-				if(currentState == null) {
-					System.out.println("[Terrafort Engine] The engine must have a valid State to run!");
-					System.exit(-1);
-				}
-				currentState.begin();
-				renderer.initBatch25();
-			}
-		}
-		
-		// Differentiate GUI input vs engine input.
-		if(InputHandler.guiWantsInteraction()) {
-			if(Gdx.input.getInputProcessor() != null)
-				Gdx.input.setInputProcessor(null);
-		} else {
-			if(Gdx.input.getInputProcessor() == null)
-				Gdx.input.setInputProcessor(input);
-		}
-		
 		// Tick and render state.
 		currentState.update();
+		// Poll for input (next frame).
+		input.poll();
+		// Render the state renderables.
 		renderer.render(currentState);
 		// Render state GUI.
 		renderer.clearGui();
 		currentState.gui();
 		renderer.renderGui();
-		// Poll input events.
-		input.poll();
 	}
 	
 	@Override
@@ -114,19 +83,6 @@ public class TerrafortEngine extends ApplicationAdapter {
 		currentState = state;
 		if(currentState != null) 
 			currentState.init();
-	}
-	
-	private void renderLoading() {
-		renderer.clearGui();
-		ImGui.begin("Terrafort", ImGuiWindowFlags.NoCollapse 
-				| ImGuiWindowFlags.NoResize 
-				| ImGuiWindowFlags.NoMove 
-				| ImGuiWindowFlags.AlwaysAutoResize);
-		final float loadPercentage = assets.getPercentageDone();
-		ImGui.text("Loading " + loadPercentage + "%" + "|/-\\".charAt((int)(ImGui.getTime() / 0.05f) & 3));
-		Alignment.alignGui(Anchor.BOTTOM_RIGHT, 5.0f);
-		ImGui.end();
-		renderer.renderGui();
 	}
 	
 	public Renderer getRenderer() {

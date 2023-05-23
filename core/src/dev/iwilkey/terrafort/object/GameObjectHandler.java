@@ -148,6 +148,14 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 		return state;
 	}
 	
+	public long activeObjectCount() {
+		return activeObjects.size();
+	}
+	
+	public HashMap<Long, GameObject> getActiveObjects() {
+		return activeObjects;
+	}
+	
 	public BulletWrapper getPhysicsEngine() {
 		return physics;
 	}

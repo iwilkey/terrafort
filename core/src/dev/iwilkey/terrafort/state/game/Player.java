@@ -9,8 +9,6 @@ import dev.iwilkey.terrafort.InputHandler.KeyBinding;
 import dev.iwilkey.terrafort.gfx.Camera;
 import dev.iwilkey.terrafort.gfx.Camera.CameraController;
 import dev.iwilkey.terrafort.state.State;
-import imgui.ImGui;
-import imgui.ImGuiIO;
 
 public class Player implements CameraController {
 
@@ -74,14 +72,13 @@ public class Player implements CameraController {
 	}
 	
 	private void handleFocus() {
-		Gdx.input.setCursorCatched(isFocused);
-		ImGuiIO io = ImGui.getIO();
 		if(!isFocused) {
-			io.setWantCaptureMouse(true);
-			io.setWantCaptureKeyboard(true);
-		} else {
-			io.setWantCaptureMouse(false);
-			io.setWantCaptureKeyboard(false);
+			InputHandler.releaseCursor();
+			InputHandler.acceptImGuiInteraction();
+		}
+		else {
+			InputHandler.catchCursor();
+			InputHandler.denyImGuiInteraction();
 		}
 		if(InputHandler.keyJustDown(KeyBinding.getBinding("Focus / Unfocus")))
 			isFocused = !isFocused;

@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.decals.CameraGroupStrategy;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
@@ -17,6 +16,7 @@ import com.badlogic.gdx.graphics.g3d.decals.DecalBatch;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.HdpiUtils;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.DebugDrawer;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
@@ -24,7 +24,8 @@ import com.badlogic.gdx.utils.Disposable;
 import dev.iwilkey.terrafort.TerrafortEngine;
 import dev.iwilkey.terrafort.physics.bullet.BulletWrapper;
 import dev.iwilkey.terrafort.state.State;
-
+import dev.iwilkey.terrafort.state.game.SinglePlayerEngineState;
+import dev.iwilkey.terrafort.state.game.gfx.Space;
 import imgui.ImGui;
 import imgui.ImGuiStyle;
 import imgui.gl3.ImGuiImplGl3;
@@ -32,26 +33,43 @@ import imgui.glfw.ImGuiImplGlfw;
 
 public class Renderer implements ViewportResizable, Disposable {
 	
-	private static final ImGuiImplGlfw DI_GLFW = new ImGuiImplGlfw();
-	private static final ImGuiImplGl3 DI_GL3 = new ImGuiImplGl3();
-	private final ModelBatch batch3 = new ModelBatch();
-	private final ModelCache batch3Cache = new ModelCache();
-	private DecalBatch batch25 = null; // Can only be initialized when a valid state is set.
-	private final SpriteBatch batch2 = new SpriteBatch();
-
+	// Direct reference to the engine.
+	private final TerrafortEngine engine;
+	// Global GL and GL back buffer settings.
+	public static final int RED_BITS = 1 << 3;
+	public static final int GREEN_BITS = 1 << 3;
+	public static final int BLUE_BITS = 1 << 3;
+	public static final int ALPHA_BITS = 1 << 3;
+	public static final int DEPTH_BITS = 1 << 5;
+	public static final int STENCIL_BITS = 0;
+	// TODO: Perhaps allow this to be configured by user since it has direct impact on overall graphical quality.
+	public static final int MSAA_SAMPLES = 3;
+	public static final int GLOBAL_GL_LINE_WIDTH = 1;
+	// GLFW and GL runtime properties.
 	private static int width;
 	private static int height;
 	private final Lwjgl3Graphics graphics;
 	private final Lwjgl3Window window;
-	private final TerrafortEngine engine;
+	// GL Impls and Batches.
+	private static final ImGuiImplGlfw DI_GLFW = new ImGuiImplGlfw();
+	private static final ImGuiImplGl3 DI_GL3 = new ImGuiImplGl3();
+	private final ModelBatch batch3 = new ModelBatch();
+	private DecalBatch batch25 = null; // Can only be initialized when a valid state is set.
+	private final SpriteBatch batch2 = new SpriteBatch();
 	
 	public Renderer(TerrafortEngine engine) {
 		this.engine = engine;
+		// Grab GL context from libGDX GLFW abstraction.
 		graphics = (Lwjgl3Graphics)Gdx.graphics;
 		window = graphics.getWindow();
+		// GL settings.
+		Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
+		Gdx.gl.glDepthFunc(GL20.GL_LEQUAL);
 		Gdx.gl.glClearColor(0.14f, 0.13f, 0.13f, 1.0f);
+		Gdx.gl.glLineWidth(GLOBAL_GL_LINE_WIDTH);
+		// Register initial display dimensions.
 		registerViewportDimensions(graphics.getWidth(), graphics.getHeight());
-		// Init GUI
+		// Link Dear ImGui context to GL context.
 		ImGui.createContext();
 		ImGui.getIO().setIniFilename(null);
 		ImGui.getIO().setWantCaptureKeyboard(false);
@@ -90,6 +108,7 @@ public class Renderer implements ViewportResizable, Disposable {
 	 */
 	
 	public void clearGl(boolean depth) {
+		Gdx.gl.glClearColor(0.14f, 0.13f, 0.13f, 1.0f);
 		int clsbit = GL20.GL_COLOR_BUFFER_BIT;
 		if(depth) clsbit |= GL20.GL_DEPTH_BUFFER_BIT;
 		Gdx.gl.glClear(clsbit);
@@ -99,24 +118,36 @@ public class Renderer implements ViewportResizable, Disposable {
 	 * Render
 	 */
 	public void render(State state) {
-		// Render 3D.
-		clearGl(true);
-		// Grab the model cache of all RenderableProvider3s, culled away.
+		// Frustum culling for 3D objects.
 		Array<ModelInstance> culled = FrustumCulling.cull3(state.getProvider3(), state.getCamera());
 		if(culled.size != 0) {
-			batch3Cache.begin(state.getCamera());
-			batch3Cache.add(culled);
-			batch3Cache.end();
+			// Render shadows (if it is a single player engine state).
+			if(state.getRenderable3Environment() instanceof Space) {
+				Space space = ((SinglePlayerEngineState)state).getSpatialEnvironment();
+				space.getShadowLight().begin(Vector3.Zero, state.getCamera().direction);
+				space.getShadowBatch().begin(space.getShadowLight().getCamera());
+				space.getShadowBatch().render(culled);
+				space.getShadowBatch().end();
+				space.getShadowLight().end();
+			}
+			clearGl(true);
+			// Enable backface culling for Voxel rendering.
+			Gdx.gl.glEnable(GL20.GL_CULL_FACE);
+			Gdx.gl.glCullFace(GL20.GL_BACK);
+			// Render 3D objects.
 			batch3.begin(state.getCamera());
-			batch3.render(batch3Cache, state.getRenderable3Environment());
+			for(ModelInstance prov : culled) 
+				batch3.render(prov, state.getRenderable3Environment());
 			batch3.end();
+			// Disable backface culling because 3D rendering is over.
+			Gdx.gl.glDisable(GL20.GL_CULL_FACE);
 		} else {
+			clearGl(true);
 			// Render the Null Object. See notes about "createNullObject()" above to understand why.
 			batch3.begin(state.getCamera());
 			batch3.render(nullObjectRenderable, state.getRenderable3Environment());
 			batch3.end();
 		}
-		
 		// If physics debug mode is on, draw it.
 		BulletWrapper physics = state.getObjectHandler().getPhysicsEngine();
 		if(physics.debugMode) {
@@ -125,7 +156,6 @@ public class Renderer implements ViewportResizable, Disposable {
 		    physics.getDynamicsWorld().debugDrawWorld();
 		    physics3Batch.end();
 		}
-		
 		// Render 25D.
 		if(batch25 != null) {
 			Array<RenderableProvider25> providers25 = state.getProvider25();
@@ -231,7 +261,6 @@ public class Renderer implements ViewportResizable, Disposable {
 	public void dispose() {
 		// Dispose of batches.
 		batch3.dispose();
-		batch3Cache.dispose();
 		if(batch25 != null)
 			batch25.dispose();
 		batch2.dispose();

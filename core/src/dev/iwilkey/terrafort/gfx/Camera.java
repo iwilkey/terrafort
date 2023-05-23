@@ -19,7 +19,7 @@ public class Camera extends PerspectiveCamera {
 		position.set(0, 10, -10);
 		direction.set(Vector3.X);
 		near = 0.1f;
-		far = 200.0f;
+		far = 50.0f;
 		update();
 	}
 	

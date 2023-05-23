@@ -2,17 +2,17 @@ package dev.iwilkey.terrafort.state.game;
 
 import dev.iwilkey.terrafort.TerrafortEngine;
 import dev.iwilkey.terrafort.state.State;
-import dev.iwilkey.terrafort.state.game.gfx.WorldEnvironment;
+import dev.iwilkey.terrafort.state.game.gfx.Space;
+import dev.iwilkey.terrafort.state.game.interaction.BuildingHandler;
 import dev.iwilkey.terrafort.state.game.object.Core;
 import dev.iwilkey.terrafort.state.game.object.Crosshair;
-import dev.iwilkey.terrafort.state.game.object.decal.Hitpoint;
 
 public class SinglePlayerEngineState extends State {
 	
 	private Player player;
-	private WorldEnvironment env;
-	// private SinglePlayerGameState game;
-	// private BuildingHandler builder;
+	private Space env;
+	private SinglePlayerGameState game;
+	private BuildingHandler builder;
 	private long crosshair;
 	private long core;
 
@@ -28,26 +28,39 @@ public class SinglePlayerEngineState extends State {
 		return core;
 	}
 	
+	public Space getSpatialEnvironment() {
+		return env;
+	}
+	
 	@Override
 	public void begin() {
-		env = new WorldEnvironment();
+		// Create game properties. 
+		game = new SinglePlayerGameState(this);
+		builder = new BuildingHandler(this, game);
+		
+		// Create the spatial environment.
+		env = new Space(this, game);
 		environment3 = env;
+		
+		// Create constant GameObjects.
 		crosshair = addGameObject(new Crosshair(this).setShouldRender(false));
+		core = addGameObject(new Core(this).setPosition(0, 0, 0));
+		
+		// Add the player to the world.
 		player = new Player(this, crosshair);
 		camera3.setController(player);
-		core = addGameObject(new Core(this).setPosition(0, 0, 0));
-		addGameObject(new Hitpoint(this));
 	}
 
 	@Override
 	public void tick() {
-		// game.tick();
-		// builder.tick();
+		env.tick();
+		game.tick();
+		builder.tick();
 	}
 
 	@Override
 	public void gui() {
-		// game.render();
+		game.render();
 	}
 
 	@Override

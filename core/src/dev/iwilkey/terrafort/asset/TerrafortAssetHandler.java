@@ -3,72 +3,63 @@ package dev.iwilkey.terrafort.asset;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 import dev.iwilkey.terrafort.TerrafortEngine;
+import dev.iwilkey.terrafort.asset.registers.TextureRegister;
+import dev.iwilkey.terrafort.asset.registers.VoxelRegister;
+import dev.iwilkey.terrafort.state.game.gfx.Space;
 
-public final class TerrafortAssetHandler implements Runnable, Disposable {
+public final class TerrafortAssetHandler implements Disposable {
 	
 	private static final HashMap<String, Model> MODEL_MEMORY = new HashMap<>();
 	private static final HashMap<String, Texture> TEXTURE_MEMORY = new HashMap<>();
-	
 	private final TerrafortEngine engine;
-	
-	private long totalAssets = 0L;
+	private final long totalAssets;
 	private long loadedAssets = 0L;
 	private boolean isFinished = false;
 	
 	public TerrafortAssetHandler(final TerrafortEngine engine) {
 		this.engine = engine;
+		totalAssets = VoxelRegister.values().length + TextureRegister.values().length;
 	}
 	
 	public TerrafortEngine getEngine() {
 		return engine;
 	}
-	
-	private Array<FileHandle> registerTextures() {
-		Array<FileHandle> textures = new Array<>();
-		textures.add(Gdx.files.internal("texture/crosshair.png"));
-		return textures;
-	}
-	
-	private Array<FileHandle> registerVoxelModels() {
-		Array<FileHandle> voxels = new Array<>();
-		voxels.add(Gdx.files.internal("voxel/cube.txt"));
-		return voxels;
-	}
 
-	@Override
-	public void run() {
+	public void load() {
 		System.out.println("[Terrafort Engine] Beginning Terrafort Asset Manager loadtime.");
-		Array<FileHandle> textures = registerTextures();
-		Array<FileHandle> voxels = registerVoxelModels();
-		totalAssets = textures.size + voxels.size;
 		// Load textures.
-		for(FileHandle t : textures) {
-			if(TEXTURE_MEMORY.containsKey(t.name())) {
-				System.out.println("[Terrafort Engine] You cannot load two Textures of the same name! \"" + t.name() + "\"");
+		for(TextureRegister texture : TextureRegister.values()) {
+			String name = texture.getFileHandle().name();
+			if(TEXTURE_MEMORY.containsKey(name)) {
+				System.out.println("[Terrafort Engine] You cannot load two Textures of the same name! \"" + name + "\"");
 				System.exit(-1);
 			}
-			TEXTURE_MEMORY.put(t.name(), new Texture(t));
-			System.out.println("[Terrafort Engine] Loaded Texture \"" + t.name() + "\".");
+			TEXTURE_MEMORY.put(name, new Texture(texture.getFileHandle()));
+			System.out.println("[Terrafort Engine] Loaded Texture \"" + name + "\".");
 			loadedAssets++;
 		}
 		// Process and load Voxel models.
-		for(FileHandle v : voxels) {
-			if(MODEL_MEMORY.containsKey(v.name())) {
-				System.out.println("[Terrafort Engine] You cannot load two Voxel Models of the same name! \"" + v.name() + "\"");
+		for(VoxelRegister voxel : VoxelRegister.values()) {
+			String name = voxel.getFileHandle().name();
+			if(MODEL_MEMORY.containsKey(name)) {
+				System.out.println("[Terrafort Engine] You cannot load two Voxel Models of the same name! \"" + name + "\"");
 				System.exit(-1);
 			}
-			MODEL_MEMORY.put(v.name(), VoxelModelLoader.buildModelFromRaw(v.name(), v.readString()));
-			System.out.println("[Terrafort Engine] Loaded Voxel Model \"" + v.name() + "\".");
+			MODEL_MEMORY.put(name, VoxelModelLoader.buildModelFromRaw(name, 
+					voxel.getFileHandle().readString(), 
+					voxel.getScale(), 
+					voxel.getRenderingPrimitive()));
+			System.out.println("[Terrafort Engine] Loaded Voxel Model \"" + name + "\".");
 			loadedAssets++;
 		}
+		// Load utility models: Space segmentation grid.
+		MODEL_MEMORY.put("tf_space_seg", Space.Segmentation.createSegmentationGrid());
+		
 		isFinished = true;
 		System.out.println("[Terrafort Engine] Terrafort Asset Manager loadtime successful.");
 	}
