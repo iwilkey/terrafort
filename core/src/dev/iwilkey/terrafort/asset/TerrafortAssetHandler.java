@@ -11,6 +11,7 @@ import dev.iwilkey.terrafort.TerrafortEngine;
 import dev.iwilkey.terrafort.asset.registers.TextureRegister;
 import dev.iwilkey.terrafort.asset.registers.VoxelRegister;
 import dev.iwilkey.terrafort.state.game.gfx.Space;
+import dev.iwilkey.terrafort.state.game.interaction.BuildingHandler;
 
 public final class TerrafortAssetHandler implements Disposable {
 	
@@ -59,7 +60,8 @@ public final class TerrafortAssetHandler implements Disposable {
 		}
 		// Load utility models: Space segmentation grid.
 		MODEL_MEMORY.put("tf_space_seg", Space.Segmentation.createSegmentationGrid());
-		
+		// Load utility models: Building handler selection.
+		MODEL_MEMORY.put("tf_building_handler_selection", BuildingHandler.Selection.createBuildingHandlerSelection());
 		isFinished = true;
 		System.out.println("[Terrafort Engine] Terrafort Asset Manager loadtime successful.");
 	}

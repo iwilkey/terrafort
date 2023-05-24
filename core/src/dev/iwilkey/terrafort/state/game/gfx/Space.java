@@ -16,6 +16,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 
 import dev.iwilkey.terrafort.object.GameObject3;
+import dev.iwilkey.terrafort.physics.bullet.BulletPhysicsTag;
 import dev.iwilkey.terrafort.physics.bullet.BulletPrimitive;
 import dev.iwilkey.terrafort.physics.bullet.BulletWrapper;
 import dev.iwilkey.terrafort.state.State;
@@ -29,14 +30,19 @@ public class Space extends Environment {
 		public static final int VERTEX_ATTRIBUTES = 
 				VertexAttributes.Usage.Position | 
 				VertexAttributes.Usage.ColorUnpacked;
-		public static final float SIZE = (float)Math.pow(2, 2);
+		public static final float SIZE = (float)Math.pow(2, 3);
 		public static final int DIVISIONS = (int)SIZE * 2;
+		public static final float SQUARE_SIZE = (SIZE / DIVISIONS);
 		public static final float INITIAL_HEIGHT = 0f;
 		public static final Color COLOR = new Color(0.5f, 0.5f, 0.5f, 1f);
-		
+
 		public Segmentation(State state) {
 			super(state, "tf_space_seg", BulletPrimitive.CUBOID, 0.0f);
 		}
+		
+		private static final Vector3 selectionGridScaleDimensions = new Vector3();
+		private static final Vector3 hitpointTranslation = new Vector3();
+		private static final Vector3 snapPositionToGrid = new Vector3();
 		
 		public static Model createSegmentationGrid() {
 			final ModelBuilder modelBuilder = new ModelBuilder();
@@ -51,7 +57,34 @@ public class Space extends Environment {
 	        }
 	        return modelBuilder.end();
 		}
-
+		
+		public static Vector3 translateHitpointToGridSpace(Vector3 hitpoint) {
+		    // Calculate the position of the hitpoint in terms of division coordinates
+		    float gridX = (float)Math.floor(hitpoint.x / SQUARE_SIZE);
+		    float gridY = hitpoint.y + (SQUARE_SIZE / 2); // the grid is a plane, so the height is constant
+		    float gridZ = (float)Math.floor(hitpoint.z / SQUARE_SIZE);
+		    // Convert back to world coordinates and adjust for the center of the division
+		    hitpointTranslation.set(gridX * SQUARE_SIZE + SQUARE_SIZE / 2, gridY, gridZ * SQUARE_SIZE + SQUARE_SIZE / 2);
+			return hitpointTranslation;
+		}
+		
+		public static Vector3 translateSelectionToGridScaleDimensions(Vector3 start, Vector3 end) {
+			// Find out how many blocks each dimension select.
+			int xBlocks = (int)((Math.abs((start.x - end.x)) / SQUARE_SIZE) + (2 * SQUARE_SIZE));
+			int yBlocks = (int)((Math.abs((start.y - end.y)) / SQUARE_SIZE) + (3 * SQUARE_SIZE));
+			int zBlocks = (int)((Math.abs((start.z - end.z)) / SQUARE_SIZE) + (2 * SQUARE_SIZE));
+			selectionGridScaleDimensions.set(xBlocks, yBlocks, zBlocks);
+			return selectionGridScaleDimensions;
+		}
+		
+		public static Vector3 snapToNearestGridPosition(Vector3 position) {
+			float x = Math.round(position.x / SQUARE_SIZE) * SQUARE_SIZE;
+			float y = (Math.round((position.y - 3) /SQUARE_SIZE) * SQUARE_SIZE) + 0.3f;
+			float z = Math.round(position.z / SQUARE_SIZE) * SQUARE_SIZE;
+			snapPositionToGrid.set(x, y, z);
+			return snapPositionToGrid;
+		}
+		
 		@Override
 		public void instantiation() {
 			setPhysicsBodyType(BulletWrapper.STATIC_FLAG);
@@ -91,22 +124,17 @@ public class Space extends Environment {
 	    		SHADOW_FAR)).set(1f, 1f, 1f, 40.0f, -35f, -35f)); 
 		set(new ColorAttribute(ColorAttribute.Fog, 0.1f, 0.1f, 0.1f, 1f));
 		shadowMap = shadowLight;
-		spaceSegGrid = state.addGameObject(new Segmentation(state));
+		spaceSegGrid = state.addGameObject(new Segmentation(state).setPhysicsTag(BulletPhysicsTag.BUILDING_PLATFORM), false);
 	}
-	
+
 	public void tick() {
+		GameObject3 grid = (GameObject3)state.getGameObject(spaceSegGrid);
 		if(game.getTools().getCurrentCreatable() == Creatables.NONE) {
-			state.getGameObject(spaceSegGrid).setShouldRender(false);
+			grid.setShouldRender(false);
 			return;
 		}
-		state.getGameObject(spaceSegGrid).setShouldRender(true);
-		GameObject3 grid = (GameObject3)state.getGameObject(spaceSegGrid);
-		Vector3 playerPos = state.getCamera().position;
-		// Find the nearest snap.
-		int x = ((int)playerPos.x);
-		int y = ((int)playerPos.y) - 1;
-		int z = ((int)playerPos.z);
-		grid.setPosition(x, y, z);
+		grid.setShouldRender(true);
+		grid.setPosition(Segmentation.snapToNearestGridPosition(state.getCamera().position));
 	}
 	
 	public ModelBatch getShadowBatch() {

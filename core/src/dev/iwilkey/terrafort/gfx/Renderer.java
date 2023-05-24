@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.decals.CameraGroupStrategy;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
@@ -54,6 +55,7 @@ public class Renderer implements ViewportResizable, Disposable {
 	private static final ImGuiImplGlfw DI_GLFW = new ImGuiImplGlfw();
 	private static final ImGuiImplGl3 DI_GL3 = new ImGuiImplGl3();
 	private final ModelBatch batch3 = new ModelBatch();
+	private final ModelCache batch3StaticCache = new ModelCache();
 	private DecalBatch batch25 = null; // Can only be initialized when a valid state is set.
 	private final SpriteBatch batch2 = new SpriteBatch();
 	
@@ -126,6 +128,9 @@ public class Renderer implements ViewportResizable, Disposable {
 				Space space = ((SinglePlayerEngineState)state).getSpatialEnvironment();
 				space.getShadowLight().begin(Vector3.Zero, state.getCamera().direction);
 				space.getShadowBatch().begin(space.getShadowLight().getCamera());
+				// Render shadows on static Renderables.
+				space.getShadowBatch().render(batch3StaticCache);
+				// Render shadows on dynamic Renderables.
 				space.getShadowBatch().render(culled);
 				space.getShadowBatch().end();
 				space.getShadowLight().end();
@@ -136,6 +141,9 @@ public class Renderer implements ViewportResizable, Disposable {
 			Gdx.gl.glCullFace(GL20.GL_BACK);
 			// Render 3D objects.
 			batch3.begin(state.getCamera());
+			// Render static Renderables.
+			batch3.render(batch3StaticCache, state.getRenderable3Environment());
+			// Render dynamic Renderables.
 			for(ModelInstance prov : culled) 
 				batch3.render(prov, state.getRenderable3Environment());
 			batch3.end();
@@ -172,6 +180,14 @@ public class Renderer implements ViewportResizable, Disposable {
 			batch2.draw(prov.getBindedRaster(), prov.getX(), prov.getY(), prov.getWidth(), prov.getHeight());
 		}
 		batch2.end();
+	}
+	
+	public void bakeStaticRenderable3(State state) {
+		System.out.println("[Terrafort Engine] Baking static renderables.");
+		batch3StaticCache.begin(state.getCamera());
+		for(RenderableProvider3 statics : state.getProviderStatic3())
+			batch3StaticCache.add(statics.getModelInstance());
+		batch3StaticCache.end();
 	}
 	
 	public void clearGui() {
@@ -261,6 +277,7 @@ public class Renderer implements ViewportResizable, Disposable {
 	public void dispose() {
 		// Dispose of batches.
 		batch3.dispose();
+		batch3StaticCache.dispose();
 		if(batch25 != null)
 			batch25.dispose();
 		batch2.dispose();

@@ -4,7 +4,7 @@ import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 
 public class BulletRigidbody extends btRigidBody {
 	
-	private BulletPhysicsTag tag = BulletPhysicsTag.ALL;
+	private BulletPhysicsTag tag = BulletPhysicsTag.DEFAULT;
 
 	public BulletRigidbody(btRigidBodyConstructionInfo constructionInfo) {
 		super(constructionInfo);

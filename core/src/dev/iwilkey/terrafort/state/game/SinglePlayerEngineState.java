@@ -43,8 +43,8 @@ public class SinglePlayerEngineState extends State {
 		environment3 = env;
 		
 		// Create constant GameObjects.
-		crosshair = addGameObject(new Crosshair(this).setShouldRender(false));
-		core = addGameObject(new Core(this).setPosition(0, 0, 0));
+		crosshair = addGameObject(new Crosshair(this).setShouldRender(false), false);
+		core = addGameObject(new Core(this).setPosition(0, 0, 0), false);
 		
 		// Add the player to the world.
 		player = new Player(this, crosshair);

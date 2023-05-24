@@ -12,7 +12,9 @@ import com.badlogic.gdx.files.FileHandle;
 public enum VoxelRegister {
 	
 	CORE("voxel/core.txt", 0.5f, GL20.GL_TRIANGLES),
-	CUBE("voxel/cube.txt", 0.05f, GL20.GL_TRIANGLES);
+	CUBE("voxel/cube.txt", 0.05f, GL20.GL_TRIANGLES),
+	WOOD_TRUSS("voxel/wood_truss.txt", 1.0f / 8.0f, GL20.GL_TRIANGLES);
+	
 	
 	private FileHandle fileHandle;
 	private float scale;

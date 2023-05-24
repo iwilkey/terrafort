@@ -6,6 +6,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 
+import dev.iwilkey.terrafort.state.game.interaction.BuildingHandler;
+
 public class FrustumCulling {
 	
 	private static Array<ModelInstance> culled3 = new Array<>();
@@ -18,6 +20,10 @@ public class FrustumCulling {
 	public static Array<ModelInstance> cull3(Array<RenderableProvider3> providers, Camera camera) {
 		culled3.clear();
 		for(RenderableProvider3 prov : providers) {
+			if(prov instanceof BuildingHandler.Selection) {
+				culled3.add(prov.getModelInstance());
+				continue;
+			}
 			ModelInstance instance = prov.getModelInstance();
 			if(sphericalTestWith(instance, prov.getBoundingBox(), camera))
 				culled3.add(instance);

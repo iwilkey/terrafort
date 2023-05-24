@@ -59,7 +59,7 @@ public final class PhysicsIdentity implements Disposable {
 		constructionInfo = new btRigidBody.btRigidBodyConstructionInfo(mass, null, shape, localInertia);
 		rigidbody = new BulletRigidbody(constructionInfo);
 		constructionInfo.dispose();
-		rigidbody.setTag(BulletPhysicsTag.ALL);
+		rigidbody.setTag(BulletPhysicsTag.DEFAULT);
 		setBodyType(BulletWrapper.DYNAMIC_FLAG);
 	}
 	
@@ -88,7 +88,7 @@ public final class PhysicsIdentity implements Disposable {
 	    }
 	}
 	
-	public btRigidBody getBody() {
+	public BulletRigidbody getBody() {
 		return rigidbody;
 	}
 	

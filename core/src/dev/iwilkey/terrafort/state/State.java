@@ -13,6 +13,7 @@ import dev.iwilkey.terrafort.gfx.RenderableProvider3;
 import dev.iwilkey.terrafort.gfx.ViewportResizable;
 import dev.iwilkey.terrafort.object.GameObject;
 import dev.iwilkey.terrafort.object.GameObjectHandler;
+import dev.iwilkey.terrafort.physics.bullet.BulletPhysicsTag;
 import dev.iwilkey.terrafort.physics.bullet.BulletRaycaster;
 import dev.iwilkey.terrafort.physics.bullet.BulletRigidbody;
 import dev.iwilkey.terrafort.utilities.Pair;
@@ -24,6 +25,7 @@ public abstract class State implements ViewportResizable, Disposable {
 	
 	// GameObject handler and RenderableProviders.
 	protected final Array<RenderableProvider3> provider3;
+	protected final Array<RenderableProvider3> providerStatic3;
 	protected final Array<RenderableProvider25> provider25;
 	protected final Array<RenderableProvider2> provider2;
 	protected final GameObjectHandler objectHandler;
@@ -36,6 +38,7 @@ public abstract class State implements ViewportResizable, Disposable {
 	public State(TerrafortEngine engine) {
 		this.engine = engine;
 		provider3 = new Array<>();
+		providerStatic3 = new Array<>();
 		provider25 = new Array<>();
 		provider2 = new Array<>();
 		objectHandler = new GameObjectHandler(this);
@@ -72,9 +75,20 @@ public abstract class State implements ViewportResizable, Disposable {
 	 * GameObject methods.
 	 */
 	
-	public long addGameObject(GameObject o) {
+	public long addGameObject(GameObject o, boolean bakeAfter) {
 		long id = objectHandler.create(o);
+		if(bakeAfter)
+			engine.getRenderer().bakeStaticRenderable3(this);
 		return id;
+	}
+	
+	public Array<Long> addGameObjects(Array<GameObject> objects, boolean bakeAfter) {
+		Array<Long> ids = new Array<>();
+		for(GameObject obj : objects)
+			ids.add(addGameObject(obj, false));
+		if(bakeAfter)
+			engine.getRenderer().bakeStaticRenderable3(this);
+		return ids;
 	}
 	
 	public GameObject getGameObject(long id) {
@@ -85,20 +99,54 @@ public abstract class State implements ViewportResizable, Disposable {
 	 * Raycasting methods.
 	 */
 	
-	public Vector3 doRaycastForPoint(float distance) {
+	public Vector3 doRaycastForPoint(float distance, BulletPhysicsTag... accept) {
+		if(accept.length == 0)
+			return null;
+		Pair<BulletRigidbody, Vector3> raycast = doRaycast(distance);
+		if(raycast == null)
+			return null;
+		if(!rigidbodyAccepted(raycast.getFirst(), accept))
+			return null;
 		return raycaster.hitPoint(camera3, objectHandler.getPhysicsEngine().getDynamicsWorld(), distance);
 	}
 	
-	public BulletRigidbody doRaycastForObject(float distance) {
+	public BulletRigidbody doRaycastForObject(float distance, BulletPhysicsTag... accept) {
+		if(accept.length == 0)
+			return null;
+		Pair<BulletRigidbody, Vector3> raycast = doRaycast(distance);
+		if(raycast == null)
+			return null;
+		if(!rigidbodyAccepted(raycast.getFirst(), accept))
+			return null;
 		return raycaster.hitObject(camera3, objectHandler.getPhysicsEngine().getDynamicsWorld(), distance);
 	}
 	
-	public Pair<BulletRigidbody, Vector3> doRaycast(float distance) {
+	public boolean doRaycastCheckObstruction(float distance, BulletPhysicsTag... accept) {
+		if(accept.length == 0)
+			return false;
+		Pair<BulletRigidbody, Vector3> raycast = doRaycast(distance);
+		if(raycast == null)
+			return false;
+		if(!rigidbodyAccepted(raycast.getFirst(), accept))
+			return false;
+		return raycaster.hitPoint(camera3, objectHandler.getPhysicsEngine().getDynamicsWorld(), distance) != null;
+	}
+	
+	private Pair<BulletRigidbody, Vector3> doRaycast(float distance) {
 		return raycaster.hit(camera3, objectHandler.getPhysicsEngine().getDynamicsWorld(), distance);
 	}
 	
-	public boolean doRaycastCheckObstruction(float distance) {
-		return raycaster.hitPoint(camera3, objectHandler.getPhysicsEngine().getDynamicsWorld(), distance) != null;
+	private boolean rigidbodyAccepted(BulletRigidbody body, BulletPhysicsTag... accept) {
+		if(accept.length == 0)
+			return false;
+		boolean in = false;
+		for(BulletPhysicsTag t : accept) {
+			if(t == body.getTag()) {
+				in = true;
+				break;
+			}
+		}	
+		return in;
 	}
 	
 	/**
@@ -107,6 +155,10 @@ public abstract class State implements ViewportResizable, Disposable {
 	
 	public final Array<RenderableProvider3> getProvider3() {
 		return provider3;
+	}
+	
+	public final Array<RenderableProvider3> getProviderStatic3() {
+		return providerStatic3;
 	}
 	
 	public final Array<RenderableProvider25> getProvider25() {
@@ -129,7 +181,7 @@ public abstract class State implements ViewportResizable, Disposable {
 		return objectHandler;
 	}
 	
-	protected final TerrafortEngine getEngine() {
+	public final TerrafortEngine getEngine() {
 		return engine;
 	}
 	
