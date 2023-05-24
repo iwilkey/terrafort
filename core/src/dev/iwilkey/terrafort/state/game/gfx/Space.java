@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 
+import dev.iwilkey.terrafort.gfx.Renderer;
 import dev.iwilkey.terrafort.object.GameObject3;
 import dev.iwilkey.terrafort.physics.bullet.BulletPhysicsTag;
 import dev.iwilkey.terrafort.physics.bullet.BulletPrimitive;
@@ -97,13 +98,6 @@ public class Space extends Environment {
 		
 	}
 	
-	private static final int SHADOW_MAP_WIDTH = (int)Math.pow(2, 12);
-	private static final int SHADOW_MAP_HEIGHT = SHADOW_MAP_WIDTH;
-	private static final float SHADOW_VIEWPORT_WIDTH = 40f;
-	private static final float SHADOW_VIEWPORT_HEIGHT = SHADOW_VIEWPORT_WIDTH;
-	private static final float SHADOW_NEAR = 0.0f;
-	private static final float SHADOW_FAR = 1024.0f;
-	
 	private final State state;
 	private final SinglePlayerGameState game;
 	private final ModelBatch shadowBatch;
@@ -116,12 +110,12 @@ public class Space extends Environment {
 		shadowBatch = new ModelBatch(new DepthShaderProvider());
 		set(new ColorAttribute(ColorAttribute.AmbientLight, 0.8f, 0.7f, .6f, 1f));
 	    add((shadowLight = new DirectionalShadowLight(
-	    		SHADOW_MAP_WIDTH, 
-	    		SHADOW_MAP_HEIGHT, 
-	    		SHADOW_VIEWPORT_WIDTH, 
-	    		SHADOW_VIEWPORT_HEIGHT, 
-	    		SHADOW_NEAR, 
-	    		SHADOW_FAR)).set(1f, 1f, 1f, 40.0f, -35f, -35f)); 
+	    		Renderer.SHADOW_MAP_WIDTH, 
+	    		Renderer.SHADOW_MAP_HEIGHT, 
+	    		Renderer.SHADOW_VIEWPORT_WIDTH, 
+	    		Renderer.SHADOW_VIEWPORT_HEIGHT, 
+	    		Renderer.SHADOW_NEAR, 
+	    		Renderer.SHADOW_FAR)).set(1f, 1f, 1f, 40.0f, -35f, -35f)); 
 		set(new ColorAttribute(ColorAttribute.Fog, 0.1f, 0.1f, 0.1f, 1f));
 		shadowMap = shadowLight;
 		spaceSegGrid = state.addGameObject(new Segmentation(state).setPhysicsTag(BulletPhysicsTag.BUILDING_PLATFORM), false);

@@ -44,8 +44,15 @@ public class Renderer implements ViewportResizable, Disposable {
 	public static final int DEPTH_BITS = 1 << 5;
 	public static final int STENCIL_BITS = 0;
 	// TODO: Perhaps allow this to be configured by user since it has direct impact on overall graphical quality.
-	public static final int MSAA_SAMPLES = 3;
-	public static final int GLOBAL_GL_LINE_WIDTH = 1;
+	public static final int MSAA_SAMPLES = 4;
+	public static final int GLOBAL_GL_LINE_WIDTH = 2;
+	// RT Shadow Shader GFX settings.
+	public static final int SHADOW_MAP_WIDTH = (int)Math.pow(2, 14);
+	public static final int SHADOW_MAP_HEIGHT = SHADOW_MAP_WIDTH;
+	public static final float SHADOW_VIEWPORT_WIDTH = 40f;
+	public static final float SHADOW_VIEWPORT_HEIGHT = SHADOW_VIEWPORT_WIDTH;
+	public static final float SHADOW_NEAR = 0.0f;
+	public static final float SHADOW_FAR = (int)Math.pow(2, 12);
 	// GLFW and GL runtime properties.
 	private static int width;
 	private static int height;
