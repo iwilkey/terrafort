@@ -157,7 +157,7 @@ public final class BuildingHandler {
 		this.engine = engine;
 		this.game = game;
 		selection = new Selection(engine);
-		long psi = engine.addGameObject(new Hitpoint(engine), false);
+		long psi = engine.addGameObject(new Hitpoint(engine));
 		posSel = (Hitpoint)engine.getGameObject(psi);
 	}
 	
@@ -239,7 +239,7 @@ public final class BuildingHandler {
 	            }
 	        }
 	    }
-	    engine.addGameObjects(newBlocks, true);
+	    engine.addGameObjects(newBlocks);
 	}
 
 	private void renderSelectionAndPosition(Vector3 hitpoint) {

@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 
+import dev.iwilkey.terrafort.object.GameObject3;
 import dev.iwilkey.terrafort.state.game.interaction.BuildingHandler;
 
 public class FrustumCulling {
@@ -29,6 +30,19 @@ public class FrustumCulling {
 				culled3.add(instance);
 		}
 		return culled3;
+	}
+	
+	public static boolean cullStaticRenderableProviderCache(StaticRenderableProviderBatch staticProvider, Camera camera) {
+		GameObject3[] buffer = staticProvider.getBuffer();
+		for(int i = 0; i < Renderer.STATIC_RENDERABLE_BUFFER_SIZE; i++) {
+			if(buffer[i] == null) {
+				return false;
+			} else {
+				if(sphericalTestWith(buffer[i].getModelInstance(), buffer[i].getBoundingBox(), camera))
+					return true;
+			}
+		}
+		return false;
 	}
 	
 	public static Array<Decal> cull25(Array<RenderableProvider25> providers, Camera camera) {

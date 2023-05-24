@@ -52,19 +52,16 @@ public abstract class GameObject3 extends GameObject implements RenderableProvid
 	public void setStatic() {
 		isStatic = true;
 		setPhysicsBodyType(BulletWrapper.STATIC_FLAG);
-		state.getObjectHandler().registerGameObject3StaticOrDynamic(this);
 	}
 	
 	public void setDynamic() {
 		isStatic = false;
 		setPhysicsBodyType(BulletWrapper.DYNAMIC_FLAG);
-		state.getObjectHandler().registerGameObject3StaticOrDynamic(this);
 	}
 	
 	public void setKinematic() {
 		isStatic = false;
 		setPhysicsBodyType(BulletWrapper.KINEMATIC_FLAG);
-		state.getObjectHandler().registerGameObject3StaticOrDynamic(this);
 	}
 	
 	public GameObject3 setPosition(Vector3 pos) {

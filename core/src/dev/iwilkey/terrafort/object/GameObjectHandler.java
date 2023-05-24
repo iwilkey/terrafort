@@ -62,13 +62,6 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 		}
 	}
 	
-	public void registerGameObject3StaticOrDynamic(GameObject3 go3) {
-		// Remove it from the dynamic Renderables batch, if applicable.
-		modifyRenderables(go3, false);
-		// Add it back to scene Renderables (automatically will be either static or not depending on flag.)
-		modifyRenderables(go3, true);
-	}
-	
 	public void tick() {
 		// Tick the physics engine.
 		physics.tick();
@@ -114,11 +107,11 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 					if(!obj3.isStatic()) {
 						state.getProvider3().add(obj3);
 					} else {
-						state.getProviderStatic3().add(obj3);
+						state.getStaticRenderableProviderCacheSystem().addStatic(obj3);
 					}
 				} else {
 					state.getProvider3().removeValue(obj3, false);
-					state.getProviderStatic3().removeValue(obj3, false);
+					state.getStaticRenderableProviderCacheSystem().removeStatic(obj3);
 				}
 				break;
 			case "go25":
@@ -140,7 +133,7 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 				GameObject3 obj3 = (GameObject3)o;
 				if(!obj3.isStatic())
 					return state.getProvider3().contains(obj3, false);
-				else return state.getProviderStatic3().contains(obj3, false);
+				else return state.getStaticRenderableProviderCacheSystem().contains(obj3);
 			case "go25":
 				return state.getProvider25().contains((GameObject25)o, false);
 			case "go2":

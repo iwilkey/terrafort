@@ -10,7 +10,7 @@ import dev.iwilkey.terrafort.state.State;
 
 public class Core extends GameObject3 {
 	
-	Vector3 rotAxis = new Vector3(0, 1, 0);
+	private Vector3 rotAxis = new Vector3(0, 1, 0);
 
 	public Core(State state) {
 		super(state, "core.txt", BulletPrimitive.SPHERE, 100.0f);
@@ -25,8 +25,5 @@ public class Core extends GameObject3 {
 	public void tick() {
 		setRotation(rotAxis, -Gdx.graphics.getDeltaTime());
 	}
-
-	@Override
-	public void dispose() {}
 
 }

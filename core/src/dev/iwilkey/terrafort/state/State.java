@@ -10,6 +10,7 @@ import dev.iwilkey.terrafort.gfx.Camera;
 import dev.iwilkey.terrafort.gfx.RenderableProvider2;
 import dev.iwilkey.terrafort.gfx.RenderableProvider25;
 import dev.iwilkey.terrafort.gfx.RenderableProvider3;
+import dev.iwilkey.terrafort.gfx.StaticRenderableProviderBatchSystem;
 import dev.iwilkey.terrafort.gfx.ViewportResizable;
 import dev.iwilkey.terrafort.object.GameObject;
 import dev.iwilkey.terrafort.object.GameObjectHandler;
@@ -25,7 +26,7 @@ public abstract class State implements ViewportResizable, Disposable {
 	
 	// GameObject handler and RenderableProviders.
 	protected final Array<RenderableProvider3> provider3;
-	protected final Array<RenderableProvider3> providerStatic3;
+	protected final StaticRenderableProviderBatchSystem providerCache3;
 	protected final Array<RenderableProvider25> provider25;
 	protected final Array<RenderableProvider2> provider2;
 	protected final GameObjectHandler objectHandler;
@@ -38,7 +39,7 @@ public abstract class State implements ViewportResizable, Disposable {
 	public State(TerrafortEngine engine) {
 		this.engine = engine;
 		provider3 = new Array<>();
-		providerStatic3 = new Array<>();
+		providerCache3 = new StaticRenderableProviderBatchSystem(this);
 		provider25 = new Array<>();
 		provider2 = new Array<>();
 		objectHandler = new GameObjectHandler(this);
@@ -75,19 +76,15 @@ public abstract class State implements ViewportResizable, Disposable {
 	 * GameObject methods.
 	 */
 	
-	public long addGameObject(GameObject o, boolean bakeAfter) {
+	public long addGameObject(GameObject o) {
 		long id = objectHandler.create(o);
-		if(bakeAfter)
-			engine.getRenderer().bakeStaticRenderable3(this);
 		return id;
 	}
 	
-	public Array<Long> addGameObjects(Array<GameObject> objects, boolean bakeAfter) {
+	public Array<Long> addGameObjects(Array<GameObject> objects) {
 		Array<Long> ids = new Array<>();
 		for(GameObject obj : objects)
-			ids.add(addGameObject(obj, false));
-		if(bakeAfter)
-			engine.getRenderer().bakeStaticRenderable3(this);
+			ids.add(addGameObject(obj));
 		return ids;
 	}
 	
@@ -157,8 +154,8 @@ public abstract class State implements ViewportResizable, Disposable {
 		return provider3;
 	}
 	
-	public final Array<RenderableProvider3> getProviderStatic3() {
-		return providerStatic3;
+	public final StaticRenderableProviderBatchSystem getStaticRenderableProviderCacheSystem() {
+		return providerCache3;
 	}
 	
 	public final Array<RenderableProvider25> getProvider25() {
@@ -196,6 +193,7 @@ public abstract class State implements ViewportResizable, Disposable {
 	
 	@Override
 	public void dispose() {
+		providerCache3.dispose();
 		objectHandler.dispose();
 	}
 	

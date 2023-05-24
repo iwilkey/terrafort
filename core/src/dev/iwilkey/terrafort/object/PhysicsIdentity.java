@@ -103,6 +103,7 @@ public final class PhysicsIdentity implements Disposable {
 	@Override
 	public void dispose() {
 		rigidbody.dispose();
+		shape.dispose();
 	}
 	
 }

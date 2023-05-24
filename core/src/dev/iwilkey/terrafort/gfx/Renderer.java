@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.decals.CameraGroupStrategy;
 import com.badlogic.gdx.graphics.g3d.decals.Decal;
@@ -27,12 +26,13 @@ import dev.iwilkey.terrafort.physics.bullet.BulletWrapper;
 import dev.iwilkey.terrafort.state.State;
 import dev.iwilkey.terrafort.state.game.SinglePlayerEngineState;
 import dev.iwilkey.terrafort.state.game.gfx.Space;
+
 import imgui.ImGui;
 import imgui.ImGuiStyle;
 import imgui.gl3.ImGuiImplGl3;
 import imgui.glfw.ImGuiImplGlfw;
 
-public class Renderer implements ViewportResizable, Disposable {
+public final class Renderer implements ViewportResizable, Disposable {
 	
 	// Direct reference to the engine.
 	private final TerrafortEngine engine;
@@ -46,6 +46,7 @@ public class Renderer implements ViewportResizable, Disposable {
 	// TODO: Perhaps allow this to be configured by user since it has direct impact on overall graphical quality.
 	public static final int MSAA_SAMPLES = 4;
 	public static final int GLOBAL_GL_LINE_WIDTH = 2;
+	public static final int STATIC_RENDERABLE_BUFFER_SIZE = 32;
 	// RT Shadow Shader GFX settings.
 	public static final int SHADOW_MAP_WIDTH = (int)Math.pow(2, 14);
 	public static final int SHADOW_MAP_HEIGHT = SHADOW_MAP_WIDTH;
@@ -62,7 +63,6 @@ public class Renderer implements ViewportResizable, Disposable {
 	private static final ImGuiImplGlfw DI_GLFW = new ImGuiImplGlfw();
 	private static final ImGuiImplGl3 DI_GL3 = new ImGuiImplGl3();
 	private final ModelBatch batch3 = new ModelBatch();
-	private final ModelCache batch3StaticCache = new ModelCache();
 	private DecalBatch batch25 = null; // Can only be initialized when a valid state is set.
 	private final SpriteBatch batch2 = new SpriteBatch();
 	
@@ -127,42 +127,35 @@ public class Renderer implements ViewportResizable, Disposable {
 	 * Render
 	 */
 	public void render(State state) {
+		// Bake the static cache. Note this will only bake caches that have been dirtied.
+		state.getStaticRenderableProviderCacheSystem().bake();
 		// Frustum culling for 3D objects.
 		Array<ModelInstance> culled = FrustumCulling.cull3(state.getProvider3(), state.getCamera());
-		if(culled.size != 0) {
-			// Render shadows (if it is a single player engine state).
-			if(state.getRenderable3Environment() instanceof Space) {
-				Space space = ((SinglePlayerEngineState)state).getSpatialEnvironment();
-				space.getShadowLight().begin(Vector3.Zero, state.getCamera().direction);
-				space.getShadowBatch().begin(space.getShadowLight().getCamera());
-				// Render shadows on static Renderables.
-				space.getShadowBatch().render(batch3StaticCache);
-				// Render shadows on dynamic Renderables.
+		if(state.getRenderable3Environment() instanceof Space) {
+			Space space = ((SinglePlayerEngineState)state).getSpatialEnvironment();
+			space.getShadowLight().begin(Vector3.Zero, state.getCamera().direction);
+			space.getShadowBatch().begin(space.getShadowLight().getCamera());
+			// Render shadows on static Renderables.
+			state.getStaticRenderableProviderCacheSystem().renderThroughShadowShader(space.getShadowBatch());
+			// Render shadows on dynamic Renderables.
+			if(culled.size != 0)
 				space.getShadowBatch().render(culled);
-				space.getShadowBatch().end();
-				space.getShadowLight().end();
-			}
-			clearGl(true);
-			// Enable backface culling for Voxel rendering.
-			Gdx.gl.glEnable(GL20.GL_CULL_FACE);
-			Gdx.gl.glCullFace(GL20.GL_BACK);
-			// Render 3D objects.
-			batch3.begin(state.getCamera());
-			// Render static Renderables.
-			batch3.render(batch3StaticCache, state.getRenderable3Environment());
-			// Render dynamic Renderables.
+			space.getShadowBatch().end();
+			space.getShadowLight().end();
+		}
+		clearGl(true);
+		Gdx.gl.glEnable(GL20.GL_CULL_FACE);
+		Gdx.gl.glCullFace(GL20.GL_BACK);
+		batch3.begin(state.getCamera());
+		state.getStaticRenderableProviderCacheSystem().render(batch3, state.getRenderable3Environment());
+		if(culled.size != 0) {
 			for(ModelInstance prov : culled) 
 				batch3.render(prov, state.getRenderable3Environment());
-			batch3.end();
-			// Disable backface culling because 3D rendering is over.
-			Gdx.gl.glDisable(GL20.GL_CULL_FACE);
 		} else {
-			clearGl(true);
-			// Render the Null Object. See notes about "createNullObject()" above to understand why.
-			batch3.begin(state.getCamera());
 			batch3.render(nullObjectRenderable, state.getRenderable3Environment());
-			batch3.end();
 		}
+		batch3.end();
+		Gdx.gl.glDisable(GL20.GL_CULL_FACE);
 		// If physics debug mode is on, draw it.
 		BulletWrapper physics = state.getObjectHandler().getPhysicsEngine();
 		if(physics.debugMode) {
@@ -188,15 +181,7 @@ public class Renderer implements ViewportResizable, Disposable {
 		}
 		batch2.end();
 	}
-	
-	public void bakeStaticRenderable3(State state) {
-		System.out.println("[Terrafort Engine] Baking static renderables.");
-		batch3StaticCache.begin(state.getCamera());
-		for(RenderableProvider3 statics : state.getProviderStatic3())
-			batch3StaticCache.add(statics.getModelInstance());
-		batch3StaticCache.end();
-	}
-	
+
 	public void clearGui() {
 		DI_GLFW.newFrame();
 		ImGui.newFrame();
@@ -284,7 +269,6 @@ public class Renderer implements ViewportResizable, Disposable {
 	public void dispose() {
 		// Dispose of batches.
 		batch3.dispose();
-		batch3StaticCache.dispose();
 		if(batch25 != null)
 			batch25.dispose();
 		batch2.dispose();

@@ -31,11 +31,11 @@ public class Space extends Environment {
 		public static final int VERTEX_ATTRIBUTES = 
 				VertexAttributes.Usage.Position | 
 				VertexAttributes.Usage.ColorUnpacked;
-		public static final float SIZE = (float)Math.pow(2, 3);
+		public static final float SIZE = (float)Math.pow(2, 8);
 		public static final int DIVISIONS = (int)SIZE * 2;
 		public static final float SQUARE_SIZE = (SIZE / DIVISIONS);
 		public static final float INITIAL_HEIGHT = 0f;
-		public static final Color COLOR = new Color(0.5f, 0.5f, 0.5f, 1f);
+		public static final Color COLOR = new Color(0.8f, 0.8f, 0.8f, 0f);
 
 		public Segmentation(State state) {
 			super(state, "tf_space_seg", BulletPrimitive.CUBOID, 0.0f);
@@ -118,7 +118,7 @@ public class Space extends Environment {
 	    		Renderer.SHADOW_FAR)).set(1f, 1f, 1f, 40.0f, -35f, -35f)); 
 		set(new ColorAttribute(ColorAttribute.Fog, 0.1f, 0.1f, 0.1f, 1f));
 		shadowMap = shadowLight;
-		spaceSegGrid = state.addGameObject(new Segmentation(state).setPhysicsTag(BulletPhysicsTag.BUILDING_PLATFORM), false);
+		spaceSegGrid = state.addGameObject(new Segmentation(state).setPhysicsTag(BulletPhysicsTag.BUILDING_PLATFORM));
 	}
 
 	public void tick() {
@@ -127,7 +127,7 @@ public class Space extends Environment {
 			grid.setShouldRender(false);
 			return;
 		}
-		grid.setShouldRender(true);
+		grid.setShouldRender(false);
 		grid.setPosition(Segmentation.snapToNearestGridPosition(state.getCamera().position));
 	}
 	

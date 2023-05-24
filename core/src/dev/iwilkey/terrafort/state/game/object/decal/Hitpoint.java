@@ -9,14 +9,10 @@ public final class Hitpoint extends GameObject25 {
 		super(state, "crosshair.png", true);
 		setPosition(0, 0, 0);
 	}
-
+	
 	@Override
 	public void instantiation() {
 		setScale(0.01f);
 	}
-	@Override
-	public void tick() {}
-	@Override
-	public void dispose() {}
-
+	
 }

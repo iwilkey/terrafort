@@ -2,7 +2,7 @@ package dev.iwilkey.terrafort.object;
 
 import dev.iwilkey.terrafort.state.State;
 
-public abstract class GameObject {
+public class GameObject {
 	
 	protected State state;
 	protected long id;
@@ -36,8 +36,8 @@ public abstract class GameObject {
 		return this;
 	}
 	
-	public abstract void instantiation();
-	public abstract void tick();
-	public abstract void dispose();
+	public void instantiation() {}
+	public void tick() {}
+	public void dispose() {}
 	
 }
