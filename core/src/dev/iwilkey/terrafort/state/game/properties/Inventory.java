@@ -4,8 +4,8 @@ import dev.iwilkey.terrafort.gfx.Alignment;
 import dev.iwilkey.terrafort.gfx.Anchor;
 import dev.iwilkey.terrafort.state.game.SinglePlayerGameState;
 import dev.iwilkey.terrafort.state.game.object.resource.Resources;
+
 import imgui.ImGui;
-import imgui.flag.ImGuiWindowFlags;
 
 public final class Inventory extends SinglePlayerGameProperty {
 

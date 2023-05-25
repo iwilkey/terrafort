@@ -25,8 +25,7 @@ import dev.iwilkey.terrafort.TerrafortEngine;
 import dev.iwilkey.terrafort.physics.bullet.BulletWrapper;
 import dev.iwilkey.terrafort.state.State;
 import dev.iwilkey.terrafort.state.game.SinglePlayerEngineState;
-import dev.iwilkey.terrafort.state.game.gfx.Space;
-
+import dev.iwilkey.terrafort.state.game.space.Space;
 import imgui.ImGui;
 import imgui.ImGuiStyle;
 import imgui.gl3.ImGuiImplGl3;
@@ -45,7 +44,7 @@ public final class Renderer implements ViewportResizable, Disposable {
 	public static final int STENCIL_BITS = 0;
 	// TODO: Perhaps allow this to be configured by user since it has direct impact on overall graphical quality.
 	public static final int MSAA_SAMPLES = 4;
-	public static final int GLOBAL_GL_LINE_WIDTH = 2;
+	public static final int GLOBAL_GL_LINE_WIDTH = 1;
 	public static final int STATIC_RENDERABLE_BUFFER_SIZE = 32;
 	// RT Shadow Shader GFX settings.
 	public static final int SHADOW_MAP_WIDTH = (int)Math.pow(2, 14);

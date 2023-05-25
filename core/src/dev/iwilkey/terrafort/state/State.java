@@ -14,6 +14,7 @@ import dev.iwilkey.terrafort.gfx.StaticRenderableProviderBatchSystem;
 import dev.iwilkey.terrafort.gfx.ViewportResizable;
 import dev.iwilkey.terrafort.object.GameObject;
 import dev.iwilkey.terrafort.object.GameObjectHandler;
+import dev.iwilkey.terrafort.particle.ParticleSystem;
 import dev.iwilkey.terrafort.physics.bullet.BulletPhysicsTag;
 import dev.iwilkey.terrafort.physics.bullet.BulletRaycaster;
 import dev.iwilkey.terrafort.physics.bullet.BulletRigidbody;
@@ -34,6 +35,7 @@ public abstract class State implements ViewportResizable, Disposable {
 	// For 3D rendering and physics.
 	protected Camera camera3;
 	protected Environment environment3;
+	protected ParticleSystem particle;
 	protected BulletRaycaster raycaster;
 	
 	public State(TerrafortEngine engine) {
@@ -42,6 +44,7 @@ public abstract class State implements ViewportResizable, Disposable {
 		providerCache3 = new StaticRenderableProviderBatchSystem(this);
 		provider25 = new Array<>();
 		provider2 = new Array<>();
+		particle = new ParticleSystem(this);
 		objectHandler = new GameObjectHandler(this);
 		init3();
 	}
@@ -51,15 +54,7 @@ public abstract class State implements ViewportResizable, Disposable {
 		camera3 = new Camera(64);
 		raycaster = new BulletRaycaster();
 	}
-	
-	public final void init() {
-		
-	}
-	
-	public final boolean load() {
-		return true;
-	}
-	
+
 	public final void update() {
 		objectHandler.tick();
 		camera3.tick();
@@ -90,6 +85,14 @@ public abstract class State implements ViewportResizable, Disposable {
 	
 	public GameObject getGameObject(long id) {
 		return objectHandler.get(id);
+	}
+	
+	/**
+	 * Particle methods.
+	 */
+	
+	public void createParticleScatterAt(Vector3 position, int particleAmount) {
+		particle.createScatterAt(position, particleAmount);
 	}
 	
 	/**

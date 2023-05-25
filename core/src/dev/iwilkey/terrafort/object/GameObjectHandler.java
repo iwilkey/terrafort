@@ -3,21 +3,21 @@ package dev.iwilkey.terrafort.object;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 import com.badlogic.gdx.utils.Disposable;
 
 import dev.iwilkey.terrafort.gfx.ViewportResizable;
 import dev.iwilkey.terrafort.physics.bullet.BulletWrapper;
 import dev.iwilkey.terrafort.state.State;
+import dev.iwilkey.terrafort.utilities.SnowflakeIDGenerator;
 
 public final class GameObjectHandler implements ViewportResizable, Disposable {
 	
 	public static final int MAX_OBJS = (int)Math.pow(2, 20);
 
 	private final State state;
+	private SnowflakeIDGenerator idGenerator;
 	private final BulletWrapper physics;
-	private final AtomicLong idGenerator;
 	private final HashMap<Long, GameObject> activeObjects;
 	
 	private Iterator<Map.Entry<Long, GameObject>> iterator;
@@ -25,7 +25,7 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 	public GameObjectHandler(State state) {
 		this.state = state;
 		physics = new BulletWrapper();
-		idGenerator = new AtomicLong(0);
+		idGenerator = new SnowflakeIDGenerator();
 		activeObjects = new HashMap<>();
 		iterator = activeObjects.entrySet().iterator();
 	}
@@ -36,7 +36,7 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 			System.exit(-1);
 			return -1;
 		}
-		long id = idGenerator.incrementAndGet();
+		long id = idGenerator.next();
 		activeObjects.put(id, o);
 		o.setID(id);
 		// Handle adding 3D objects to the physics engine.
@@ -110,8 +110,10 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 						state.getStaticRenderableProviderCacheSystem().addStatic(obj3);
 					}
 				} else {
-					state.getProvider3().removeValue(obj3, false);
-					state.getStaticRenderableProviderCacheSystem().removeStatic(obj3);
+					if(!obj3.isStatic())
+						state.getProvider3().removeValue(obj3, false);
+					else
+						state.getStaticRenderableProviderCacheSystem().removeStatic(obj3);
 				}
 				break;
 			case "go25":

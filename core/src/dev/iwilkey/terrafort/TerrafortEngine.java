@@ -21,20 +21,14 @@ public class TerrafortEngine extends ApplicationAdapter {
 	public void create() {
 		// Set up renderer.
 		renderer = new Renderer(this);
-		
 		// Load the Terrafort assets.
 		assets = new TerrafortAssetHandler(this);
         assets.load();
-        
 		// Initialize the input.
 		input = new InputHandler();
 		Gdx.input.setInputProcessor(input);
-		
 		// Set the initial state.
         setState(new SinglePlayerEngineState(this));
-        currentState.begin();
-		renderer.initBatch25();
-		
 		// Show the window, as all of the initial application construction has been completed.
 		GLFW.glfwShowWindow(renderer.getWindowHandle());
 	}
@@ -81,8 +75,10 @@ public class TerrafortEngine extends ApplicationAdapter {
 			currentState.dispose();
 		}
 		currentState = state;
-		if(currentState != null) 
-			currentState.init();
+		if(currentState != null) {
+			renderer.initBatch25();
+			currentState.begin();
+		}
 	}
 	
 	public Renderer getRenderer() {

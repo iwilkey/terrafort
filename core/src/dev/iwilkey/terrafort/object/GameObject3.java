@@ -108,6 +108,15 @@ public abstract class GameObject3 extends GameObject implements RenderableProvid
 		return this;
 	}
 	
+	private Vector3 force = new Vector3();
+	public GameObject applyCentralForce(Vector3 direction, float magnitude) {
+		force.set(direction);
+		force.nor();
+		force.scl(magnitude);
+		identity.getBody().applyCentralForce(force);
+		return this;
+	}
+	
 	public GameObject3 setPhysicsTag(BulletPhysicsTag tag) {
 		identity.getBody().setTag(tag);
 		return this;

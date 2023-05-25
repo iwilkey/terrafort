@@ -2,8 +2,6 @@ package dev.iwilkey.terrafort.asset;
 
 import java.util.HashMap;
 
-import org.lwjgl.opengl.GL20;
-
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.VertexAttributes.Usage;
 import com.badlogic.gdx.graphics.g3d.Material;

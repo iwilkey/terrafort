@@ -2,10 +2,10 @@ package dev.iwilkey.terrafort.state.game;
 
 import dev.iwilkey.terrafort.TerrafortEngine;
 import dev.iwilkey.terrafort.state.State;
-import dev.iwilkey.terrafort.state.game.gfx.Space;
 import dev.iwilkey.terrafort.state.game.interaction.BuildingHandler;
 import dev.iwilkey.terrafort.state.game.object.Core;
 import dev.iwilkey.terrafort.state.game.object.Crosshair;
+import dev.iwilkey.terrafort.state.game.space.Space;
 
 public class SinglePlayerEngineState extends State {
 	
@@ -37,15 +37,12 @@ public class SinglePlayerEngineState extends State {
 		// Create game properties. 
 		game = new SinglePlayerGameState(this);
 		builder = new BuildingHandler(this, game);
-		
 		// Create the spatial environment.
 		env = new Space(this, game);
 		environment3 = env;
-		
 		// Create constant GameObjects.
 		crosshair = addGameObject(new Crosshair(this).setShouldRender(false));
 		core = addGameObject(new Core(this).setPosition(0, 0, 0));
-		
 		// Add the player to the world.
 		player = new Player(this, crosshair);
 		camera3.setController(player);

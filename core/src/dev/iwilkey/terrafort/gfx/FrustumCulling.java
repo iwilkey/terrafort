@@ -7,7 +7,7 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.object.GameObject3;
-import dev.iwilkey.terrafort.state.game.interaction.BuildingHandler;
+import dev.iwilkey.terrafort.state.game.interaction.SpatialSelection;
 
 public class FrustumCulling {
 	
@@ -21,7 +21,7 @@ public class FrustumCulling {
 	public static Array<ModelInstance> cull3(Array<RenderableProvider3> providers, Camera camera) {
 		culled3.clear();
 		for(RenderableProvider3 prov : providers) {
-			if(prov instanceof BuildingHandler.Selection) {
+			if(prov instanceof SpatialSelection) {
 				culled3.add(prov.getModelInstance());
 				continue;
 			}

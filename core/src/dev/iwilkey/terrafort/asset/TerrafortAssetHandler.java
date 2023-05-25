@@ -10,8 +10,9 @@ import com.badlogic.gdx.utils.Disposable;
 import dev.iwilkey.terrafort.TerrafortEngine;
 import dev.iwilkey.terrafort.asset.registers.TextureRegister;
 import dev.iwilkey.terrafort.asset.registers.VoxelRegister;
-import dev.iwilkey.terrafort.state.game.gfx.Space;
-import dev.iwilkey.terrafort.state.game.interaction.BuildingHandler;
+import dev.iwilkey.terrafort.particle.Particle;
+import dev.iwilkey.terrafort.state.game.interaction.SpatialSelection;
+import dev.iwilkey.terrafort.state.game.space.GridSystem;
 
 public final class TerrafortAssetHandler implements Disposable {
 	
@@ -33,6 +34,7 @@ public final class TerrafortAssetHandler implements Disposable {
 
 	public void load() {
 		System.out.println("[Terrafort Engine] Beginning Terrafort Asset Manager loadtime.");
+		
 		// Load textures.
 		for(TextureRegister texture : TextureRegister.values()) {
 			String name = texture.getFileHandle().name();
@@ -58,10 +60,15 @@ public final class TerrafortAssetHandler implements Disposable {
 			System.out.println("[Terrafort Engine] Loaded Voxel Model \"" + name + "\".");
 			loadedAssets++;
 		}
+		
 		// Load utility models: Space segmentation grid.
-		MODEL_MEMORY.put("tf_space_seg", Space.Segmentation.createSegmentationGrid());
+		MODEL_MEMORY.put("tf_space_seg", GridSystem.createSegmentationGridModel());
 		// Load utility models: Building handler selection.
-		MODEL_MEMORY.put("tf_building_handler_selection", BuildingHandler.Selection.createBuildingHandlerSelection());
+		MODEL_MEMORY.put("tf_building_handler_selection", SpatialSelection.createBuildingHandlerSelectionModel());
+		// Load utility models: Particle.
+		MODEL_MEMORY.put("tf_particle", Particle.createParticleModel());
+		
+		// All assets are loaded.
 		isFinished = true;
 		System.out.println("[Terrafort Engine] Terrafort Asset Manager loadtime successful.");
 	}
