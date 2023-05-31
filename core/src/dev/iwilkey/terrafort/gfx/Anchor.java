@@ -1,5 +1,8 @@
 package dev.iwilkey.terrafort.gfx;
 
+/**
+ * Enumeration of anchor positions used for alignment in the user interface.
+ */
 public enum Anchor {
 	TOP_LEFT,
 	TOP_CENTER,

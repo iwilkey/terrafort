@@ -1,12 +1,9 @@
 package dev.iwilkey.terrafort;
 
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.glfw.GLFWVidMode;
-
 import com.badlogic.gdx.Graphics.DisplayMode;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 
-import dev.iwilkey.terrafort.gfx.Renderer;
+import dev.iwilkey.terrafort.gfx.GLContext;
 
 public class TerrafortDesktopLauncher {
 	
@@ -23,9 +20,7 @@ public class TerrafortDesktopLauncher {
 			this.setForegroundFPS(60);
 			// No VSync.
 			this.useVsync(false);
-			
 			DisplayMode display = Lwjgl3ApplicationConfiguration.getDisplayMode();
-			
 			this.setWindowPosition(-1, -1);
 			// Set fullscreen mode, if desired.
 			if(fullscreen) 
@@ -46,13 +41,13 @@ public class TerrafortDesktopLauncher {
 			this.setInitialVisible(true);
 			// Set up OpenGL back buffer.
 			this.setBackBufferConfig(
-							Renderer.RED_BITS, 
-							Renderer.GREEN_BITS, 
-							Renderer.BLUE_BITS, 
-							Renderer.ALPHA_BITS, 
-							Renderer.DEPTH_BITS, 
-							Renderer.STENCIL_BITS, 
-							Renderer.MSAA_SAMPLES
+							GLContext.RED_BITS, 
+							GLContext.GREEN_BITS, 
+							GLContext.BLUE_BITS, 
+							GLContext.ALPHA_BITS, 
+							GLContext.DEPTH_BITS, 
+							GLContext.STENCIL_BITS, 
+							GLContext.MSAA_SAMPLES
 										 );
 			// Enable OpenGL debug output.
 			this.enableGLDebugOutput(true, System.out);

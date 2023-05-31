@@ -1,77 +1,140 @@
 package dev.iwilkey.terrafort.object;
 
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 
+import dev.iwilkey.terrafort.Terrafort;
 import dev.iwilkey.terrafort.asset.TerrafortAssetHandler;
+import dev.iwilkey.terrafort.asset.registers.VoxelModels;
 import dev.iwilkey.terrafort.gfx.RenderableProvider3;
-import dev.iwilkey.terrafort.physics.bullet.BulletMotion;
-import dev.iwilkey.terrafort.physics.bullet.BulletPhysicsTag;
-import dev.iwilkey.terrafort.physics.bullet.BulletPrimitive;
-import dev.iwilkey.terrafort.physics.bullet.BulletWrapper;
+import dev.iwilkey.terrafort.physics.TerrafortPhysicsCore;
+import dev.iwilkey.terrafort.physics.PhysicsPrimitive;
+import dev.iwilkey.terrafort.physics.PhysicsTag;
+import dev.iwilkey.terrafort.physics.TerrafortRigidbodyUniqueMotion;
 import dev.iwilkey.terrafort.state.State;
 
-public abstract class GameObject3 extends GameObject implements RenderableProvider3 {
+/**
+ * A object that is rendered in 3D and is acted on by the physics engine.
+ * @author iwilkey
+ */
+public class GameObject3 extends GameObject implements RenderableProvider3 {
 	
-	private final BoundingBox boundingBox;
+	private BoundingBox boundingBox;
 	private ModelInstance renderable;
 	private Vector3 position;
 	private PhysicsIdentity identity;
-	private BulletMotion motion;
+	private TerrafortRigidbodyUniqueMotion motion;
 	private boolean isStatic;
 	
-	public GameObject3(State state, String pathToLoadedModel, BulletPrimitive primitive, float mass, double... dimensionScaling) {
+	/**
+	 * Constructs a GameObject3 instance with the specified parameters.
+	 * @param state the state of the game object
+	 * @param pathToLoadedModel the path to the loaded model
+	 * @param primitive the Terrafort physics primitive
+	 * @param mass the mass of the game object
+	 * @param dimensionScaling the scaling factor for dimensions (optional)
+	 */
+	public GameObject3(State state, String pathToLoadedModel, PhysicsPrimitive primitive, float mass, double physicsScale) {
 		super(state);
-		double scale;
-		if(dimensionScaling.length == 0) {
-			scale = 1f;
-		} else if(dimensionScaling.length == 1) {
-			scale = dimensionScaling[0];
-		} else {
-			System.out.println("[Terrafort Engine] You are using the dimension scaling parameter incorrectly. There should only be one value! The engine will use the first value.");
-			scale = dimensionScaling[0];
-		}
+		init(pathToLoadedModel, primitive, mass, physicsScale);
+	}
+	
+	/**
+	 * Constructs a GameObject3 instance with the specified parameters.
+	 */
+	public GameObject3(State state, VoxelModels voxelModel) {
+		super(state);
+		init(voxelModel.getFileHandle().name(), PhysicsPrimitive.CUBOID, 1.0f, 1.0f);
+	}
+	
+	/**
+	 * Constructs a GameObject3 instance with the specified parameters.
+	 */
+	public GameObject3(State state, VoxelModels voxelModel, PhysicsPrimitive primitive) {
+		super(state);
+		init(voxelModel.getFileHandle().name(), primitive, 1.0f, 1.0f);
+	}
+	
+	/**
+	 * Constructs a GameObject3 instance with the specified parameters.
+	 */
+	public GameObject3(State state, VoxelModels voxelModel, PhysicsPrimitive primitive, float mass) {
+		super(state);
+		init(voxelModel.getFileHandle().name(), primitive, mass, 1.0f);
+	}
+	
+	/**
+	 * Constructs a GameObject3 instance with the specified parameters.
+	 */
+	public GameObject3(State state, VoxelModels voxelModel, PhysicsPrimitive primitive, float mass, double physicsScale) {
+		super(state);
+		init(voxelModel.getFileHandle().name(), primitive, mass, physicsScale);
+	}
+	
+	private void init(String pathToLoadedModel, PhysicsPrimitive primitive, float mass, double physicsScale) {
 		renderable = new ModelInstance(TerrafortAssetHandler.getVoxelModel(pathToLoadedModel));
 		boundingBox = new BoundingBox();
 		renderable.calculateBoundingBox(boundingBox);
 		position = new Vector3();
-		identity = new PhysicsIdentity(TerrafortAssetHandler.getVoxelModel(pathToLoadedModel), getDimensions().cpy().scl((float)scale), primitive, mass);
-		motion = new BulletMotion();
+		identity = new PhysicsIdentity(TerrafortAssetHandler.getVoxelModel(pathToLoadedModel), getDimensions().cpy().scl((float)physicsScale), primitive, mass);
+		motion = new TerrafortRigidbodyUniqueMotion();
 		motion.setTransform(renderable.transform);
 		identity.getBody().setMotionState(motion);
-		isStatic = false;
+		setDynamic();
 	}
 	
 	/**
+	 * Sets the game object as static.
 	 * A static 3D object will be rendered in a ModelCache to save resources at rendering time.
-	 * Note, it cannot be translated in any way, and if it is, the entire cache must be rebuilt which is
-	 * expensive.
+	 * Note, it cannot be translated in any way, and if it is, the entire cache must be rebuilt which is expensive.
 	 */
 	public void setStatic() {
 		isStatic = true;
-		setPhysicsBodyType(BulletWrapper.STATIC_FLAG);
+		setPhysicsBodyType(TerrafortPhysicsCore.STATIC_FLAG);
 	}
 	
+	/**
+	 * Sets the game object as dynamic.
+	 * A dynamic object is subject to physics simulation and can be translated and rotated.
+	 */
 	public void setDynamic() {
 		isStatic = false;
-		setPhysicsBodyType(BulletWrapper.DYNAMIC_FLAG);
+		setPhysicsBodyType(TerrafortPhysicsCore.DYNAMIC_FLAG);
 	}
 	
+	/**
+	 * Sets the game object as kinematic.
+	 * A kinematic object is not affected by forces or gravity but can be moved programmatically.
+	 */
 	public void setKinematic() {
 		isStatic = false;
-		setPhysicsBodyType(BulletWrapper.KINEMATIC_FLAG);
+		setPhysicsBodyType(TerrafortPhysicsCore.KINEMATIC_FLAG);
 	}
 	
+	/**
+	 * Sets the position of the game object.
+	 * @param pos the position vector to set
+	 * @return the game object itself
+	 */
 	public GameObject3 setPosition(Vector3 pos) {
 		setPosition(pos.x, pos.y, pos.z);
 		return this;
 	}
 	
+	/**
+	 * Sets the position of the game object.
+	 * @param x the X coordinate of the position
+	 * @param y the Y coordinate of the position
+	 * @param z the Z coordinate of the position
+	 * @return the game object itself
+	 */
 	public GameObject3 setPosition(float x, float y, float z) {
 		if(isStatic) {
-			System.out.println("[Terrafort Engine] You cannot translate a static GameObject3! You must set this objects isStatic flag to false.");
+			Terrafort.log("You cannot translate a static GameObject3! You must set this object's isStatic flag to false.");
 			return this;
 		}
 		position.set(x, y, z);
@@ -89,9 +152,15 @@ public abstract class GameObject3 extends GameObject implements RenderableProvid
 		body.activate();
 	}
 	
-	public GameObject3 setRotation(Vector3 axis, float deg) {
+	/**
+	 * Sets the rotation of the game object.
+	 * @param axis the rotation axis vector
+	 * @param deg the rotation angle in degrees
+	 * @return the game object itself
+	 */
+	public GameObject3 setRotationAxis(Vector3 axis, float deg) {
 		if(isStatic) {
-			System.out.println("[Terrafort Engine] You cannot rotate a static GameObject3! You must set this objects isStatic flag to false.");
+			Terrafort.log("You cannot rotate a static GameObject3! You must set this object's isStatic flag to false.");
 			return this;
 		}
 		renderable.transform.rotate(axis, deg);
@@ -99,9 +168,41 @@ public abstract class GameObject3 extends GameObject implements RenderableProvid
 		return this;
 	}
 	
+	/**
+	 * Set the rotation directly to yaw, pitch, and roll in degrees.
+	 * @param yawDegrees
+	 * @param pitchDegrees
+	 * @param rollDegrees
+	 * @return
+	 */
+	public GameObject3 setRotation(float yawDegrees, float pitchDegrees, float rollDegrees) {
+	    Quaternion yawQuaternion = new Quaternion(Vector3.Y, yawDegrees + 180.0f);
+	    Quaternion pitchQuaternion = new Quaternion(Vector3.X, pitchDegrees);
+	    Quaternion rollQuaternion = new Quaternion(Vector3.Z, rollDegrees);
+	    Quaternion combined = new Quaternion().set(yawQuaternion).mul(pitchQuaternion).mul(rollQuaternion);
+	    renderable.transform.set(getPosition(), combined, new Vector3(1, 1, 1));
+	    return this;
+	}
+	
+	/**
+	 * Set the GameObject's direction.
+	 * @param direction the direction to look in.
+	 * @return the game object itself.
+	 */
+	public GameObject3 setLookAt(Vector3 direction) {
+		renderable.transform.setToLookAt(direction, Vector3.Y).trn(position);
+		resetPhysicsIdentity();
+		return this;
+	}
+	
+	/**
+	 * Sets the physics body type of the game object.
+	 * @param flag the physics body type flag
+	 * @return the game object itself
+	 */
 	public GameObject3 setPhysicsBodyType(byte flag) {
-		if(isStatic && flag != BulletWrapper.STATIC_FLAG) {
-			System.out.println("[Terrafort Engine] You cannot set a static GameObject3 to any other physics flag besides STATIC_FLAG. You must set this objects isStatic flag to false.");
+		if(isStatic) {
+			Terrafort.log("You cannot set the physics properties of a static GameObject3. Set the isStatic flag to false.");
 			return this;
 		}
 		identity.setBodyType(flag);
@@ -109,6 +210,13 @@ public abstract class GameObject3 extends GameObject implements RenderableProvid
 	}
 	
 	private Vector3 force = new Vector3();
+	
+	/**
+	 * Applies a central force to the game object.
+	 * @param direction the direction of the force
+	 * @param magnitude the magnitude of the force
+	 * @return the game object itself
+	 */
 	public GameObject applyCentralForce(Vector3 direction, float magnitude) {
 		force.set(direction);
 		force.nor();
@@ -117,23 +225,57 @@ public abstract class GameObject3 extends GameObject implements RenderableProvid
 		return this;
 	}
 	
-	public GameObject3 setPhysicsTag(BulletPhysicsTag tag) {
+	/**
+	 * Sets the physics tag of the game object.
+	 * @param tag the physics tag
+	 * @return the game object itself
+	 */
+	public GameObject3 setPhysicsTag(PhysicsTag tag) {
 		identity.getBody().setTag(tag);
 		return this;
 	}
 	
+	/**
+	 * Returns the position of the game object.
+	 * @return the position vector
+	 */
 	public Vector3 getPosition() {
-		return position.cpy();
+		return position.cpy(); 
+	}
+	
+	/**
+	 * Return the objects current (yaw, pitch, roll) in a Vector3, ordered in that manner.
+	 * @return the objects current (yaw, pitch, roll) in a Vector3, ordered in that manner.
+	 */
+	public Vector3 getYawPitchRoll() {
+		Quaternion q = new Quaternion();
+	    renderable.transform.getRotation(q);
+	    double yaw = Math.atan2(2.0*(q.y * q.z + q.w * q.x), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z);
+	    double pitch = Math.asin(-2.0 * (q.x * q.z - q.w * q.y));
+	    double roll = Math.atan2(2.0 * (q.x * q.y + q.w * q.z), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z);
+	    return new Vector3((float)yaw * MathUtils.radiansToDegrees, (float)pitch * MathUtils.radiansToDegrees, (float)roll * MathUtils.radiansToDegrees);
 	}
 
+	/**
+	 * Returns the physics identity of the game object.
+	 * @return the physics identity
+	 */
 	public PhysicsIdentity getPhysicsIdentity() {
 		return identity;
 	}
 	
-	public BulletMotion getMotion() {
+	/**
+	 * Returns the motion of the game object.
+	 * @return the motion
+	 */
+	public TerrafortRigidbodyUniqueMotion getMotion() {
 		return motion;
 	}
 	
+	/**
+	 * Checks if the game object is static.
+	 * @return true if the game object is static, false otherwise
+	 */
 	public boolean isStatic() {
 		return isStatic;
 	}

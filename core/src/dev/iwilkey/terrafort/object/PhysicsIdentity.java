@@ -14,21 +14,34 @@ import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Disposable;
 
-import dev.iwilkey.terrafort.physics.bullet.BulletWrapper;
-import dev.iwilkey.terrafort.physics.bullet.BulletPhysicsTag;
-import dev.iwilkey.terrafort.physics.bullet.BulletPrimitive;
-import dev.iwilkey.terrafort.physics.bullet.BulletRigidbody;
+import dev.iwilkey.terrafort.physics.TerrafortPhysicsCore;
+import dev.iwilkey.terrafort.physics.PhysicsPrimitive;
+import dev.iwilkey.terrafort.physics.PhysicsTag;
+import dev.iwilkey.terrafort.physics.TerrafortRigidbody;
 
+
+/**
+ * Represents the physics identity of a game object.
+ * It holds the collision shape, rigid body, mass, and body type.
+ * @author iwilkey
+ */
 public final class PhysicsIdentity implements Disposable {
 	
 	private final btRigidBody.btRigidBodyConstructionInfo constructionInfo;
 	private final btCollisionShape shape;
-	private final BulletRigidbody rigidbody;
+	private final TerrafortRigidbody rigidbody;
 	private float mass;
 	private byte bodyType;
 	private Vector3 localInertia;
 	
-	public PhysicsIdentity(Model model, Vector3 dimensions, BulletPrimitive primitive, float mass) {
+	/**
+	 * Constructs a PhysicsIdentity object for a game object with the given parameters.
+	 * @param model the 3D model of the game object
+	 * @param dimensions the dimensions of the game object
+	 * @param primitive the physics primitive type
+	 * @param mass the mass of the game object
+	 */
+	public PhysicsIdentity(Model model, Vector3 dimensions, PhysicsPrimitive primitive, float mass) {
 		this.mass = mass;
 		localInertia = new Vector3();
 
@@ -48,7 +61,7 @@ public final class PhysicsIdentity implements Disposable {
 			case MESH:
 				shape = Bullet.obtainStaticNodeShape(model.nodes);
 				break;
-			default:;
+			default:
 				shape = new btCylinderShape(new Vector3(dimensions.x / 2f, dimensions.y / 2f, dimensions.z / 2f));
 				break;
 		}
@@ -57,53 +70,71 @@ public final class PhysicsIdentity implements Disposable {
 		else localInertia.set(0, 0, 0);
 		
 		constructionInfo = new btRigidBody.btRigidBodyConstructionInfo(mass, null, shape, localInertia);
-		rigidbody = new BulletRigidbody(constructionInfo);
+		rigidbody = new TerrafortRigidbody(constructionInfo);
 		constructionInfo.dispose();
-		rigidbody.setTag(BulletPhysicsTag.DEFAULT);
-		setBodyType(BulletWrapper.DYNAMIC_FLAG);
+		rigidbody.setTag(PhysicsTag.DEFAULT);
+		setBodyType(TerrafortPhysicsCore.DYNAMIC_FLAG);
 	}
 	
+	/**
+	 * Sets the body type of the physics identity.
+	 * @param flag the body type flag
+	 */
 	public void setBodyType(byte flag) {
 	    bodyType = flag;
 	    switch(bodyType) {
-	        case BulletWrapper.STATIC_FLAG:
+	        case TerrafortPhysicsCore.STATIC_FLAG:
 	            rigidbody.setMassProps(0, new Vector3(0, 0, 0));
 	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
 	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_STATIC_OBJECT);
-	            rigidbody.setContactCallbackFlag(BulletWrapper.STATIC_FLAG);
+	            rigidbody.setContactCallbackFlag(TerrafortPhysicsCore.STATIC_FLAG);
 	            break;
-	        case BulletWrapper.KINEMATIC_FLAG:
+	        case TerrafortPhysicsCore.KINEMATIC_FLAG:
 	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_STATIC_OBJECT);
 	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
 	            rigidbody.setActivationState(Collision.DISABLE_DEACTIVATION);
-	            rigidbody.setContactCallbackFlag(BulletWrapper.KINEMATIC_FLAG);
+	            rigidbody.setContactCallbackFlag(TerrafortPhysicsCore.KINEMATIC_FLAG);
 	            break;
-	        case BulletWrapper.DYNAMIC_FLAG:
+	        case TerrafortPhysicsCore.DYNAMIC_FLAG:
 	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_STATIC_OBJECT);
 	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() & ~btCollisionObject.CollisionFlags.CF_KINEMATIC_OBJECT);
 	            rigidbody.setCollisionFlags(rigidbody.getCollisionFlags() | btCollisionObject.CollisionFlags.CF_CUSTOM_MATERIAL_CALLBACK);
-	            rigidbody.setContactCallbackFlag(BulletWrapper.DYNAMIC_FLAG);
-	            rigidbody.setContactCallbackFilter(BulletWrapper.STATIC_FLAG | BulletWrapper.KINEMATIC_FLAG);
+	            rigidbody.setContactCallbackFlag(TerrafortPhysicsCore.DYNAMIC_FLAG);
+	            rigidbody.setContactCallbackFilter(TerrafortPhysicsCore.STATIC_FLAG | TerrafortPhysicsCore.KINEMATIC_FLAG);
 	            break;
 	    }
 	}
 	
-	public BulletRigidbody getBody() {
+	/**
+	 * Returns the rigid body associated with the physics identity.
+	 * @return the rigid body
+	 */
+	public TerrafortRigidbody getBody() {
 		return rigidbody;
 	}
 	
+	/**
+	 * Returns the mass of the physics identity.
+	 * @return the mass
+	 */
 	public float getMass() {
 		return mass;
 	}
 	
+	/**
+	 * Returns the body type of the physics identity.
+	 * @return the body type
+	 */
 	public byte getBodyType() {
 		return bodyType;
 	}
 	
+	/**
+	 * Disposes the physics identity and releases any resources.
+	 */
 	@Override
 	public void dispose() {
 		rigidbody.dispose();
 		shape.dispose();
 	}
-	
 }

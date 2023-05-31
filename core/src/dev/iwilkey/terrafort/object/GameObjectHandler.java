@@ -6,40 +6,50 @@ import java.util.Map;
 
 import com.badlogic.gdx.utils.Disposable;
 
+import dev.iwilkey.terrafort.Terrafort;
 import dev.iwilkey.terrafort.gfx.ViewportResizable;
-import dev.iwilkey.terrafort.physics.bullet.BulletWrapper;
+import dev.iwilkey.terrafort.physics.TerrafortPhysicsCore;
 import dev.iwilkey.terrafort.state.State;
-import dev.iwilkey.terrafort.utilities.SnowflakeIDGenerator;
+import dev.iwilkey.terrafort.utilities.TerrafortUniqueIDGenerator;
 
+/**
+ * The GameObjectHandler class is responsible for managing and handling game objects in the Terrafort Engine.
+ * @author iwilkey
+ */
 public final class GameObjectHandler implements ViewportResizable, Disposable {
 	
 	public static final int MAX_OBJS = (int)Math.pow(2, 20);
-
+	
 	private final State state;
-	private SnowflakeIDGenerator idGenerator;
-	private final BulletWrapper physics;
+	private TerrafortUniqueIDGenerator idGenerator;
+	private final TerrafortPhysicsCore physics;
 	private final HashMap<Long, GameObject> activeObjects;
 	
 	private Iterator<Map.Entry<Long, GameObject>> iterator;
 
+	/**
+	 * Creates a new GameObjectHandler instance with the specified state.
+	 * @param state the state of the game object handler
+	 */
 	public GameObjectHandler(State state) {
 		this.state = state;
-		physics = new BulletWrapper();
-		idGenerator = new SnowflakeIDGenerator();
 		activeObjects = new HashMap<>();
 		iterator = activeObjects.entrySet().iterator();
+		idGenerator = new TerrafortUniqueIDGenerator();
+		physics = new TerrafortPhysicsCore();
 	}
 	
+	/**
+	 * Creates a new game object and adds it to the handler.
+	 * @param o the game object to create
+	 * @return the ID assigned to the created game object
+	 */
 	public long create(GameObject o) {
-		if(activeObjects.size() + 1 > MAX_OBJS) {
-			System.out.println("[Terrafort Engine] You cannot create a GameObject right now because it would defy the maximum amount of objects allowed in a state!");
-			System.exit(-1);
-			return -1;
-		}
+		if(activeObjects.size() + 1 > MAX_OBJS)
+			Terrafort.fatal("You cannot create a GameObject right now because it would exceed the maximum amount of objects allowed in a state!");
 		long id = idGenerator.next();
-		activeObjects.put(id, o);
 		o.setID(id);
-		// Handle adding 3D objects to the physics engine.
+		activeObjects.put(id, o);
 		if(o instanceof GameObject3) {
 			GameObject3 obj3 = (GameObject3)o;
 			PhysicsIdentity iden = obj3.getPhysicsIdentity();
@@ -49,32 +59,36 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 		}
 		modifyRenderables(o, true);
 		o.instantiation();
-		System.out.println("[Terrafort Engine] Created a new GameObject with ID " + id);
+		Terrafort.log("Created a new GameObject with ID " + id);
 		return id;
 	}
 	
+	/**
+	 * Retrieves a game object by its ID.
+	 * @param id the ID of the game object to retrieve
+	 * @return the game object with the specified ID, or null if not found
+	 */
 	public GameObject get(long id) {
 		if(activeObjects.containsKey(id)) {
 			return activeObjects.get(id);
 		} else {
-			System.out.println("[Terrafort Engine] You cannot retrieve a GameObject that doesn't exist. ID " + id);
+			Terrafort.log("You cannot retrieve a GameObject that doesn't exist. ID " + id);
 			return null;
 		}
 	}
 	
+	/**
+	 * Updates the game objects and performs disposal if necessary.
+	 */
 	public void tick() {
-		// Tick the physics engine.
 		physics.tick();
-		// Tick objs and see if they should be disposed of.
 		iterator = activeObjects.entrySet().iterator();
 		while(iterator.hasNext()) {
 		    Map.Entry<Long, GameObject> entry = iterator.next();
 		    long id = entry.getKey();
 		    GameObject obj = entry.getValue();
 		    if(obj.shouldDispose()) {
-		    	// Update State RenderableProviders based on GameObject type.
 		    	modifyRenderables(obj, false);
-		    	// Handle removing 3D from physics engine.
 		    	if(obj instanceof GameObject3) {
 		    		GameObject3 obj3 = (GameObject3)obj;
 		    		PhysicsIdentity iden = obj3.getPhysicsIdentity();
@@ -84,7 +98,7 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 		    	}
 		    	obj.dispose();
 		        iterator.remove();
-		        System.out.println("[Terrafort Engine] Removed GameObject with ID " + id);
+		        Terrafort.log("Removed GameObject with ID " + id);
 		    } else {
 		    	if(!obj.shouldRender()) {
 		    		if(isRendering(obj))
@@ -98,6 +112,11 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 		}
 	}
 	
+	/**
+	 * Modifies the renderables based on the game object's type.
+	 * @param o the game object
+	 * @param add true to add the game object to the renderables, false to remove it
+	 */
 	private void modifyRenderables(GameObject o, boolean add) {
 		String type = getType(o);
 		switch(type) {
@@ -128,6 +147,11 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 		}
 	}
 	
+	/**
+	 * Checks if a game object is being rendered.
+	 * @param o the game object
+	 * @return true if the game object is being rendered, false otherwise
+	 */
 	private boolean isRendering(GameObject o) {
 		String type = getType(o);
 		switch(type) {
@@ -144,6 +168,11 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 		}
 	}
 	
+	/**
+	 * Determines the type of the game object.
+	 * @param o the game object
+	 * @return the type of the game object
+	 */
 	private String getType(GameObject o) {
 		if(o instanceof GameObject3)
 			return "go3";
@@ -154,29 +183,42 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 	}
 	
 	/**
-	 * Getters and setters
+	 * Returns the state of the game object handler.
+	 * @return the state
 	 */
-	
 	public State getState() {
 		return state;
 	}
 	
+	/**
+	 * Returns the number of active game objects.
+	 * @return the number of active game objects
+	 */
 	public long activeObjectCount() {
 		return activeObjects.size();
 	}
 	
+	/**
+	 * Returns the map of active game objects.
+	 * @return the map of active game objects
+	 */
 	public HashMap<Long, GameObject> getActiveObjects() {
 		return activeObjects;
 	}
 	
-	public BulletWrapper getPhysicsEngine() {
+	/**
+	 * Returns the physics engine of the game object handler.
+	 * @return the physics engine
+	 */
+	public TerrafortPhysicsCore getPhysicsEngine() {
 		return physics;
 	}
 	
 	/**
-	 * Interfaces
+	 * Resizes the viewport and notifies the viewport-resizable game objects.
+	 * @param newWidth the new width of the viewport
+	 * @param newHeight the new height of the viewport
 	 */
-
 	@Override
 	public void onViewportResize(int newWidth, int newHeight) {
 		for(Map.Entry<Long, GameObject> entry : activeObjects.entrySet()) {
@@ -187,6 +229,9 @@ public final class GameObjectHandler implements ViewportResizable, Disposable {
 		}
 	}
 
+	/**
+	 * Disposes the game object handler and releases any resources.
+	 */
 	@Override
 	public void dispose() {
 		physics.dispose();

@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.physics.bullet;
+package dev.iwilkey.terrafort.physics;
 
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
@@ -9,10 +9,12 @@ import dev.iwilkey.terrafort.gfx.Camera;
 import dev.iwilkey.terrafort.gfx.Renderer;
 import dev.iwilkey.terrafort.utilities.Pair;
 
-public final class BulletRaycaster {
+/**
+ * Responsible for raycasting in the physics world.
+ */
+public final class TerrafortPhysicsRaycaster {
 	
 	private ClosestRayResultCallback raycast(Camera camera, btDynamicsWorld world, float distance) {
-		
 		Vector3 rayFrom = new Vector3();
 		Vector3 rayTo = new Vector3();
 		Vector3 rayFromWorld = new Vector3();
@@ -35,6 +37,14 @@ public final class BulletRaycaster {
 		return null;
 	}
 	
+	/**
+	 * Performs a raycast and returns the hit point in world coordinates.
+	 * 
+	 * @param camera The camera used for raycasting.
+	 * @param world The dynamics world to perform the raycast in.
+	 * @param distance The maximum distance of the raycast.
+	 * @return The hit point in world coordinates, or null if no hit occurred.
+	 */
 	public Vector3 hitPoint(Camera camera, btDynamicsWorld world, float distance) {
 		ClosestRayResultCallback result = raycast(camera, world, distance);
 		Vector3 ret = new Vector3();
@@ -45,21 +55,36 @@ public final class BulletRaycaster {
 		return null;
 	}
 	
-	public BulletRigidbody hitObject(Camera camera, btDynamicsWorld world, float distance) {
+	/**
+	 * Performs a raycast and returns the rigid body object that was hit.
+	 * 
+	 * @param camera The camera used for raycasting.
+	 * @param world The dynamics world to perform the raycast in.
+	 * @param distance The maximum distance of the raycast.
+	 * @return The rigid body object that was hit, or null if no hit occurred.
+	 */
+	public TerrafortRigidbody hitObject(Camera camera, btDynamicsWorld world, float distance) {
 		ClosestRayResultCallback result = raycast(camera, world, distance);
 		if(result != null) 
-			return (BulletRigidbody)result.getCollisionObject();
+			return (TerrafortRigidbody)result.getCollisionObject();
 		return null;
 	}
 	
-	public Pair<BulletRigidbody, Vector3> hit(Camera camera, btDynamicsWorld world, float distance) {
+	/**
+	 * Performs a raycast and returns both the hit rigid body object and the hit point in world coordinates.
+	 * 
+	 * @param camera The camera used for raycasting.
+	 * @param world The dynamics world to perform the raycast in.
+	 * @param distance The maximum distance of the raycast.
+	 * @return A Pair object containing the hit rigid body object and the hit point in world coordinates, or null if no hit occurred.
+	 */
+	public Pair<TerrafortRigidbody, Vector3> hit(Camera camera, btDynamicsWorld world, float distance) {
 		ClosestRayResultCallback result = raycast(camera, world, distance);
 		if(result != null) {
 			Vector3 hitPoint = new Vector3();
 			result.getHitPointWorld(hitPoint);
-			return new Pair<BulletRigidbody, Vector3>((BulletRigidbody)result.getCollisionObject(), hitPoint);
+			return new Pair<TerrafortRigidbody, Vector3>((TerrafortRigidbody)result.getCollisionObject(), hitPoint);
 		}
 		return null;
 	}
-	
 }

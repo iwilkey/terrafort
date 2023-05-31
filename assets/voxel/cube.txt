@@ -1,4 +1,0 @@
-# Goxel 0.11.0
-# One line per voxel
-# X Y Z RRGGBB
-0 0 0 ffffff

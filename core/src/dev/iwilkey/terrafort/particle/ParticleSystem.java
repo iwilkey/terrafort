@@ -6,6 +6,11 @@ import com.badlogic.gdx.math.Vector3;
 
 import dev.iwilkey.terrafort.state.State;
 
+
+/**
+ * Represents a particle system in the game.
+ * @author iwilkey
+ */
 public final class ParticleSystem {
 	
 	public static final float POSITION_OFFSET_MIN = -0.4f;
@@ -20,17 +25,25 @@ public final class ParticleSystem {
 	private final Random random;
 	private final State state;
 	
+	/**
+	 * Constructs a ParticleSystem object with the given game state.
+	 * @param state the game state
+	 */
 	public ParticleSystem(final State state) {
 		this.state = state;
 		random = new Random();
 	}
 	
 	private Vector3 force = new Vector3();
+	
+	/**
+	 * Creates a scatter of particles at the given position with the specified amount.
+	 * @param position the position to create the scatter
+	 * @param amount the amount of particles to create
+	 */
 	public void createScatterAt(Vector3 position, int amount) {
 		for(int i = 0; i < amount; i++) {
-			// final float scale = SCALE_MIN + random.nextFloat() * (SCALE_MAX - SCALE_MIN);
 			float lifetime = LIFETIME_MIN + random.nextFloat() * (LIFETIME_MAX - LIFETIME_MIN);
-			// Find a random direction to apply the force (this creates the scatter.)
 			float forceDirX = -1.0f + random.nextFloat() * (1.0f - -1.0f);
 			float forceDirY = -1.0f + random.nextFloat() * (1.0f - -1.0f);
 			float forceDirZ = -1.0f + random.nextFloat() * (1.0f - -1.0f);
