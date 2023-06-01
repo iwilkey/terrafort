@@ -17,7 +17,7 @@ public final class RenderableProvider3Environment extends Environment {
 	    		Renderer.SHADOW_VIEWPORT_HEIGHT, 
 	    		Renderer.SHADOW_NEAR, 
 	    		Renderer.SHADOW_FAR)).set(1f, 1f, 1f, 40.0f, -35f, -35f)); 
-		set(new ColorAttribute(ColorAttribute.Fog, 0.1f, 0.1f, 0.1f, 1f));
+		set(new ColorAttribute(ColorAttribute.Fog, 1.0f, 1.0f, 1.0f, 1f));
 		shadowMap = mainLightSource;
 	}
 	

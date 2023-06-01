@@ -14,7 +14,8 @@ public enum Textures {
     /**
      * The crosshair texture.
      */
-    CROSSHAIR("texture/crosshair.png");
+    CROSSHAIR("texture/crosshair.png"),
+    PLANET("texture/planet.png");
 
     private FileHandle fileHandle;
 

@@ -19,7 +19,7 @@ public class TerrafortDesktopLauncher {
 			// Set FPS target.
 			this.setForegroundFPS(60);
 			// No VSync.
-			this.useVsync(false);
+			this.useVsync(true);
 			DisplayMode display = Lwjgl3ApplicationConfiguration.getDisplayMode();
 			this.setWindowPosition(-1, -1);
 			// Set fullscreen mode, if desired.

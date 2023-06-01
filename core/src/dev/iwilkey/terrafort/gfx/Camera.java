@@ -30,7 +30,7 @@ public class Camera extends PerspectiveCamera {
 	public Camera(int fov) {
 		super(fov, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		near = 0.1f;
-		far = 50.0f;
+		far = 1000.0f;
 		update();
 	}
 	

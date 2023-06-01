@@ -1,5 +1,6 @@
 package dev.iwilkey.terrafort.object;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Quaternion;
@@ -23,12 +24,14 @@ import dev.iwilkey.terrafort.state.State;
  */
 public class GameObject3 extends GameObject implements RenderableProvider3 {
 	
-	private BoundingBox boundingBox;
-	private ModelInstance renderable;
-	private Vector3 position;
-	private PhysicsIdentity identity;
-	private TerrafortRigidbodyUniqueMotion motion;
-	private boolean isStatic;
+	public static final Vector3 NEG_Z = new Vector3(0, 0, -1);
+	
+	protected BoundingBox boundingBox;
+	protected ModelInstance renderable;
+	protected Vector3 position;
+	protected PhysicsIdentity identity;
+	protected TerrafortRigidbodyUniqueMotion motion;
+	protected boolean isStatic;
 	
 	/**
 	 * Constructs a GameObject3 instance with the specified parameters.
@@ -76,11 +79,11 @@ public class GameObject3 extends GameObject implements RenderableProvider3 {
 	}
 	
 	private void init(String pathToLoadedModel, PhysicsPrimitive primitive, float mass, double physicsScale) {
-		renderable = new ModelInstance(TerrafortAssetHandler.getVoxelModel(pathToLoadedModel));
+		renderable = new ModelInstance(TerrafortAssetHandler.getModel(pathToLoadedModel));
 		boundingBox = new BoundingBox();
 		renderable.calculateBoundingBox(boundingBox);
 		position = new Vector3();
-		identity = new PhysicsIdentity(TerrafortAssetHandler.getVoxelModel(pathToLoadedModel), getDimensions().cpy().scl((float)physicsScale), primitive, mass);
+		identity = new PhysicsIdentity(TerrafortAssetHandler.getModel(pathToLoadedModel), getDimensions().cpy().scl((float)physicsScale), primitive, mass);
 		motion = new TerrafortRigidbodyUniqueMotion();
 		motion.setTransform(renderable.transform);
 		identity.getBody().setMotionState(motion);
@@ -138,8 +141,53 @@ public class GameObject3 extends GameObject implements RenderableProvider3 {
 			return this;
 		}
 		position.set(x, y, z);
-		renderable.transform.translate(x - renderable.transform.getTranslation(new Vector3()).x, y - renderable.transform.getTranslation(new Vector3()).y, z - renderable.transform.getTranslation(new Vector3()).z);
+		renderable.transform.setTranslation(x, y, z);
 		resetPhysicsIdentity();
+		return this;
+	}
+	
+	/**
+	 * Move the GameObject in the "forward" direction based on the perspective of the given camera. Will go "backward" if speed is negative.
+	 * 
+	 * @param camera the given camera.
+	 * @param speed the speed at which to move.
+	 * @return the game object itself.
+	 */
+	public GameObject3 moveForwardFromCameraPersp(final Camera camera, float speed) {
+		// Get the camera direction vector, keeping the x and z components.
+		Vector3 cameraDir = camera.direction.cpy();
+		cameraDir.y = 0;
+		cameraDir.nor();
+		setPosition(getPosition().cpy().add(cameraDir.scl(speed)));
+		return this;
+	}
+	
+	/**
+	 * Move the GameObject in the "right" direction based on the perspective of the given camera. Will go "left" if speed is negative.
+	 * 
+	 * @param camera camera the given camera.
+	 * @param speed the speed at which to move.
+	 * @return the game object itself.
+	 */
+	public GameObject3 moveRightFromCameraPersp(final Camera camera, float speed) {
+		// Get the camera direction vector, keeping the x and z components.
+		Vector3 cameraDir = camera.direction.cpy();
+		cameraDir.y = 0;
+		cameraDir.nor();
+		// Get the right vector: cameraDir X (0, 1, 0).
+		Vector3 rightVector = cameraDir.crs(Vector3.Y).nor();
+		setPosition(getPosition().cpy().add(rightVector.scl(speed)));
+		return this;
+	}
+	
+	/**
+	 * Move the GameObject in the "up" direction based on (0, 1, 0) as the up vector. Will go "down" if speed is negative.
+	 * 
+	 * @param speed the speed at which to move.
+	 * @return the game object itself.
+	 */
+	public GameObject moveUp(float speed) {
+		setPosition(getPosition().cpy().add(Vector3.Y.cpy().scl(speed)));
 		return this;
 	}
 	
@@ -176,10 +224,10 @@ public class GameObject3 extends GameObject implements RenderableProvider3 {
 	 * @return
 	 */
 	public GameObject3 setRotation(float yawDegrees, float pitchDegrees, float rollDegrees) {
-	    Quaternion yawQuaternion = new Quaternion(Vector3.Y, yawDegrees + 180.0f);
-	    Quaternion pitchQuaternion = new Quaternion(Vector3.X, pitchDegrees);
-	    Quaternion rollQuaternion = new Quaternion(Vector3.Z, rollDegrees);
-	    Quaternion combined = new Quaternion().set(yawQuaternion).mul(pitchQuaternion).mul(rollQuaternion);
+	    final Quaternion yawQuaternion = new Quaternion(Vector3.Y, yawDegrees + 180.0f);
+	    final Quaternion pitchQuaternion = new Quaternion(Vector3.X, pitchDegrees);
+	    final Quaternion rollQuaternion = new Quaternion(Vector3.Z, rollDegrees);
+	    final Quaternion combined = new Quaternion().set(yawQuaternion).mul(pitchQuaternion).mul(rollQuaternion);
 	    renderable.transform.set(getPosition(), combined, new Vector3(1, 1, 1));
 	    return this;
 	}
@@ -250,9 +298,9 @@ public class GameObject3 extends GameObject implements RenderableProvider3 {
 	public Vector3 getYawPitchRoll() {
 		Quaternion q = new Quaternion();
 	    renderable.transform.getRotation(q);
-	    double yaw = Math.atan2(2.0*(q.y * q.z + q.w * q.x), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z);
-	    double pitch = Math.asin(-2.0 * (q.x * q.z - q.w * q.y));
-	    double roll = Math.atan2(2.0 * (q.x * q.y + q.w * q.z), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z);
+	    final double yaw = Math.atan2(2.0*(q.y * q.z + q.w * q.x), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z);
+	    final double pitch = Math.asin(-2.0 * (q.x * q.z - q.w * q.y));
+	    final double roll = Math.atan2(2.0 * (q.x * q.y + q.w * q.z), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z);
 	    return new Vector3((float)yaw * MathUtils.radiansToDegrees, (float)pitch * MathUtils.radiansToDegrees, (float)roll * MathUtils.radiansToDegrees);
 	}
 

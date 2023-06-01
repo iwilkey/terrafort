@@ -11,7 +11,6 @@ import dev.iwilkey.terrafort.Terrafort;
 import dev.iwilkey.terrafort.TerrafortEngine;
 import dev.iwilkey.terrafort.asset.registers.Textures;
 import dev.iwilkey.terrafort.asset.registers.VoxelModels;
-import dev.iwilkey.terrafort.particle.Particle;
 
 /**
  * The TerrafortAssetHandler class manages the loading and retrieval of game assets for Terrafort.
@@ -53,7 +52,16 @@ public final class TerrafortAssetHandler implements Disposable {
     public void load() {
         Terrafort.log("Beginning Terrafort Asset Manager loadtime");
         // Load textures.
-        for (Textures texture : Textures.values()) {
+        loadTextures();
+        loadVoxelModels();
+        loadGeometricModels();
+        // All assets are loaded.
+        isFinished = true;
+        Terrafort.log("Terrafort Asset Manager loadtime successful.");
+    }
+    
+    private void loadTextures() {
+    	for (Textures texture : Textures.values()) {
             String name = texture.getFileHandle().name();
             if (TEXTURE_MEMORY.containsKey(name)) {
                 Terrafort.fatal("You cannot load two Textures of the same name! \"" + name + "\"");
@@ -63,7 +71,10 @@ public final class TerrafortAssetHandler implements Disposable {
             Terrafort.log("Loaded Texture \"" + name + "\".");
             loadedAssets++;
         }
-        // Process and load Voxel models.
+    }
+    
+    private void loadVoxelModels() {
+    	// Process and load Voxel models.
         for (VoxelModels voxel : VoxelModels.values()) {
             String name = voxel.getFileHandle().name();
             if (MODEL_MEMORY.containsKey(name))
@@ -75,11 +86,10 @@ public final class TerrafortAssetHandler implements Disposable {
             Terrafort.log("Loaded Voxel Model \"" + name + "\".");
             loadedAssets++;
         }
-        // Load utility models: Particle.
-        MODEL_MEMORY.put("tf_particle", Particle.createParticleModel());
-        // All assets are loaded.
-        isFinished = true;
-        Terrafort.log("Terrafort Asset Manager loadtime successful.");
+    }
+    
+    private void loadGeometricModels() {
+    	MODEL_MEMORY.put("tf_sphere", GeometricModelLoader.createTexturedSphere(getTexture("crosshair.png")));
     }
 
     /**
@@ -119,12 +129,12 @@ public final class TerrafortAssetHandler implements Disposable {
     }
 
     /**
-     * Retrieves a Voxel model by its name.
+     * Retrieves a loaded model by its name.
      *
-     * @param name the name of the Voxel model
-     * @return the Voxel model
+     * @param name the name of the model
+     * @return the model
      */
-    public static Model getVoxelModel(String name) {
+    public static Model getModel(String name) {
         if (!MODEL_MEMORY.containsKey(name)) {
             Terrafort.log("There is no loaded Terrafort Voxel Model by the name \"" + name + "\"");
             System.out.println("\tLoaded Voxel Models:");

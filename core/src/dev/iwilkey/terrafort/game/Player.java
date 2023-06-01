@@ -5,7 +5,6 @@ import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 
-import dev.iwilkey.terrafort.Terrafort;
 import dev.iwilkey.terrafort.asset.registers.VoxelModels;
 import dev.iwilkey.terrafort.gfx.Camera;
 import dev.iwilkey.terrafort.gfx.Camera.CameraController;
@@ -17,7 +16,7 @@ import dev.iwilkey.terrafort.state.State;
 public final class Player extends GameObject3 implements CameraController {
 	
 	public Player(State state) {
-		super(state, VoxelModels.SPITTER_MK1, PhysicsPrimitive.CUBOID, 1.0f);
+		super(state, VoxelModels.SPITTER_MK1, PhysicsPrimitive.MESH, 1.0f);
 		state.getCamera().setController(this);
 	}
 	
@@ -30,12 +29,13 @@ public final class Player extends GameObject3 implements CameraController {
 	}
 	
 	/**
-	 * Camera orbit.
+	 * Begin Camera steering.
 	 */
 	
-	private static final float ORBIT_SENSITIVITY = 0.4f;
-	public static final float CAMERA_LERP_SPEED = 0.30f;
+	public static final float ORBIT_SENSITIVITY = 0.4f;
+	public static final float CAMERA_LERP_SPEED = 0.3f;
 	
+	private boolean steeringInverted = false;
 	private float cameraDistance = 2f;
 	private float targetCameraDistance = cameraDistance;
 	private float cameraPitch = 30f;
@@ -52,7 +52,7 @@ public final class Player extends GameObject3 implements CameraController {
 			// Update yaw and pitch via input.
 			float deltaX = Gdx.input.getDeltaX() * ORBIT_SENSITIVITY;
 			float deltaY = Gdx.input.getDeltaY() * ORBIT_SENSITIVITY;
-			cameraYawTarget += deltaX;
+			cameraYawTarget += ((steeringInverted) ? -deltaX : deltaX);
 			cameraPitchTarget += deltaY;
 			cameraPitchTarget = MathUtils.clamp(cameraPitchTarget, -89.9f, 89.9f);
 			updateObjectYaw(deltaX);
@@ -78,28 +78,101 @@ public final class Player extends GameObject3 implements CameraController {
                 getPosition().z + cameraDistance * zDirection
         );
         camera.lookAt(getPosition());
-        camera.up.set(0, 1, 0);
+        camera.up.set(Vector3.Y);
 	}
 	
 	/**
-	 * End Camera orbit.
+	 * End Camera steering.
 	 */
 	
+	/**
+	 * Begin Ship movement.
+	 */
+
+	// Speed constants.
+	public static final float TOP_SPEED_FORWARD_BACK = 0.4f;
+	public static final float TOP_SPEED_STRAFE = 0.2f;
+	public static final float TOP_SPEED_UP_DOWN = 0.3f;
+	// Acceleration constants.
+	public static final float ACCELERATION_MOVING = 0.1f;
+	public static final float ACCELERATION_BREAKING = 0.2f;
+	// Ship direction.
 	private float shipYaw = -cameraYawTarget;
 	private float shipYawTarget = shipYaw;
+	
 	private void updateObjectYaw(float dx) {
-		Terrafort.log("" + getYawPitchRoll().y);
 		shipYawTarget = -cameraYawTarget;
-		shipYaw = Interpolation.exp5.apply(shipYaw, shipYawTarget, CAMERA_LERP_SPEED * 2);
+		shipYaw = Interpolation.exp5.apply(shipYaw, shipYawTarget, CAMERA_LERP_SPEED * 1.5f);
 		setRotation(shipYaw, 0, 0);
 	}
-	
+
 	@Override
 	public void tick() {
-		if(state.bindingDown("forward")) {
-
-		}
+		forwardBackTranslation();
+		strafeLeftRightTranslation();
+		upDownTranslation();
 	}
+	
+	private float currentSpeedTargetForwardBack = 0.0f;
+	private float currentSpeedForwardBack = currentSpeedTargetForwardBack;
+	private float currentAccelForwardBack = ACCELERATION_MOVING;
+	
+	private void forwardBackTranslation() {
+		if(state.bindingDown("forward")) {
+			currentSpeedTargetForwardBack = TOP_SPEED_FORWARD_BACK;
+			currentAccelForwardBack = ACCELERATION_MOVING;
+		} else if(state.bindingDown("backward")) {
+			currentSpeedTargetForwardBack = -TOP_SPEED_FORWARD_BACK;
+			currentAccelForwardBack = ACCELERATION_MOVING;
+		} else {
+			currentSpeedTargetForwardBack = 0.0f;
+			currentAccelForwardBack = ACCELERATION_BREAKING;
+		}
+		currentSpeedForwardBack = Interpolation.exp5.apply(currentSpeedForwardBack, currentSpeedTargetForwardBack, currentAccelForwardBack);
+		moveForwardFromCameraPersp(state.getCamera(), currentSpeedForwardBack);
+	}
+	
+	private float currentSpeedTargetStrafe = 0.0f;
+	private float currentSpeedStrafe = currentSpeedTargetStrafe;
+	private float currentAccelStrafe = ACCELERATION_MOVING;
+	
+	private void strafeLeftRightTranslation() {
+		if(state.bindingDown("strafe_left")) {
+			currentSpeedTargetStrafe = -TOP_SPEED_STRAFE;
+			currentAccelStrafe = ACCELERATION_MOVING;
+		} else if(state.bindingDown("strafe_right")) {
+			currentSpeedTargetStrafe = TOP_SPEED_STRAFE;
+			currentAccelStrafe = ACCELERATION_MOVING;
+		} else {
+			currentSpeedTargetStrafe = 0.0f;
+			currentAccelStrafe = ACCELERATION_BREAKING;
+		}
+		currentSpeedStrafe = Interpolation.exp5.apply(currentSpeedStrafe, currentSpeedTargetStrafe, currentAccelStrafe);
+		moveRightFromCameraPersp(state.getCamera(), currentSpeedStrafe);
+	}
+	
+	private float currentSpeedTargetUpDown = 0.0f;
+	private float currentSpeedUpDown = currentSpeedTargetUpDown;
+	private float currentAccelUpDown = ACCELERATION_MOVING;
+	
+	private void upDownTranslation() {
+		if(state.bindingDown("ascend")) {
+			currentSpeedTargetUpDown = TOP_SPEED_UP_DOWN;
+			currentAccelUpDown = ACCELERATION_MOVING;
+		} else if(state.bindingDown("descend")) {
+			currentSpeedTargetUpDown = -TOP_SPEED_UP_DOWN;
+			currentAccelUpDown = ACCELERATION_MOVING;
+		} else {
+			currentSpeedTargetUpDown = 0.0f;
+			currentAccelUpDown = ACCELERATION_BREAKING;
+		}
+		currentSpeedUpDown = Interpolation.exp5.apply(currentSpeedUpDown, currentSpeedTargetUpDown, currentAccelUpDown);
+		moveUp(currentSpeedUpDown);
+	}
+	
+	/**
+	 * End Ship movement.
+	 */
 	
 	@Override
 	public void dispose() {
