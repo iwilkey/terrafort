@@ -28,7 +28,7 @@ public final class SinglePlayer extends State {
 	@Override
 	public void begin() {
 		addGameObject(new Player(this));
-		addGameObject(new Planet(this).setPosition(0, 0, 0));
+		addGameObject(new Planet(this).getTransform().positionAbsolute(0, 0, 0));
 	}
 
 	@Override

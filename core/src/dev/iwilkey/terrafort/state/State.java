@@ -15,7 +15,6 @@ import dev.iwilkey.terrafort.gfx.ViewportResizable;
 import dev.iwilkey.terrafort.input.KeyBinding;
 import dev.iwilkey.terrafort.object.GameObject;
 import dev.iwilkey.terrafort.object.GameObjectHandler;
-import dev.iwilkey.terrafort.particle.ParticleSystem;
 import dev.iwilkey.terrafort.physics.TerrafortPhysicsRaycaster;
 import dev.iwilkey.terrafort.physics.PhysicsTag;
 import dev.iwilkey.terrafort.physics.TerrafortRigidbody;
@@ -40,7 +39,6 @@ public abstract class State implements ViewportResizable, Disposable {
 	// For 3D rendering and physics.
 	protected Camera camera3;
 	protected RenderableProvider3Environment environment3;
-	protected ParticleSystem particle;
 	protected TerrafortPhysicsRaycaster raycaster;
 	
 	public State(TerrafortEngine engine) {
@@ -64,8 +62,6 @@ public abstract class State implements ViewportResizable, Disposable {
 		environment3 = new RenderableProvider3Environment();
 		// Init the 3D camera with a FOV of 64.
 		camera3 = new Camera(64);
-		// Init particle system.
-		particle = new ParticleSystem(this);
 		// Init the physics raycaster.
 		raycaster = new TerrafortPhysicsRaycaster();
 	}
@@ -188,17 +184,8 @@ public abstract class State implements ViewportResizable, Disposable {
 	
 	/**
 	 * Particle API.
+	 * TODO: Implement this.
 	 */
-	
-	/**
-	 * Creates a scatter of particles at the specified position.
-	 * 
-	 * @param position The position at which to create the scatter.
-	 * @param particleAmount The number of particles to create.
-	 */
-	public void createParticleScatterAt(Vector3 position, int particleAmount) {
-		particle.createScatterAt(position, particleAmount);
-	}
 	
 	/**
 	 * Raycasting API.

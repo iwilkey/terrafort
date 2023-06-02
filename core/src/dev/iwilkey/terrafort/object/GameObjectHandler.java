@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Disposable;
 
 import dev.iwilkey.terrafort.Terrafort;
 import dev.iwilkey.terrafort.gfx.ViewportResizable;
+import dev.iwilkey.terrafort.physics.PhysicsIdentity;
 import dev.iwilkey.terrafort.physics.TerrafortPhysicsCore;
 import dev.iwilkey.terrafort.state.State;
 import dev.iwilkey.terrafort.utilities.TerrafortUniqueIDGenerator;

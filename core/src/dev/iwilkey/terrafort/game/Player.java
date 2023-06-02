@@ -23,8 +23,8 @@ public final class Player extends GameObject3 implements CameraController {
 	@Override
 	public void instantiation() {
 		setKinematic();
-		setPosition(0, 0, 0);
-		setRotationAxis(Vector3.Y, 180.0f);
+		getTransform().positionAbsolute(0, 0, 0);
+		getTransform().rotateRelativeAxisDegrees(Vector3.Y, 180.0f);
 		calculateCameraPositionFromYawAndPitch(state.getCamera());
 	}
 	
@@ -73,11 +73,11 @@ public final class Player extends GameObject3 implements CameraController {
         float zDirection = cosPitch * sinYaw;
         // Set position.
         camera.position.set(
-                getPosition().x + cameraDistance * xDirection,
-                getPosition().y + cameraDistance * yDirection,
-                getPosition().z + cameraDistance * zDirection
+                getTransform().getCurrentPosition().x + cameraDistance * xDirection,
+                getTransform().getCurrentPosition().y + cameraDistance * yDirection,
+                getTransform().getCurrentPosition().z + cameraDistance * zDirection
         );
-        camera.lookAt(getPosition());
+        camera.lookAt(getTransform().getCurrentPosition());
         camera.up.set(Vector3.Y);
 	}
 	
@@ -103,7 +103,7 @@ public final class Player extends GameObject3 implements CameraController {
 	private void updateObjectYaw(float dx) {
 		shipYawTarget = -cameraYawTarget;
 		shipYaw = Interpolation.exp5.apply(shipYaw, shipYawTarget, CAMERA_LERP_SPEED * 1.5f);
-		setRotation(shipYaw, 0, 0);
+		getTransform().rotateAbsoluteToYawPitchRollDegrees(shipYaw, 0, 0);
 	}
 
 	@Override
@@ -129,7 +129,7 @@ public final class Player extends GameObject3 implements CameraController {
 			currentAccelForwardBack = ACCELERATION_BREAKING;
 		}
 		currentSpeedForwardBack = Interpolation.exp5.apply(currentSpeedForwardBack, currentSpeedTargetForwardBack, currentAccelForwardBack);
-		moveForwardFromCameraPersp(state.getCamera(), currentSpeedForwardBack);
+		getTransform().translateForwardFromCameraPersp(state.getCamera(), currentSpeedForwardBack);
 	}
 	
 	private float currentSpeedTargetStrafe = 0.0f;
@@ -148,7 +148,7 @@ public final class Player extends GameObject3 implements CameraController {
 			currentAccelStrafe = ACCELERATION_BREAKING;
 		}
 		currentSpeedStrafe = Interpolation.exp5.apply(currentSpeedStrafe, currentSpeedTargetStrafe, currentAccelStrafe);
-		moveRightFromCameraPersp(state.getCamera(), currentSpeedStrafe);
+		getTransform().translateRightFromCameraPersp(state.getCamera(), currentSpeedStrafe);
 	}
 	
 	private float currentSpeedTargetUpDown = 0.0f;
@@ -167,7 +167,7 @@ public final class Player extends GameObject3 implements CameraController {
 			currentAccelUpDown = ACCELERATION_BREAKING;
 		}
 		currentSpeedUpDown = Interpolation.exp5.apply(currentSpeedUpDown, currentSpeedTargetUpDown, currentAccelUpDown);
-		moveUp(currentSpeedUpDown);
+		getTransform().translateUp(currentSpeedUpDown);
 	}
 	
 	/**

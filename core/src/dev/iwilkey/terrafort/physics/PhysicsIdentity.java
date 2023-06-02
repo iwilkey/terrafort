@@ -1,6 +1,5 @@
-package dev.iwilkey.terrafort.object;
+package dev.iwilkey.terrafort.physics;
 
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.bullet.Bullet;
 import com.badlogic.gdx.physics.bullet.collision.Collision;
@@ -14,10 +13,7 @@ import com.badlogic.gdx.physics.bullet.collision.btSphereShape;
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody;
 import com.badlogic.gdx.utils.Disposable;
 
-import dev.iwilkey.terrafort.physics.TerrafortPhysicsCore;
-import dev.iwilkey.terrafort.physics.PhysicsPrimitive;
-import dev.iwilkey.terrafort.physics.PhysicsTag;
-import dev.iwilkey.terrafort.physics.TerrafortRigidbody;
+import dev.iwilkey.terrafort.gfx.RenderableProvider3;
 
 
 /**
@@ -27,53 +23,76 @@ import dev.iwilkey.terrafort.physics.TerrafortRigidbody;
  */
 public final class PhysicsIdentity implements Disposable {
 	
+	private final RenderableProvider3 graphicalIdentity;
+	private final PhysicsPrimitive primitive;
 	private final btRigidBody.btRigidBodyConstructionInfo constructionInfo;
-	private final btCollisionShape shape;
 	private final TerrafortRigidbody rigidbody;
-	private float mass;
-	private byte bodyType;
-	private Vector3 localInertia;
+	private final Vector3 graphicalIdentityDimensions = new Vector3();
+	private final Vector3 localInertia = new Vector3();
+	
+	private btCollisionShape shape = null;
+	private float mass = 0.0f;
+	private float physicsScale = 0.0f;
+	private byte bodyType = 0b00000000;
 	
 	/**
 	 * Constructs a PhysicsIdentity object for a game object with the given parameters.
+	 * 
 	 * @param model the 3D model of the game object
 	 * @param dimensions the dimensions of the game object
 	 * @param primitive the physics primitive type
 	 * @param mass the mass of the game object
 	 */
-	public PhysicsIdentity(Model model, Vector3 dimensions, PhysicsPrimitive primitive, float mass) {
+	public PhysicsIdentity(final RenderableProvider3 graphicalIdentity, final PhysicsPrimitive primitive, final float mass, final float physicsScale) {
+		// Set identity properties.
+		this.graphicalIdentity = graphicalIdentity;
 		this.mass = mass;
-		localInertia = new Vector3();
-
-		switch (primitive) {
-			case CUBOID:
-				shape = new btBoxShape(new Vector3(dimensions.x / 2f, dimensions.y / 2f, dimensions.z / 2f));
-				break;
-			case SPHERE:
-				shape = new btSphereShape(dimensions.x / 2f);
-				break;
-			case CONE:
-				shape = new btConeShape(dimensions.y / 2f, dimensions.x);
-				break;
-			case CAPSULE:
-				shape = new btCapsuleShape(dimensions.x / 2f, dimensions.y / 2f);
-				break;
-			case MESH:
-				shape = Bullet.obtainStaticNodeShape(model.nodes);
-				break;
-			default:
-				shape = new btCylinderShape(new Vector3(dimensions.x / 2f, dimensions.y / 2f, dimensions.z / 2f));
-				break;
-		}
-
-		if(mass > 0f) shape.calculateLocalInertia(mass, localInertia);
-		else localInertia.set(0, 0, 0);
-		
+		this.primitive = primitive;
+		this.physicsScale = physicsScale;
+		// Set the shape dimensions based on the graphical identity.
+		setDimensions(graphicalIdentity);
+		// Assign a rigidbody to the object.
 		constructionInfo = new btRigidBody.btRigidBodyConstructionInfo(mass, null, shape, localInertia);
 		rigidbody = new TerrafortRigidbody(constructionInfo);
 		constructionInfo.dispose();
+		// By default, it is tagged "DEFAULT".
 		rigidbody.setTag(PhysicsTag.DEFAULT);
+		// By default, it is a dynamic object.
 		setBodyType(TerrafortPhysicsCore.DYNAMIC_FLAG);
+	}
+	
+	public void setDimensions(final RenderableProvider3 graphicalIdentity) {
+		// If the identity already had a shape, dispose of it.
+		if(shape != null)
+			shape.dispose();
+		graphicalIdentityDimensions.set(graphicalIdentity.getDimensions().cpy().scl(physicsScale));
+		switch (primitive) {
+	        case CUBOID:
+	            shape = new btBoxShape(new Vector3(graphicalIdentityDimensions.x / 2f, graphicalIdentityDimensions.y / 2f, graphicalIdentityDimensions.z / 2f));
+	            break;
+	        case SPHERE:
+	            shape = new btSphereShape(graphicalIdentityDimensions.x / 2f);
+	            break;
+	        case CONE:
+	            shape = new btConeShape(graphicalIdentityDimensions.y / 2f, graphicalIdentityDimensions.x);
+	            break;
+	        case CAPSULE:
+	            shape = new btCapsuleShape(graphicalIdentityDimensions.x / 2f, graphicalIdentityDimensions.y / 2f);
+	            break;
+	        case MESH:
+	            shape = Bullet.obtainStaticNodeShape(graphicalIdentity.getModelInstance().nodes);
+	            break;
+	        default:
+	            shape = new btCylinderShape(new Vector3(graphicalIdentityDimensions.x / 2f, graphicalIdentityDimensions.y / 2f, graphicalIdentityDimensions.z / 2f));
+	            break;
+		}
+	    if(mass > 0f) shape.calculateLocalInertia(mass, localInertia);
+	    else localInertia.set(0, 0, 0);
+	    // If the identity has a rigidbody assigned, change its properties.
+	    if(rigidbody != null) {
+		    rigidbody.setCollisionShape(shape);
+		    rigidbody.setMassProps(mass, localInertia);
+	    }
 	}
 	
 	/**
@@ -107,6 +126,7 @@ public final class PhysicsIdentity implements Disposable {
 	
 	/**
 	 * Returns the rigid body associated with the physics identity.
+	 * 
 	 * @return the rigid body
 	 */
 	public TerrafortRigidbody getBody() {
@@ -114,7 +134,17 @@ public final class PhysicsIdentity implements Disposable {
 	}
 	
 	/**
+	 * Get the RenderableProvider3 identity.
+	 * 
+	 * @return the attached RenderableProvider3.
+	 */
+	public RenderableProvider3 getGraphicalIdentity() {
+		return graphicalIdentity;
+	}
+	
+	/**
 	 * Returns the mass of the physics identity.
+	 * 
 	 * @return the mass
 	 */
 	public float getMass() {
@@ -123,6 +153,7 @@ public final class PhysicsIdentity implements Disposable {
 	
 	/**
 	 * Returns the body type of the physics identity.
+	 * 
 	 * @return the body type
 	 */
 	public byte getBodyType() {
@@ -135,6 +166,7 @@ public final class PhysicsIdentity implements Disposable {
 	@Override
 	public void dispose() {
 		rigidbody.dispose();
-		shape.dispose();
+		if(shape != null)
+			shape.dispose();
 	}
 }

@@ -2,6 +2,7 @@ package dev.iwilkey.terrafort.game.object;
 
 import java.util.Random;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
@@ -20,13 +21,21 @@ public final class Planet extends GameObject3 {
 	private static final ProceduralTextureGenerator GENERATOR = new ProceduralTextureGenerator();
 
 	public Planet(final State state) {
-		super(state, "tf_sphere", PhysicsPrimitive.SPHERE, MASS_MIN + RANDOM.nextFloat() * (MASS_MAX - MASS_MIN), 1.1f);
+		super(state, "tf_sphere", PhysicsPrimitive.MESH, MASS_MIN + RANDOM.nextFloat() * (MASS_MAX - MASS_MIN), 1.1f);
 		changeTexture(GENERATOR.generate());
 	}
 	
+	float time = 0.0f;
+	int scale = 1;
 	@Override
-	public void instantiation() {
-		setToScaling(100.0f);
+	public void tick() {
+		time += Gdx.graphics.getDeltaTime();
+		if(time >= 1.0f) {
+			scale++;
+			getTransform().positionRelative(0.1f, 0f, 0f);
+			getTransform().scaleRelative(1.1f);
+			time = 0.0f;
+		}
 	}
 	
 	/**
@@ -38,10 +47,6 @@ public final class Planet extends GameObject3 {
 	    final Material material = getModelInstance().materials.get(0);
 	    final TextureAttribute textureAttribute = (TextureAttribute)material.get(TextureAttribute.Diffuse);
 	    textureAttribute.textureDescription.texture = newTexture;
-	}
-	
-	public void setToScaling(float scale) {
-		renderable.transform.setToScaling(scale, scale, scale);
 	}
 	
 	/**
