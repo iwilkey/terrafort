@@ -1,6 +1,7 @@
 package dev.iwilkey.terrafort.obj;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -28,7 +29,7 @@ public final class TWorld implements Disposable {
 	public static final int          TERRAIN_TILE_WIDTH = 8;
 	public static final int          TERRAIN_TILE_HEIGHT = 8;
 	public static final short        IGNORE_LIGHTING = 0x0001;
-	public static final float        DAY_DURATION = 60.0f;
+	public static final float        DAY_DURATION = 30000.0f;
 
 	private final World              world;
 	private final RayHandler         lighting;
@@ -137,9 +138,9 @@ public final class TWorld implements Disposable {
         objects.removeAll(deathrow, false);
 	}
 	
-	TFrame level[] = { 
-			TTile.GRASS[0],
-			TTile.SAND[0],
+	TFrame level[][] = { 
+			TTile.GRASS,
+			TTile.SAND,
 			TTile.WATER
 	};
 	
@@ -164,20 +165,35 @@ public final class TWorld implements Disposable {
 		   
 		    for (int i = xs; i <= xe; i++) {
 		        for (int j = ys; j <= ye; j++) {
-		        	
-		        	// noise lookup
-		        	double c  = TNoise.get(512, i * 0.01f, j * 0.01f);
-		        	// [0, 1]
-		        	c = (c + 1) / 2;
-		        	// quantization into levels
-		        	int cq = TMath.quantize(c, 3);
-		        	
-		        	
-		        	TGraphics.draw(level[cq],
+		        	int[] dat = TTile.tileLocationData(512, i, j, 0.01f, 0.01f);
+		        	TGraphics.draw(level[dat[0]][0],
 		                           i * TERRAIN_TILE_WIDTH, 
-		                           j * TERRAIN_TILE_HEIGHT, 
+		                           j * TERRAIN_TILE_HEIGHT,
+		                           dat[0],
 		                           TERRAIN_TILE_WIDTH, 
 		                           TERRAIN_TILE_HEIGHT);
+		        	// Check and draw appropriate transitions...
+		        	for(int d = 1; d < 9; d++) {
+		        		int xx = i + TTile.DX[d];
+		        		int yy = j - TTile.DY[d];
+		        		if(dat[d] == 1 && dat[0] == 0) {
+		        			// Transition from grass to sand...
+		        			TGraphics.draw(level[0][d],
+			                           xx * TERRAIN_TILE_WIDTH, 
+			                           yy * TERRAIN_TILE_HEIGHT, 
+			                           dat[0],
+			                           TERRAIN_TILE_WIDTH, 
+			                           TERRAIN_TILE_HEIGHT);
+		        		} else if(dat[d] == 2 && dat[0] == 1) {
+		        			// transitions from sand to water...
+		        			TGraphics.draw(level[1][d],
+			                           xx * TERRAIN_TILE_WIDTH, 
+			                           yy * TERRAIN_TILE_HEIGHT, 
+			                           dat[0],
+			                           TERRAIN_TILE_WIDTH, 
+			                           TERRAIN_TILE_HEIGHT);
+		        		}
+		        	}
 		        }
 		    }
 		}

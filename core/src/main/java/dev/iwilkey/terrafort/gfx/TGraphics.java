@@ -99,7 +99,7 @@ public final class TGraphics implements Disposable {
 	 * @param width the world width.
 	 * @param height the world height.
 	 */
-	public static void draw(final TFrame frame, int x, int y, int width, int height) {
+	public static void draw(final TFrame frame, int x, int y, int z, int width, int height) {
 		TILE_RENDERABLES.add(new TRenderableSprite() {
 			@Override
 			public float getRenderX() {
@@ -123,7 +123,7 @@ public final class TGraphics implements Disposable {
 			}
 			@Override
 			public int getDepth() {
-				return 1;
+				return z;
 			}
 			@Override
 			public int getDataSelectionOffsetX() {
@@ -274,6 +274,7 @@ public final class TGraphics implements Disposable {
 	 * screen are rendered first.
 	 */
 	private void sortObjectRenderables() {
+		TILE_RENDERABLES.sort((r1, r2) -> Integer.compare(r2.getDepth(), r1.getDepth()));
 		OBJECT_RENDERABLES.sort((r1, r2) -> Float.compare(r2.getRenderY(), r1.getRenderY()));
 		// OBJECT_RENDERABLES.sort((r1, r2) -> Integer.compare(r2.getDepth(), r1.getDepth()));
 	}
