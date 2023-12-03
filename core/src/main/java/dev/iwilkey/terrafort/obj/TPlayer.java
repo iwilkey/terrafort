@@ -10,6 +10,7 @@ import com.badlogic.gdx.math.Vector2;
 
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.TGraphics;
+import dev.iwilkey.terrafort.gfx.TTileTerrainRenderer;
 import dev.iwilkey.terrafort.gfx.anim.TAnimation;
 import dev.iwilkey.terrafort.gfx.anim.TAnimationController;
 
@@ -159,10 +160,10 @@ public final class TPlayer extends TAnimal {
 									worldTilePos.x, 
 									worldTilePos.y, 
 									1, 
-									TWorld.TERRAIN_TILE_WIDTH, 
-									TWorld.TERRAIN_TILE_HEIGHT,
-									TWorld.TERRAIN_TILE_WIDTH / 2f,
-									TWorld.TERRAIN_TILE_HEIGHT /2f,
+									TTileTerrainRenderer.TERRAIN_TILE_WIDTH, 
+									TTileTerrainRenderer.TERRAIN_TILE_HEIGHT,
+									TTileTerrainRenderer.TERRAIN_TILE_WIDTH / 2f,
+									TTileTerrainRenderer.TERRAIN_TILE_HEIGHT /2f,
 									ThreadLocalRandom.current().nextInt(3, 7), 
 									2, 
 									1, 

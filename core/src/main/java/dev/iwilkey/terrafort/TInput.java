@@ -1,11 +1,11 @@
-package dev.iwilkey.terrafort.input;
+package dev.iwilkey.terrafort;
 
 import com.badlogic.gdx.InputProcessor;
 
 /**
  * @author Ian Wilkey (iwilkey)
  */
-public final class TDefaultInput implements InputProcessor {
+public final class TInput implements InputProcessor {
 	
 	private static float scroll = 0.0f;
 	

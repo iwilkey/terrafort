@@ -13,21 +13,18 @@ import com.badlogic.gdx.utils.Disposable;
 import box2dLight.PointLight;
 import box2dLight.RayHandler;
 
-import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.TGraphics;
+import dev.iwilkey.terrafort.gfx.TTileTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
-import dev.iwilkey.terrafort.tile.TTile;
 
 /**
  * A physical space that manages {@link TObjects}, global and local forces, and dynamic lighting.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TWorld implements Disposable {
-	
-	public static final int          TERRAIN_TILE_WIDTH = 8;
-	public static final int          TERRAIN_TILE_HEIGHT = 8;
+
 	public static final short        IGNORE_LIGHTING = 0x0001;
-	public static final float        DAY_DURATION = 30000.0f;
+	public static final float        DAY_DURATION    = 30000.0f;
 
 	private final World              world;
 	private final RayHandler         lighting;
@@ -35,6 +32,7 @@ public final class TWorld implements Disposable {
 	private final Array<TObject>     objects;
 	private final Array<TEntity>     deathrow;
 	private final Box2DDebugRenderer debugRenderer;
+	private final long               seed;
 	
 	private TPlayer                  player;
 	private boolean                  debug;
@@ -44,7 +42,8 @@ public final class TWorld implements Disposable {
 	private boolean                  night;
 	private boolean                  dawn;
 
-	public TWorld() {
+	public TWorld(long seed) {
+		this.seed                       = seed;
 		world                           = new World(new Vector2(0, 0), false);
 		lighting                        = new RayHandler(world);
 		lightingCollisionMask           = new Filter();
@@ -77,8 +76,8 @@ public final class TWorld implements Disposable {
 	 */
 	public Vector2 roundMousePositionToWorldTileGrid() {
 		Vector2 ret = new Vector2().set(getMousePositionInWorld());
-		ret.x = Math.round(ret.x / TERRAIN_TILE_WIDTH) * TERRAIN_TILE_WIDTH;
-		ret.y = Math.round(ret.y / TERRAIN_TILE_WIDTH) * TERRAIN_TILE_WIDTH;
+		ret.x = Math.round(ret.x / TTileTerrainRenderer.TERRAIN_TILE_WIDTH) * TTileTerrainRenderer.TERRAIN_TILE_WIDTH;
+		ret.y = Math.round(ret.y / TTileTerrainRenderer.TERRAIN_TILE_WIDTH) * TTileTerrainRenderer.TERRAIN_TILE_WIDTH;
 		return ret;
 	}
 	
@@ -136,72 +135,20 @@ public final class TWorld implements Disposable {
         objects.removeAll(deathrow, false);
 	}
 	
-	TFrame level[][] = { 
-			TTile.GRASS,
-			TTile.SAND,
-			TTile.WATER
-	};
-	
 	/**
 	 * Renders the world's objects, Box2D debug information, and dynamic lighting.
 	 */
 	public void render() {
-		
-		if(player != null) {
-			
-			int padding               = 128;
-		    float camWidthWorldUnits  = TGraphics.CAMERA.viewportWidth * TGraphics.CAMERA.zoom;
-		    float camHeightWorldUnits = TGraphics.CAMERA.viewportHeight * TGraphics.CAMERA.zoom;
-		    int tilesInViewWidth      = Math.round(camWidthWorldUnits / TERRAIN_TILE_WIDTH) / 2;
-		    int tilesInViewHeight     = Math.round(camHeightWorldUnits / TERRAIN_TILE_HEIGHT) / 2;
-		    int playerTileX           = Math.round(player.getRenderX() / TERRAIN_TILE_WIDTH);
-		    int playerTileY           = Math.round(player.getRenderY() / TERRAIN_TILE_HEIGHT);
-		    int xs                    = playerTileX - (tilesInViewWidth + padding);
-		    int xe                    = playerTileX + (tilesInViewWidth + padding);
-		    int ys                    = playerTileY - (tilesInViewHeight + padding);
-		    int ye                    = playerTileY + (tilesInViewHeight + padding);
-		   
-		    for (int i = xs; i <= xe; i++) {
-		        for (int j = ys; j <= ye; j++) {
-		        	int[] dat = TTile.tileHeightData(512, i, j, 0.01f, 0.01f);
-		        	TGraphics.draw(level[dat[0]][0],
-		                           i * TERRAIN_TILE_WIDTH, 
-		                           j * TERRAIN_TILE_HEIGHT,
-		                           dat[0],
-		                           TERRAIN_TILE_WIDTH, 
-		                           TERRAIN_TILE_HEIGHT);
-		        	// Check and draw appropriate transitions...
-		        	for(int d = 1; d < 9; d++) {
-		        		int xx = i + TTile.DX[d];
-		        		int yy = j - TTile.DY[d];
-		        		if(dat[d] == 1 && dat[0] == 0) {
-		        			// Transition from grass to sand...
-		        			TGraphics.draw(level[0][d],
-			                           xx * TERRAIN_TILE_WIDTH, 
-			                           yy * TERRAIN_TILE_HEIGHT, 
-			                           dat[0],
-			                           TERRAIN_TILE_WIDTH, 
-			                           TERRAIN_TILE_HEIGHT);
-		        		} else if(dat[d] == 2 && dat[0] == 1) {
-		        			// transitions from sand to water...
-		        			TGraphics.draw(level[1][d],
-			                           xx * TERRAIN_TILE_WIDTH, 
-			                           yy * TERRAIN_TILE_HEIGHT, 
-			                           dat[0],
-			                           TERRAIN_TILE_WIDTH, 
-			                           TERRAIN_TILE_HEIGHT);
-		        		}
-		        	}
-		        }
-		    }
-		}
-		
+		TTileTerrainRenderer.render(this, player);
 		for(final TObject obj : objects)
 			TGraphics.draw(obj);
-		
 		if(debug) debugRenderer.render(world, TGraphics.CAMERA.combined);
 		lighting.setCombinedMatrix(TGraphics.CAMERA);
 		lighting.updateAndRender();
+	}
+	
+	public long getSeed() {
+		return seed;
 	}
 	
 	public boolean isDay() {

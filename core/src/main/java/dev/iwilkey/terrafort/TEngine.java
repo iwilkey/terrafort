@@ -4,7 +4,6 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.input.TDefaultInput;
 import dev.iwilkey.terrafort.state.TDebugState;
 
 /**
@@ -22,7 +21,7 @@ import dev.iwilkey.terrafort.state.TDebugState;
 public final class TEngine extends ApplicationAdapter {
 
 	private static TState        state = null;
-	private static TDefaultInput input = null;
+	private static TInput input = null;
 	private static TClock        clock = null;
 	private static TGraphics     renderer = null;
 	
@@ -45,7 +44,7 @@ public final class TEngine extends ApplicationAdapter {
     @Override
     public void create() {
     	clock    = new TClock();
-    	input    = new TDefaultInput();
+    	input    = new TInput();
     	renderer = new TGraphics();
     	Gdx.input.setInputProcessor(input);
     	setState(new TDebugState());

@@ -22,7 +22,7 @@ public class TDebugState implements TState {
 	public void start() {
 		TGraphics.setGlLineWidth(1.0f);
 		TGraphics.setCameraSpeedToTarget(4.0f);
-		world   = new TWorld();
+		world   = new TWorld(512);
 		world.addObject(new TPlayer(world));
 	}
 

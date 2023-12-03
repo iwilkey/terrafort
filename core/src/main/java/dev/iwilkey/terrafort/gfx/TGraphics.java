@@ -31,27 +31,28 @@ import dev.iwilkey.terrafort.math.TMath;
  */
 public final class TGraphics implements Disposable {
 	
-	public static final int                       MAX_RENDERABLES = 8191;
-	public static final int                       DATA_WIDTH = 16;
-	public static final int                       DATA_HEIGHT = 16;
-	public static final float                     PIXELS_PER_METER = 1f;
+	public static final int                       MAX_RENDERABLES       = 8191;
+	public static final int                       DATA_WIDTH            = 16;
+	public static final int                       DATA_HEIGHT           = 16;
+	public static final float                     PIXELS_PER_METER      = 1f;
 	
-	public static final Texture                   DATA = new Texture(Gdx.files.internal("dat.png"));
-	public static final OrthographicCamera        CAMERA = new OrthographicCamera();
-	private static final TInterpolator            CAMERA_X = new TInterpolator(0);
-	private static final TInterpolator            CAMERA_Y = new TInterpolator(0);
-	private static final TInterpolator            CAMERA_ZOOM = new TInterpolator(1);
-	private static final Array<TRenderableSprite> OBJECT_RENDERABLES = new Array<>();
-	private static final Array<TRenderableSprite> TILE_RENDERABLES = new Array<>();
-	private static final Array<TRenderableShape>  GEOMETRIC_RENDERABLES = new Array<>();
-	private static final SpriteBatch              OBJECT_BATCH = new SpriteBatch(MAX_RENDERABLES);
-	private static final Array<SpriteBatch>       TILE_BATCH_POOL = new Array<>();
-	private static final ShapeRenderer            GEOMETRIC_RENDERER = new ShapeRenderer();
+	public static final Texture                   DATA                  = new Texture(Gdx.files.internal("dat.png"));
+	public static final OrthographicCamera        CAMERA                = new OrthographicCamera();
+	private static final TInterpolator            CAMERA_X              = new TInterpolator(0);
+	private static final TInterpolator            CAMERA_Y              = new TInterpolator(0);
+	private static final TInterpolator            CAMERA_ZOOM           = new TInterpolator(1);
+	private static final Array<TRenderableSprite> OBJECT_RENDERABLES    = new Array<>();
+	private static final Array<TRenderableSprite> TILE_RENDERABLES      = new Array<>();
+	private static final Array<TRenderableShape>  OL_GEO_RENDERABLES    = new Array<>();
+	private static final Array<TRenderableShape>  TL_GEO_RENDERABLES    = new Array<>();
+	private static final SpriteBatch              OBJECT_BATCH          = new SpriteBatch(MAX_RENDERABLES);
+	private static final Array<SpriteBatch>       TILE_BATCH_POOL       = new Array<>();
+	private static final ShapeRenderer            GEOMETRIC_RENDERER    = new ShapeRenderer();
 	
-	private static final VfxManager               POST_PROCESSING = new VfxManager(Pixmap.Format.RGBA8888);
-	public static final FxaaEffect                POST_FXAA = new FxaaEffect();
-	public static final BloomEffect               POST_BLOOM = new BloomEffect();
-	public static final GaussianBlurEffect        POST_GAUSSIAN_BLUR = new GaussianBlurEffect();
+	private static final VfxManager               POST_PROCESSING       = new VfxManager(Pixmap.Format.RGBA8888);
+	public static final FxaaEffect                POST_FXAA             = new FxaaEffect();
+	public static final BloomEffect               POST_BLOOM            = new BloomEffect();
+	public static final GaussianBlurEffect        POST_GAUSSIAN_BLUR    = new GaussianBlurEffect();
 	
 	public TGraphics() {
 		
@@ -63,7 +64,7 @@ public final class TGraphics implements Disposable {
 		CAMERA_ZOOM.setEquation(Interpolation.linear);
 		
 		POST_PROCESSING.addEffect(POST_FXAA);
-		// POST_PROCESSING.addEffect(POST_BLOOM);
+		POST_PROCESSING.addEffect(POST_BLOOM);
 		// POST_PROCESSING.addEffect(POST_GAUSSIAN_BLUR);
 		
 		CAMERA_ZOOM.set((float)Math.pow(2, currentZoomTwoFactor));
@@ -76,9 +77,11 @@ public final class TGraphics implements Disposable {
 	/**
 	 * Adds a {@link TRenderableShape} to the geometric render queue.
 	 * @param renderable the {@link TRenderableShape} to be rendered.
+	 * @param objectLevel whether or not the shape should be drawn before (false) or after (true) object renderables.
 	 */
-	public static void draw(final TRenderableShape renderable) {
-		GEOMETRIC_RENDERABLES.add(renderable);
+	public static void draw(final TRenderableShape renderable, boolean objectLevel) {
+		if(objectLevel) OL_GEO_RENDERABLES.add(renderable);
+		else TL_GEO_RENDERABLES.add(renderable);
 	}
 	
 	/**
@@ -286,13 +289,11 @@ public final class TGraphics implements Disposable {
 	 * Render process of the TGraphics module.
 	 */
 	public void render() {
-		
 		t += TClock.dt();
 		if(t > 1.0f) {
 			System.out.println("fps: " + (1 / TClock.dt()));
 			t = 0;
 		}
-		
 		calculateTileBatchPool();
 		calculatePerspective();
 		sortObjectRenderables();
@@ -319,20 +320,31 @@ public final class TGraphics implements Disposable {
 	        }
 	        TILE_BATCH_POOL.get(batch).end();
 		}
+		// render tile level geometry
+        GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Filled);
+        GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
+        for(TRenderableShape s : TL_GEO_RENDERABLES)
+        	s.drawFilled(CAMERA, GEOMETRIC_RENDERER);
+        GEOMETRIC_RENDERER.end();
+        GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Line);
+        GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
+        for(TRenderableShape s : TL_GEO_RENDERABLES)
+        	s.drawLined(CAMERA, GEOMETRIC_RENDERER);
+        GEOMETRIC_RENDERER.end();
 		// draw objects
         OBJECT_BATCH.begin();
         for(final TRenderableSprite r : OBJECT_RENDERABLES)
         	r.render(CAMERA, OBJECT_BATCH);
         OBJECT_BATCH.end();
-        // render geometry
+        // render object level geometry
         GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Filled);
         GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
-        for(TRenderableShape s : GEOMETRIC_RENDERABLES)
+        for(TRenderableShape s : OL_GEO_RENDERABLES)
         	s.drawFilled(CAMERA, GEOMETRIC_RENDERER);
         GEOMETRIC_RENDERER.end();
         GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Line);
         GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
-        for(TRenderableShape s : GEOMETRIC_RENDERABLES)
+        for(TRenderableShape s : OL_GEO_RENDERABLES)
         	s.drawLined(CAMERA, GEOMETRIC_RENDERER);
         GEOMETRIC_RENDERER.end();
         POST_PROCESSING.endInputCapture();
@@ -376,7 +388,8 @@ public final class TGraphics implements Disposable {
 	 * Flushes (clears) the render queues.
 	 */
 	private static void flush() {
-		GEOMETRIC_RENDERABLES.clear();
+		OL_GEO_RENDERABLES.clear();
+		TL_GEO_RENDERABLES.clear();
 	    OBJECT_RENDERABLES.clear();
 	    TILE_RENDERABLES.clear();
 	}
