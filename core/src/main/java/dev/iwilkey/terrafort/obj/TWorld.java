@@ -1,7 +1,6 @@
 package dev.iwilkey.terrafort.obj;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -16,7 +15,6 @@ import box2dLight.RayHandler;
 
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.math.TNoise;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.tile.TTile;
 
@@ -165,7 +163,7 @@ public final class TWorld implements Disposable {
 		   
 		    for (int i = xs; i <= xe; i++) {
 		        for (int j = ys; j <= ye; j++) {
-		        	int[] dat = TTile.tileLocationData(512, i, j, 0.01f, 0.01f);
+		        	int[] dat = TTile.tileHeightData(512, i, j, 0.01f, 0.01f);
 		        	TGraphics.draw(level[dat[0]][0],
 		                           i * TERRAIN_TILE_WIDTH, 
 		                           j * TERRAIN_TILE_HEIGHT,

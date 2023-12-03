@@ -1,5 +1,7 @@
 package dev.iwilkey.terrafort.tile;
 
+import java.util.HashMap;
+
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.math.TNoise;
@@ -61,6 +63,21 @@ public final class TTile {
 	}
 	
 	/**
+	 * A cache for the Tile Height Data (THD.) This will save already known tile heights to avoid recalculation.
+	 * 
+	 * <p>
+	 * This is approach 1 of 2: the position key is a String, directly denoting the coordinates in "x,y" format. This undoubtedly takes a great deal of memory,
+	 * and parsing and/or building Strings every tick may prove to be just as computationally inefficient as the problem it aims to solve.
+	 * </p>
+	 * 
+	 * <p>
+	 * <strong>NOTE:</strong> The concern above came true. Building the key string every frame is actually <strong>more</strong> computationally inefficient than just checking for the 
+	 * noise every tick.
+	 * </p>
+	 */
+	public static final HashMap<String, Integer> THD_CACHE = new HashMap<>();
+	
+	/**
 	 * Returns an array of integers, denoting the terrain height in every cardinal and sub-cardinal direction. Used for infinite
 	 * terrain computation.
 	 * 
@@ -75,16 +92,20 @@ public final class TTile {
 	 * @param freqY the noise y frequency.
 	 * @return An array of integers, denoting the terrain height in every cardinal and sub-cardinal direction.
 	 */
-	public static final int[] tileLocationData(long seed, int cx, int cy, float freqX, float freqY) {
+	public static final int[] tileHeightData(long seed, int cx, int cy, float freqX, float freqY) {
 		int arr[] = new int[9];
 		for(int d = 0; d < 9; d++) {
     		int xx = cx + DX[d];
     		int yy = cy - DY[d];
-    		// TODO: Cache noise!!
-    		double v  = TNoise.get(seed, xx * freqX, yy * freqY);
-        	v = (v + 1) / 2;
-        	int vq = TMath.quantize(v, 3);
-        	arr[d] = vq;
+    		String key = xx + "," + yy;
+    		int vq;
+    		if(!THD_CACHE.containsKey(key)) {
+	    		double v  = TNoise.get(seed, xx * freqX, yy * freqY);
+	        	v = (v + 1) / 2;
+	        	vq = TMath.quantize(v, 3);
+	        	THD_CACHE.put(key, vq);
+    		}
+        	arr[d] = THD_CACHE.get(key);
     	}
 		return arr;
 	}

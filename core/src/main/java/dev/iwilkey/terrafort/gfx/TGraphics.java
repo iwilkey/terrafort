@@ -18,6 +18,7 @@ import com.crashinvaders.vfx.effects.BloomEffect;
 import com.crashinvaders.vfx.effects.FxaaEffect;
 import com.crashinvaders.vfx.effects.GaussianBlurEffect;
 
+import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.math.TInterpolator;
 import dev.iwilkey.terrafort.math.TMath;
 
@@ -279,10 +280,19 @@ public final class TGraphics implements Disposable {
 		// OBJECT_RENDERABLES.sort((r1, r2) -> Integer.compare(r2.getDepth(), r1.getDepth()));
 	}
 	
+	float t = 0.0f;
+	
 	/**
 	 * Render process of the TGraphics module.
 	 */
 	public void render() {
+		
+		t += TClock.dt();
+		if(t > 1.0f) {
+			System.out.println("fps: " + (1 / TClock.dt()));
+			t = 0;
+		}
+		
 		calculateTileBatchPool();
 		calculatePerspective();
 		sortObjectRenderables();
