@@ -4,10 +4,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.Vector2;
 
 import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.TState;
 import dev.iwilkey.terrafort.gfx.TGraphics;
+import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.obj.TPlayer;
 import dev.iwilkey.terrafort.obj.TWorld;
 
@@ -31,12 +33,17 @@ public class TDebugState implements TState {
 		world.update((float)TClock.dt());
 		world.render();
 		if(Gdx.input.isButtonJustPressed(Buttons.RIGHT)) {
+			/*
 			world.addPointLight(
 					Math.round(world.getMousePositionInWorld().x), 
 					Math.round(world.getMousePositionInWorld().y), 
 					48, 
 					new Color().set(0xeedd82aa)
 			);
+			*/
+			final Vector2 worldTilePos = world.roundMousePositionToWorldTileGrid();
+			TTerrainRenderer.terraform((int)(worldTilePos.x / TTerrainRenderer.TERRAIN_TILE_WIDTH), 
+					(int)(worldTilePos.y / TTerrainRenderer.TERRAIN_TILE_HEIGHT), 1);
 		}
 		if(Gdx.input.isKeyJustPressed(Keys.Q))
 			TGraphics.changeCameraZoom(false);

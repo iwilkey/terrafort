@@ -14,7 +14,7 @@ import box2dLight.PointLight;
 import box2dLight.RayHandler;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.TTileTerrainRenderer;
+import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
 
 /**
@@ -76,8 +76,8 @@ public final class TWorld implements Disposable {
 	 */
 	public Vector2 roundMousePositionToWorldTileGrid() {
 		Vector2 ret = new Vector2().set(getMousePositionInWorld());
-		ret.x = Math.round(ret.x / TTileTerrainRenderer.TERRAIN_TILE_WIDTH) * TTileTerrainRenderer.TERRAIN_TILE_WIDTH;
-		ret.y = Math.round(ret.y / TTileTerrainRenderer.TERRAIN_TILE_WIDTH) * TTileTerrainRenderer.TERRAIN_TILE_WIDTH;
+		ret.x = Math.round(ret.x / TTerrainRenderer.TERRAIN_TILE_WIDTH) * TTerrainRenderer.TERRAIN_TILE_WIDTH;
+		ret.y = Math.round(ret.y / TTerrainRenderer.TERRAIN_TILE_WIDTH) * TTerrainRenderer.TERRAIN_TILE_WIDTH;
 		return ret;
 	}
 	
@@ -139,7 +139,7 @@ public final class TWorld implements Disposable {
 	 * Renders the world's objects, Box2D debug information, and dynamic lighting.
 	 */
 	public void render() {
-		TTileTerrainRenderer.render(this, player);
+		TTerrainRenderer.render(this, player);
 		for(final TObject obj : objects)
 			TGraphics.draw(obj);
 		if(debug) debugRenderer.render(world, TGraphics.CAMERA.combined);

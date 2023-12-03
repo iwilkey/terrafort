@@ -1,5 +1,7 @@
 package dev.iwilkey.terrafort.gfx;
 
+import java.util.HashMap;
+
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.shape.TRect;
@@ -10,32 +12,40 @@ import dev.iwilkey.terrafort.obj.TWorld;
 
 /**
  * A utility class that facilitates the efficient rendering of an infinite set of tiles,
- * representing {@link TWorld} terrain.
+ * representing {@link TWorld} terrain that provides the seed for layered OpenSimplex noise.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TTileTerrainRenderer {
+public final class TTerrainRenderer {
 	
 	public static final int    TERRAIN_TILE_WIDTH               = 8;
 	public static final int    TERRAIN_TILE_HEIGHT              = 8;
 	public static final int    HALF_TERRAIN_TILE_WIDTH          = TERRAIN_TILE_WIDTH / 2;
 	public static final int    HALF_TERRAIN_TILE_HEIGHT         = TERRAIN_TILE_HEIGHT / 2;
-	public static final int    TRANSITION_THICKNESS_FACTOR      = 8; // higher value = thinner transition borders.
+	public static final int    TERRAIN_HEIGHT                   = 4;
+	public static final int    TRANSITION_THICKNESS_FACTOR      = 6; // higher value = thinner transition borders.
 	public static final int    TERRAIN_VIEWPORT_CULLING_PADDING = 3;
+	
 	public static final byte   DX[]          					= new byte[9];
 	public static final byte   DY[]          					= new byte[9];
 	
-	public static final TFrame GRASS[]                          = surroundFrame(4, 4);
-	public static final TFrame SAND[]                           = surroundFrame(4, 7);
-	public static final TFrame WATER[]                          = surroundFrame(7, 4);
-	public static final TFrame LEVELS[][]                       = new TFrame[3][];
-	public static final Color  TRANSITION_COLORS[]              = new Color[2];
+	public static final TFrame STONE                            = new TFrame(3, 0, 1, 1);
+	public static final TFrame GRASS                            = new TFrame(4, 0, 1, 1);
+	public static final TFrame SAND                             = new TFrame(5, 0, 1, 1);
+	public static final TFrame WATER                            = new TFrame(6, 0, 1, 1);
+	
+	public static final TFrame LEVELS[]                         = new TFrame[TERRAIN_HEIGHT];
+	public static final Color  TRANSITION_COLORS[]              = new Color[TERRAIN_HEIGHT - 1];
 	
 	static {
-		LEVELS[0] 					                            = TTileTerrainRenderer.GRASS;
-		TRANSITION_COLORS[0]                                    = new Color().set(0x245502ff);
-		LEVELS[1]           									= TTileTerrainRenderer.SAND;
-		TRANSITION_COLORS[1]                                    = new Color().set(0xc2b280ff);
-		LEVELS[2] 												= TTileTerrainRenderer.WATER;
+		
+		LEVELS[0]                                               = TTerrainRenderer.STONE;
+		TRANSITION_COLORS[0]                                    = new Color().set(0x868689ff);
+		LEVELS[1] 					                            = TTerrainRenderer.GRASS;
+		TRANSITION_COLORS[1]                                    = new Color().set(0x3D823Dff);
+		LEVELS[2]           									= TTerrainRenderer.SAND;
+		TRANSITION_COLORS[2]                                    = new Color().set(0xA38F4Eff);
+		LEVELS[3] 												= TTerrainRenderer.WATER;
+		
 		DX[0] 													= 0;
 		DX[1] 													= -1;
 		DX[2]													= -1;
@@ -58,19 +68,39 @@ public final class TTileTerrainRenderer {
 	}
 	
 	/**
-	 * Return an array of size 9 that encapsulates a center tile from the Sprite Sheet. Indices delineating tile position defined in {@link TTileGroupIndicies}.
-	 * @param cx the center x Sprite Sheet tile to surround.
-	 * @param cy the center y Sprite Sheet tile to surround.
-	 * @return a {@link TFrame} array of size 9.
+	 * Hashes every possible pair of edited tile coordinates and maps them to their respective heights. 
+	 * TODO: Make this unique for every {@link TWorld}!
 	 */
-	private static final TFrame[] surroundFrame(int cx, int cy) {
-		TFrame arr[] = new TFrame[9];
-		for(int i = 0; i < 9; i++) {
-			int xx = cx + DX[i];
-			int yy = cy + DY[i];
-			arr[i] = new TFrame(xx, yy, 1, 1);
+	public static final HashMap<Long, Integer> TEST_TERRAFORM_CACHE = new HashMap<>();
+	
+	/**
+	 * Registers a new terrain height at tile (x, y).
+	 * @param x the tile x value.
+	 * @param y the tile y value.
+	 * @param z the height to make the terrain.
+	 */
+	public static final void terraform(int x, int y, int z) {
+		z                      = (int)TMath.clamp(z, 0, TERRAIN_HEIGHT - 1);
+		final long tileHashKey = (((long)x) << 32) | (y & 0xffffffffL);
+		TEST_TERRAFORM_CACHE.put(tileHashKey, z);
+	}
+	
+	/**
+	 * Returns the 
+	 * @param world
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	public static final int getTerrainHeightAt(TWorld world, int x, int y) {
+		final long tileHashKey = (((long)x) << 32) | (y & 0xffffffffL);
+		if(TEST_TERRAFORM_CACHE.containsKey(tileHashKey))
+			return TEST_TERRAFORM_CACHE.get(tileHashKey);
+		else {
+			double v = TNoise.get(world.getSeed(), x * 0.01f, y * 0.01f);
+			v        = (v + 1) / 2;
+			return TMath.quantize(v, TERRAIN_HEIGHT);
 		}
-		return arr;
 	}
 	
 	/**
@@ -93,17 +123,13 @@ public final class TTileTerrainRenderer {
 	    final int ye                    = playerTileY + (tilesInViewHeight + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    for (int i = xs; i <= xe; i++) {
 	        for (int j = ys; j <= ye; j++) {
-	        	double v     = TNoise.get(world.getSeed(), i * 0.01f, j * 0.01f);
-                v            = (v + 1) / 2;
-                final int vq = TMath.quantize(v, 3);
+                final int vq = getTerrainHeightAt(world, i, j);
 	        	for(int d = 1; d < 9; d++) {
 	        		final int dx  = DX[d];
 	        		final int dy  = DY[d];
 	        		final int xx  = i + dx;
 	        		final int yy  = j - dy;
-		        	double vv     = TNoise.get(world.getSeed(), xx * 0.01f, yy * 0.01f);
-	                vv            = (vv + 1) / 2;
-	                final int vvq = TMath.quantize(vv, 3);
+	                final int vvq = getTerrainHeightAt(world, xx, yy);
 	                if(vvq != vq && vvq > vq) {
 	                	float borderCX               = (i + 0.5f) * TERRAIN_TILE_WIDTH;
 	                    float borderCY               = (j + 0.5f) * TERRAIN_TILE_HEIGHT;
@@ -145,7 +171,7 @@ public final class TTileTerrainRenderer {
 	                    TGraphics.draw(border, false);
 	                }
 	        	}
-		        TGraphics.draw(LEVELS[vq][0], i * TERRAIN_TILE_WIDTH, j * TERRAIN_TILE_HEIGHT, vq, TERRAIN_TILE_WIDTH, TERRAIN_TILE_HEIGHT);
+		        TGraphics.draw(LEVELS[vq], i * TERRAIN_TILE_WIDTH, j * TERRAIN_TILE_HEIGHT, vq, TERRAIN_TILE_WIDTH, TERRAIN_TILE_HEIGHT);
 	        }
 	    }
 	}
