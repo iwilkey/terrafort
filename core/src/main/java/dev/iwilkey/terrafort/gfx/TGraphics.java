@@ -64,7 +64,7 @@ public final class TGraphics implements Disposable {
 		CAMERA_ZOOM.setEquation(Interpolation.linear);
 		
 		POST_PROCESSING.addEffect(POST_FXAA);
-		POST_PROCESSING.addEffect(POST_BLOOM);
+		// POST_PROCESSING.addEffect(POST_BLOOM);
 		// POST_PROCESSING.addEffect(POST_GAUSSIAN_BLUR);
 		
 		CAMERA_ZOOM.set((float)Math.pow(2, currentZoomTwoFactor));
@@ -371,6 +371,7 @@ public final class TGraphics implements Disposable {
 	 */
 	public static void gc() {
 		flush();
+		TTerrainRenderer.gc();
 		for(SpriteBatch batch : TILE_BATCH_POOL)
 			batch.dispose();
 		TILE_BATCH_POOL.clear();

@@ -1,9 +1,11 @@
-package dev.iwilkey.terrafort.obj;
+package dev.iwilkey.terrafort.obj.entity;
 
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.anim.TAnimationController;
+import dev.iwilkey.terrafort.obj.TObject;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * An abstract {@link TObject} with animations and monitored health, tasks, and death functionality.

@@ -3,12 +3,12 @@ package dev.iwilkey.terrafort.gfx;
 import java.util.HashMap;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.gfx.shape.TRect;
-import dev.iwilkey.terrafort.math.TMath;
-import dev.iwilkey.terrafort.math.TNoise;
-import dev.iwilkey.terrafort.obj.TPlayer;
-import dev.iwilkey.terrafort.obj.TWorld;
+import dev.iwilkey.terrafort.obj.TObject;
+import dev.iwilkey.terrafort.obj.entity.TPlayer;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * A utility class that facilitates the efficient rendering of an infinite set of tiles,
@@ -22,7 +22,7 @@ public final class TTerrainRenderer {
 	public static final int    HALF_TERRAIN_TILE_WIDTH          = TERRAIN_TILE_WIDTH / 2;
 	public static final int    HALF_TERRAIN_TILE_HEIGHT         = TERRAIN_TILE_HEIGHT / 2;
 	public static final int    TERRAIN_HEIGHT                   = 4;
-	public static final int    TRANSITION_THICKNESS_FACTOR      = 6; // higher value = thinner transition borders.
+	public static final int    TRANSITION_THICKNESS_FACTOR      = 4; // higher value = thinner transition borders.
 	public static final int    TERRAIN_VIEWPORT_CULLING_PADDING = 3;
 	
 	public static final byte   DX[]          					= new byte[9];
@@ -36,8 +36,12 @@ public final class TTerrainRenderer {
 	public static final TFrame LEVELS[]                         = new TFrame[TERRAIN_HEIGHT];
 	public static final Color  TRANSITION_COLORS[]              = new Color[TERRAIN_HEIGHT - 1];
 	
+	/**
+	 * A dynamic way to keep track of tiles that require a physical presence, like Stone.
+	 */
+	private static final HashMap<Long, TObject> TILE_PHYSICALS  = new HashMap<>();
+	
 	static {
-		
 		LEVELS[0]                                               = TTerrainRenderer.STONE;
 		TRANSITION_COLORS[0]                                    = new Color().set(0x868689ff);
 		LEVELS[1] 					                            = TTerrainRenderer.GRASS;
@@ -45,7 +49,6 @@ public final class TTerrainRenderer {
 		LEVELS[2]           									= TTerrainRenderer.SAND;
 		TRANSITION_COLORS[2]                                    = new Color().set(0xA38F4Eff);
 		LEVELS[3] 												= TTerrainRenderer.WATER;
-		
 		DX[0] 													= 0;
 		DX[1] 													= -1;
 		DX[2]													= -1;
@@ -64,43 +67,6 @@ public final class TTerrainRenderer {
 		DY[6] 													= 1;
 		DY[7] 													= 1;
 		DY[8] 													= 1;
-		
-	}
-	
-	/**
-	 * Hashes every possible pair of edited tile coordinates and maps them to their respective heights. 
-	 * TODO: Make this unique for every {@link TWorld}!
-	 */
-	public static final HashMap<Long, Integer> TEST_TERRAFORM_CACHE = new HashMap<>();
-	
-	/**
-	 * Registers a new terrain height at tile (x, y).
-	 * @param x the tile x value.
-	 * @param y the tile y value.
-	 * @param z the height to make the terrain.
-	 */
-	public static final void terraform(int x, int y, int z) {
-		z                      = (int)TMath.clamp(z, 0, TERRAIN_HEIGHT - 1);
-		final long tileHashKey = (((long)x) << 32) | (y & 0xffffffffL);
-		TEST_TERRAFORM_CACHE.put(tileHashKey, z);
-	}
-	
-	/**
-	 * Returns the 
-	 * @param world
-	 * @param x
-	 * @param y
-	 * @return
-	 */
-	public static final int getTerrainHeightAt(TWorld world, int x, int y) {
-		final long tileHashKey = (((long)x) << 32) | (y & 0xffffffffL);
-		if(TEST_TERRAFORM_CACHE.containsKey(tileHashKey))
-			return TEST_TERRAFORM_CACHE.get(tileHashKey);
-		else {
-			double v = TNoise.get(world.getSeed(), x * 0.01f, y * 0.01f);
-			v        = (v + 1) / 2;
-			return TMath.quantize(v, TERRAIN_HEIGHT);
-		}
 	}
 	
 	/**
@@ -109,7 +75,7 @@ public final class TTerrainRenderer {
 	 * @param world the world the terrain belongs to.
 	 * @param player the player.
 	 */
-	public static final void render(final TWorld world, final TPlayer player) {
+	public static void render(final TWorld world, final TPlayer player) {
 		if(player == null) return;
 	    final float camWidthWorldUnits  = TGraphics.CAMERA.viewportWidth * TGraphics.CAMERA.zoom;
 	    final float camHeightWorldUnits = TGraphics.CAMERA.viewportHeight * TGraphics.CAMERA.zoom;
@@ -121,16 +87,53 @@ public final class TTerrainRenderer {
 	    final int xe                    = playerTileX + (tilesInViewWidth + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    final int ys                    = playerTileY - (tilesInViewHeight + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    final int ye                    = playerTileY + (tilesInViewHeight + TERRAIN_VIEWPORT_CULLING_PADDING);
+	    // remove physicals that are outside current tile viewport.
+	    Array<Long> deadHash = new Array<>();
+	    for(final long hash : TILE_PHYSICALS.keySet()) {
+	    	int x = (int)(hash >> 32);
+	    	int y = (int)hash;
+	    	if(((x < xs) || (x > xe)) && ((y < ys) || (y > ye)))
+	    		deadHash.add(hash);
+	    }
+	    for(final long hash : deadHash) {
+	    	world.removeObject(TILE_PHYSICALS.get(hash));
+    		TILE_PHYSICALS.remove(hash);
+	    }
 	    for (int i = xs; i <= xe; i++) {
 	        for (int j = ys; j <= ye; j++) {
-                final int vq = getTerrainHeightAt(world, i, j);
+                final int vq = world.getTileHeightAt(i, j);
 	        	for(int d = 1; d < 9; d++) {
 	        		final int dx  = DX[d];
 	        		final int dy  = DY[d];
 	        		final int xx  = i + dx;
 	        		final int yy  = j - dy;
-	                final int vvq = getTerrainHeightAt(world, xx, yy);
+	                final int vvq = world.getTileHeightAt(xx, yy);
 	                if(vvq != vq && vvq > vq) {
+	                	// check if it's stone...
+	                	if(vvq == 1) {
+	                		// Since manageTilePhysicals handles everything else, all this should be concerned with doing is allocating physicals
+	                		// to stone tiles that don't have one yet...
+	                		long hash = (((long)i) << 32) | (j & 0xffffffffL);
+	                		if(!TILE_PHYSICALS.containsKey(hash)) {
+	                			// Add a new physical and hash it...
+	                			final TObject tilePhysical = new TObject(world, 
+	                													 false, 
+	                													 i * TERRAIN_TILE_WIDTH,
+	                													 j * TERRAIN_TILE_HEIGHT,
+	                													 0,
+	                													 TERRAIN_TILE_WIDTH,
+	                													 TERRAIN_TILE_HEIGHT,
+	                													 TERRAIN_TILE_WIDTH / 2,
+	                													 TERRAIN_TILE_HEIGHT / 2,
+	                													 3,
+	                													 0,
+	                													 1,
+	                													 1,
+	                													 new Color().set(0));
+	                			world.addObject(tilePhysical);
+	                			TILE_PHYSICALS.put(hash, tilePhysical);
+	                		}
+	                	}
 	                	float borderCX               = (i + 0.5f) * TERRAIN_TILE_WIDTH;
 	                    float borderCY               = (j + 0.5f) * TERRAIN_TILE_HEIGHT;
 	                    float borderWidth            = TERRAIN_TILE_WIDTH / TRANSITION_THICKNESS_FACTOR;
@@ -174,5 +177,12 @@ public final class TTerrainRenderer {
 		        TGraphics.draw(LEVELS[vq], i * TERRAIN_TILE_WIDTH, j * TERRAIN_TILE_HEIGHT, vq, TERRAIN_TILE_WIDTH, TERRAIN_TILE_HEIGHT);
 	        }
 	    }
+	}
+
+	/**
+	 * Cleans up dynamically allocated memory during runtime. Usually called when switching between worlds or states.
+	 */
+	public static void gc() {
+		TILE_PHYSICALS.clear();
 	}
 }

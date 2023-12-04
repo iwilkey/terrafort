@@ -3,7 +3,7 @@ package dev.iwilkey.terrafort.gfx.anim;
 import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.gfx.TFrame;
-import dev.iwilkey.terrafort.obj.TEntity;
+import dev.iwilkey.terrafort.obj.entity.TEntity;
 
 /**
  * A utility class that manages the state of a {@link TEntity}'s animations.

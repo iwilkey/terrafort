@@ -1,8 +1,9 @@
-package dev.iwilkey.terrafort.obj;
+package dev.iwilkey.terrafort.obj.entity;
 
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.shape.TRect;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * A more specific, yet still abstract {@link TEntity}. Has special properties and functions that all Terrafort 

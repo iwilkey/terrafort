@@ -4,14 +4,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.math.Vector2;
 
 import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.TState;
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
-import dev.iwilkey.terrafort.obj.TPlayer;
-import dev.iwilkey.terrafort.obj.TWorld;
+import dev.iwilkey.terrafort.obj.entity.TPlayer;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * @author Ian Wilkey (iwilkey)
@@ -32,18 +30,20 @@ public class TDebugState implements TState {
 	public void render() {
 		world.update((float)TClock.dt());
 		world.render();
+		/*
 		if(Gdx.input.isButtonJustPressed(Buttons.RIGHT)) {
-			/*
+			final Vector2 worldTilePos = world.roundMousePositionToWorldTileGrid();
+			TTerrainRenderer.terraform(world, (int)(worldTilePos.x / TTerrainRenderer.TERRAIN_TILE_WIDTH), 
+					(int)(worldTilePos.y / TTerrainRenderer.TERRAIN_TILE_HEIGHT), 1);
+		}
+		*/
+		if(Gdx.input.isButtonJustPressed(Buttons.LEFT)) {
 			world.addPointLight(
 					Math.round(world.getMousePositionInWorld().x), 
 					Math.round(world.getMousePositionInWorld().y), 
 					48, 
 					new Color().set(0xeedd82aa)
 			);
-			*/
-			final Vector2 worldTilePos = world.roundMousePositionToWorldTileGrid();
-			TTerrainRenderer.terraform((int)(worldTilePos.x / TTerrainRenderer.TERRAIN_TILE_WIDTH), 
-					(int)(worldTilePos.y / TTerrainRenderer.TERRAIN_TILE_HEIGHT), 1);
 		}
 		if(Gdx.input.isKeyJustPressed(Keys.Q))
 			TGraphics.changeCameraZoom(false);
@@ -53,7 +53,7 @@ public class TDebugState implements TState {
 
 	@Override
 	public void stop() {
-
+		world.dispose();
 	}
 
 }

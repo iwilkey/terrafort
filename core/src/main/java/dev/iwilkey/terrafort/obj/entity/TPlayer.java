@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.obj;
+package dev.iwilkey.terrafort.obj.entity;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -10,9 +10,9 @@ import com.badlogic.gdx.math.Vector2;
 
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.gfx.anim.TAnimation;
 import dev.iwilkey.terrafort.gfx.anim.TAnimationController;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 public final class TPlayer extends TAnimal {
 	
@@ -149,26 +149,6 @@ public final class TPlayer extends TAnimal {
 		focusCamera();
 		calculateMovement();
 		calculateGraphics();
-		if(Gdx.input.isButtonJustPressed(Buttons.LEFT))
-			build();
-	}
-	
-	private void build() {
-		Vector2 worldTilePos = world.roundMousePositionToWorldTileGrid();
-		world.addObject(new TObject(world, 
-									false, 									
-									worldTilePos.x, 
-									worldTilePos.y, 
-									1, 
-									TTerrainRenderer.TERRAIN_TILE_WIDTH, 
-									TTerrainRenderer.TERRAIN_TILE_HEIGHT,
-									TTerrainRenderer.TERRAIN_TILE_WIDTH / 2f,
-									TTerrainRenderer.TERRAIN_TILE_HEIGHT /2f,
-									ThreadLocalRandom.current().nextInt(3, 7), 
-									2, 
-									1, 
-									1, 
-									Color.WHITE.cpy()));
 	}
 	
 	/**

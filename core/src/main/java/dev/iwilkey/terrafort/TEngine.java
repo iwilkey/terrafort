@@ -20,9 +20,9 @@ import dev.iwilkey.terrafort.state.TDebugState;
  */
 public final class TEngine extends ApplicationAdapter {
 
-	private static TState        state = null;
-	private static TInput input = null;
-	private static TClock        clock = null;
+	private static TState        state    = null;
+	private static TInput 		 input    = null;
+	private static TClock        clock    = null;
 	private static TGraphics     renderer = null;
 	
 	/**

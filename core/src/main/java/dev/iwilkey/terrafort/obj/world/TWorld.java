@@ -1,9 +1,12 @@
-package dev.iwilkey.terrafort.obj;
+package dev.iwilkey.terrafort.obj.world;
+
+import java.util.HashMap;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.World;
@@ -16,6 +19,10 @@ import box2dLight.RayHandler;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
+import dev.iwilkey.terrafort.obj.TObject;
+import dev.iwilkey.terrafort.obj.entity.TAnimal;
+import dev.iwilkey.terrafort.obj.entity.TEntity;
+import dev.iwilkey.terrafort.obj.entity.TPlayer;
 
 /**
  * A physical space that manages {@link TObjects}, global and local forces, and dynamic lighting.
@@ -23,41 +30,45 @@ import dev.iwilkey.terrafort.math.TMath;
  */
 public final class TWorld implements Disposable {
 
-	public static final short        IGNORE_LIGHTING = 0x0001;
-	public static final float        DAY_DURATION    = 30000.0f;
-
-	private final World              world;
-	private final RayHandler         lighting;
-	private final Filter             lightingCollisionMask;
-	private final Array<TObject>     objects;
-	private final Array<TEntity>     deathrow;
-	private final Box2DDebugRenderer debugRenderer;
-	private final long               seed;
+	public static final short           IGNORE_LIGHTING         = 0x0001;
+	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 120.0f;
+	public static final Filter          LIGHTING_COLLISION_MASK = new Filter();
 	
-	private TPlayer                  player;
-	private boolean                  debug;
-	private float                    worldTime;
-	private boolean                  day;
-	private boolean                  dusk;
-	private boolean                  night;
-	private boolean                  dawn;
+	static {
+		LIGHTING_COLLISION_MASK.maskBits = (short)(~IGNORE_LIGHTING);
+	}
+
+	private final World              	world;
+	private final HashMap<Long, TChunk> loadedChunks;
+	private final RayHandler            lighting;
+	private final Array<TObject>        objects;
+	private final Array<TEntity>        deathrow;
+	private final Box2DDebugRenderer    debugRenderer;
+	private final long                  seed;
+	
+	private TPlayer                     player;
+	private boolean                     debug;
+	private float                       worldTime;
+	private boolean                     day;
+	private boolean                     dusk;
+	private boolean                     night;
+	private boolean                     dawn;
 
 	public TWorld(long seed) {
 		this.seed                       = seed;
 		world                           = new World(new Vector2(0, 0), false);
+		loadedChunks                    = new HashMap<>();
 		lighting                        = new RayHandler(world);
-		lightingCollisionMask           = new Filter();
 		objects                         = new Array<>();
 		deathrow                        = new Array<>();
 		debugRenderer                   = new Box2DDebugRenderer();
 		debug                           = false;
 		player                          = null;
-		worldTime                       = DAY_DURATION;
+		worldTime                       = DAY_NIGHT_CYCLE_PERIOD;
 		day                             = true;
 		dusk                            = false;
 		night                           = false;
 		dawn                            = false;
-		lightingCollisionMask.maskBits  = (short)(~IGNORE_LIGHTING);
 		lighting.setAmbientLight(0.1f, 0.1f, 0.1f, 0.5f);
 	}
 	
@@ -77,7 +88,7 @@ public final class TWorld implements Disposable {
 	public Vector2 roundMousePositionToWorldTileGrid() {
 		Vector2 ret = new Vector2().set(getMousePositionInWorld());
 		ret.x = Math.round(ret.x / TTerrainRenderer.TERRAIN_TILE_WIDTH) * TTerrainRenderer.TERRAIN_TILE_WIDTH;
-		ret.y = Math.round(ret.y / TTerrainRenderer.TERRAIN_TILE_WIDTH) * TTerrainRenderer.TERRAIN_TILE_WIDTH;
+		ret.y = Math.round(ret.y / TTerrainRenderer.TERRAIN_TILE_HEIGHT) * TTerrainRenderer.TERRAIN_TILE_HEIGHT;
 		return ret;
 	}
 	
@@ -93,7 +104,7 @@ public final class TWorld implements Disposable {
 	 */
 	public PointLight addPointLight(int x, int y, float r, Color color) {
 		PointLight ret = new PointLight(lighting, 256, color, r, x, y);
-		ret.setContactFilter(lightingCollisionMask);
+		ret.setContactFilter(LIGHTING_COLLISION_MASK);
 		return ret;
 	}
 	
@@ -113,10 +124,28 @@ public final class TWorld implements Disposable {
 	}
 	
 	/**
+	 * Removes a {@link TObject} from the world.
+	 * @param obj the object to remove.
+	 */
+	public void removeObject(final TObject obj) {
+		world.destroyBody(obj.getPhysicalBody());
+		objects.removeValue(obj, false);
+	}
+	
+	float time = 0.0f;
+	
+	/**
 	 * Steps the world simulation forward one tick.
 	 * @param dt the change in time since the last tick.
 	 */
 	public void update(float dt) {
+		
+		time += dt;
+		if(time > 1.0f) {
+			System.out.println("Loaded chunks: " + loadedChunks.keySet().size());
+			time = 0.0f;
+		}
+		
 		world.step(dt, 6, 2);
 		updateDayNightCycle(dt);
         for(final TObject obj : objects) {
@@ -130,8 +159,10 @@ public final class TWorld implements Disposable {
             	e.tick(dt);
             }
         }
-        for(TEntity e : deathrow)
+        for(final TEntity e : deathrow) {
         	e.die();
+        	world.destroyBody(e.getPhysicalBody());
+        }
         objects.removeAll(deathrow, false);
 	}
 	
@@ -147,8 +178,38 @@ public final class TWorld implements Disposable {
 		lighting.updateAndRender();
 	}
 	
+	/**
+	 * Get the tile height at any given pair of tile coordinates. Will always return a non-negative value, and
+	 * will load a chunk that contains (x, y) if not loaded.
+	 * 
+	 * <p>
+	 * This function must be (and is) highly optimized. Please do not change the algorithm unless you know
+	 * exactly what you are doing.
+	 * </p>
+	 * 
+	 * @param x the tile x coordinate.
+	 * @param y the tile y coordinate.
+	 * @return the z value of the tile.
+	 */
+	public int getTileHeightAt(int x, int y) {
+		// Figure out what chunk the coordinates are in...
+		int chunkX = (x / TChunk.CHUNK_SIZE);
+		int chunkY = (y / TChunk.CHUNK_SIZE);
+		long hash = (((long)chunkX) << 32) | (chunkY & 0xffffffffL);
+		if(!loadedChunks.containsKey(hash)) {
+			// Chunk isn't loaded, so load it.
+			final TChunk newChunk = new TChunk(this, chunkX, chunkY);
+			loadedChunks.put(hash, newChunk);
+		}
+		return loadedChunks.get(hash).getTileHeightAt(x, y);
+	}
+	
 	public long getSeed() {
 		return seed;
+	}
+	
+	public HashMap<Long, TChunk> getChunkCache() {
+		return loadedChunks;
 	}
 	
 	public boolean isDay() {
@@ -168,6 +229,20 @@ public final class TWorld implements Disposable {
 	}
 	
 	/**
+	 * Destroys all bodies and objects current active in the world.
+	 */
+	public void clearAllActiveObjectsAndBodies() {
+		 for(final TObject obj : objects)
+			 world.destroyBody(obj.getPhysicalBody());
+		 deathrow.clear();
+		 objects.clear();
+		 Array<Body> others = new Array<>();
+		 world.getBodies(others);
+		 for(Body b : others)
+			 world.destroyBody(b);
+	}
+	
+	/**
 	 * Set to render Box2D debug information.
 	 */
 	public void setDebug(boolean debug) {
@@ -179,9 +254,9 @@ public final class TWorld implements Disposable {
 	 */
 	private void updateDayNightCycle(float dt) {
 	    worldTime += dt;
-	    if (worldTime > DAY_DURATION) 
+	    if (worldTime > DAY_NIGHT_CYCLE_PERIOD) 
 	    	worldTime = 0.0f;
-	    final float progress    = worldTime / DAY_DURATION;
+	    final float progress    = worldTime / DAY_NIGHT_CYCLE_PERIOD;
 	    float sunlightIntensity = 0.5f * ((float)Math.cos(2 * Math.PI * progress) + 1.0f);
 	    sunlightIntensity       = TMath.clamp(sunlightIntensity, 0.1f, 0.9f);
 	    day                     = (progress >= 0.0f && progress < 0.25f) || (progress >= 0.75f && progress <= 1.0f);
@@ -193,9 +268,13 @@ public final class TWorld implements Disposable {
 
 	@Override
 	public void dispose() {
+		loadedChunks.clear();
+		lighting.removeAll();
 		lighting.dispose();
+		clearAllActiveObjectsAndBodies();
 		world.dispose();
 		debugRenderer.dispose();
+		TTerrainRenderer.gc();
 	}
 
 }
