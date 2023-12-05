@@ -19,8 +19,8 @@ import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
-import dev.iwilkey.terrafort.obj.entity.intelligent.TIntelligent;
-import dev.iwilkey.terrafort.obj.entity.intelligent.TPlayer;
+import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
+import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
 
 /**
  * A physical space that manages {@link TObjects}, global and local forces, and dynamic lighting.
@@ -94,7 +94,7 @@ public final class TWorld implements Disposable {
 	public TObject addObject(final TObject obj) {
 		if(obj instanceof TPlayer)
 			player = (TPlayer)obj;
-		if(obj instanceof TIntelligent) 
+		if(obj instanceof TLifeform) 
 			obj.getFixture().getFilterData().categoryBits = IGNORE_LIGHTING;
 		else obj.getFixture().getFilterData().categoryBits = ~IGNORE_LIGHTING;
 		objects.add(obj);

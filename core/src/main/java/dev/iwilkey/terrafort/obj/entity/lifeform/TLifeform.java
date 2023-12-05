@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.obj.entity.intelligent;
+package dev.iwilkey.terrafort.obj.entity.lifeform;
 
 import com.badlogic.gdx.graphics.Color;
 
@@ -10,14 +10,14 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  * intelligent beings share. Ignores lighting.
  * @author Ian Wilkey (iwilkey)
  */
-public abstract class TIntelligent extends TEntity {
+public abstract class TLifeform extends TEntity {
 
 	public static final float HURT_HEAL_ANIMATION_TIMER = 0.1f;
 
 	private float             hurtTimer;
 	private float             healTimer;
 	
-	public TIntelligent(TWorld  world, 
+	public TLifeform(TWorld  world, 
 			       boolean isDynamic, 
 			       float   x, 
 			       float   y, 

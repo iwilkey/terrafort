@@ -16,6 +16,7 @@ public class TRect implements TRenderableShape {
 	private final Vector2 center;
 	private final Vector2 dimensions;
 	private final Color   color;
+	
 	private boolean       filled;
 	
 	public TRect(float cx, float cy, float width, float height) {

@@ -15,8 +15,16 @@ import com.badlogic.gdx.utils.Disposable;
 
 import com.crashinvaders.vfx.VfxManager;
 import com.crashinvaders.vfx.effects.BloomEffect;
+import com.crashinvaders.vfx.effects.ChromaticAberrationEffect;
+import com.crashinvaders.vfx.effects.CrtEffect;
+import com.crashinvaders.vfx.effects.FilmGrainEffect;
 import com.crashinvaders.vfx.effects.FxaaEffect;
 import com.crashinvaders.vfx.effects.GaussianBlurEffect;
+import com.crashinvaders.vfx.effects.LevelsEffect;
+import com.crashinvaders.vfx.effects.MotionBlurEffect;
+import com.crashinvaders.vfx.effects.RadialDistortionEffect;
+import com.crashinvaders.vfx.effects.WaterDistortionEffect;
+import com.crashinvaders.vfx.effects.util.MixEffect;
 
 import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.math.TInterpolator;
@@ -31,42 +39,52 @@ import dev.iwilkey.terrafort.math.TMath;
  */
 public final class TGraphics implements Disposable {
 	
-	public static final int                       MAX_RENDERABLES       = 8191;
-	public static final int                       DATA_WIDTH            = 16;
-	public static final int                       DATA_HEIGHT           = 16;
-	public static final float                     PIXELS_PER_METER      = 1f;
+	public static final int                        MAX_RENDERABLES       = 8191;
+	public static final int                        DATA_WIDTH            = 16;
+	public static final int                        DATA_HEIGHT           = 16;
+	public static final float                      PIXELS_PER_METER      = 1f;
 	
-	public static final  Texture                  DATA                 = new Texture(Gdx.files.internal("dat.png"));
-	public static final  OrthographicCamera       CAMERA               = new OrthographicCamera();
+	public static final  Texture                   DATA                 = new Texture(Gdx.files.internal("dat.png"));
+	public static final  OrthographicCamera        CAMERA               = new OrthographicCamera();
 	
-	private static final TInterpolator            CAMERA_X              = new TInterpolator(0);
-	private static final TInterpolator            CAMERA_Y              = new TInterpolator(0);
-	private static final TInterpolator            CAMERA_ZOOM           = new TInterpolator(1);
-	private static final Array<TRenderableSprite> OBJECT_RENDERABLES    = new Array<>();
-	private static final Array<TRenderableSprite> TILE_RENDERABLES      = new Array<>();
-	private static final Array<TRenderableShape>  OL_GEO_RENDERABLES    = new Array<>();
-	private static final Array<TRenderableShape>  TL_GEO_RENDERABLES    = new Array<>();
-	private static final SpriteBatch              OBJECT_BATCH          = new SpriteBatch(MAX_RENDERABLES);
-	private static final Array<SpriteBatch>       TILE_BATCH_POOL       = new Array<>();
-	private static final ShapeRenderer            GEOMETRIC_RENDERER    = new ShapeRenderer();
+	private static final TInterpolator             CAMERA_X              = new TInterpolator(0);
+	private static final TInterpolator             CAMERA_Y              = new TInterpolator(0);
+	private static final TInterpolator             CAMERA_ZOOM           = new TInterpolator(1);
+	private static final Array<TRenderableSprite>  OBJECT_RENDERABLES    = new Array<>();
+	private static final Array<TRenderableSprite>  TILE_RENDERABLES      = new Array<>();
+	private static final Array<TRenderableShape>   OL_GEO_RENDERABLES    = new Array<>();
+	private static final Array<TRenderableShape>   TL_GEO_RENDERABLES    = new Array<>();
+	private static final SpriteBatch               OBJECT_BATCH          = new SpriteBatch(MAX_RENDERABLES);
+	private static final Array<SpriteBatch>        TILE_BATCH_POOL       = new Array<>();
+	private static final ShapeRenderer             GEOMETRIC_RENDERER    = new ShapeRenderer();
 	
-	private static final VfxManager               POST_PROCESSING       = new VfxManager(Pixmap.Format.RGBA8888);
-	public static final  FxaaEffect               POST_FXAA             = new FxaaEffect();
-	public static final  BloomEffect              POST_BLOOM            = new BloomEffect();
-	public static final  GaussianBlurEffect       POST_GAUSSIAN_BLUR    = new GaussianBlurEffect();
+	private static final VfxManager                POST_PROCESSING       = new VfxManager(Pixmap.Format.RGBA8888);
+	
+	public static final  FxaaEffect                POST_FXAA             = new FxaaEffect();
+	public static final  BloomEffect               POST_BLOOM            = new BloomEffect();
+	public static final  GaussianBlurEffect        POST_GAUSSIAN_BLUR    = new GaussianBlurEffect();
+	public static final  ChromaticAberrationEffect POST_CHROME_ABER      = new ChromaticAberrationEffect(16);
+	public static final  CrtEffect                 POST_CRT              = new CrtEffect();
+	public static final  FilmGrainEffect           POST_FILM_GRAIN       = new FilmGrainEffect();
+	public static final  MotionBlurEffect          POST_MOTION_BLUR      = new MotionBlurEffect(Pixmap.Format.RGBA8888, MixEffect.Method.MIX, 0.7f);
+	public static final  LevelsEffect              POST_LEVELS           = new LevelsEffect();
+	public static final  WaterDistortionEffect     POST_WATER_DISTORT    = new WaterDistortionEffect(1.0f, 1.0f);
+	public static final  RadialDistortionEffect    POST_RADIAL_DISTORT   = new RadialDistortionEffect();
 	
 	public TGraphics() {
-		
 		DATA.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
-		
 		CAMERA.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		CAMERA_X.setEquation(Interpolation.linear);
 		CAMERA_Y.setEquation(Interpolation.linear);
 		CAMERA_ZOOM.setEquation(Interpolation.linear);
-		
 		POST_PROCESSING.addEffect(POST_FXAA);
-		POST_PROCESSING.addEffect(POST_BLOOM);
+		POST_PROCESSING.addEffect(POST_LEVELS);
+		// POST_GAUSSIAN_BLUR.setPasses(16);
 		// POST_PROCESSING.addEffect(POST_GAUSSIAN_BLUR);
+		// POST_PROCESSING.addEffect(POST_RADIAL_DISTORT);
+		// POST_PROCESSING.addEffect(POST_WATER_DISTORT);
+		// POST_PROCESSING.addEffect(POST_MOTION_BLUR);
+		// POST_PROCESSING.addEffect(POST_CHROME_ABER);
 		
 		CAMERA_ZOOM.set((float)Math.pow(2, currentZoomTwoFactor));
 	}
@@ -183,7 +201,7 @@ public final class TGraphics implements Disposable {
 		CAMERA_ZOOM.setSpeed(speed);
 	}
 	
-	private static int currentZoomTwoFactor = -2;
+	private static int currentZoomTwoFactor = -1;
 	
 	/**
      * Sets the target zoom level for the camera to smoothly transition to. Will be a power of two.
@@ -191,7 +209,7 @@ public final class TGraphics implements Disposable {
      */
 	public static void changeCameraZoom(boolean in) {
 		int suggested = (!in) ? currentZoomTwoFactor + 1 : currentZoomTwoFactor - 1;
-		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -3.0f, -2.0f));
+		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -3.0f, -1.0f));
 		CAMERA_ZOOM.set((float)Math.pow(2, currentZoomTwoFactor));
 	}
 	
@@ -403,6 +421,15 @@ public final class TGraphics implements Disposable {
 	
 	private void disposePostProcessing() {
 		POST_FXAA.dispose();
+		POST_BLOOM.dispose();
+		POST_GAUSSIAN_BLUR.dispose();
+		POST_CHROME_ABER.dispose();
+		POST_CRT.dispose();
+		POST_FILM_GRAIN.dispose();
+		POST_MOTION_BLUR.dispose();
+		POST_LEVELS.dispose();
+		POST_WATER_DISTORT.dispose();
+		POST_RADIAL_DISTORT.dispose();
 		POST_PROCESSING.dispose();
 	}
 	

@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.obj.entity.intelligent;
+package dev.iwilkey.terrafort.obj.entity.lifeform;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
@@ -18,7 +18,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  * The player of Terrafort; entity controlled by the user.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TPlayer extends TIntelligent {
+public final class TPlayer extends TLifeform {
 	
 	public static final int        PLAYER_MAX_HP          = 10;
 	public static final float      PLAYER_WALK_SPEED      = 48.0f;
@@ -111,7 +111,7 @@ public final class TPlayer extends TIntelligent {
 		moveSpeedWalk        = PLAYER_WALK_SPEED;
 		moveSpeedRun         = PLAYER_RUN_SPEED;
 		currentMoveSpeed     = moveSpeedWalk;
-		lastNonZeroDirection = "idle_south";
+		lastNonZeroDirection = "idle_north_west";
 		isMoving             = false;
 		isInWater            = false;
 	}
@@ -136,7 +136,7 @@ public final class TPlayer extends TIntelligent {
 		anim.addAnimation(PLAYER_MOVE_WEST);
 		anim.addAnimation(PLAYER_MOVE_SOUTH_WEST);
 		// TODO: Make the starting animation random every time??
-		anim.setAnimation("idle_south");
+		anim.setAnimation("idle_north_west");
 	}
 
 	@Override

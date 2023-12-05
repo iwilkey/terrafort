@@ -7,7 +7,7 @@ import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.obj.TObject;
-import dev.iwilkey.terrafort.obj.entity.intelligent.TPlayer;
+import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**

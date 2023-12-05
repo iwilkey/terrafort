@@ -12,7 +12,7 @@ import dev.iwilkey.terrafort.TState;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
-import dev.iwilkey.terrafort.obj.entity.intelligent.TPlayer;
+import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
