@@ -2,7 +2,6 @@ package dev.iwilkey.terrafort.state;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
-import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 
@@ -37,7 +36,9 @@ public class TDebugState implements TState {
 		if(Gdx.input.isButtonJustPressed(Buttons.LEFT)) {
 			final Vector2 mouseWorldTileCoords = TMath.translateScreenToTileCoordinates(Gdx.input.getX(), Gdx.input.getY());
 			world.setTileHeightAt((int)mouseWorldTileCoords.x, (int)mouseWorldTileCoords.y, 1);
-			world.addPointLight((int)mouseWorldTileCoords.x * TTerrainRenderer.TERRAIN_TILE_WIDTH, (int)mouseWorldTileCoords.y * TTerrainRenderer.TERRAIN_TILE_HEIGHT, 64, Color.WHITE);
+			world.addPointLight((int)mouseWorldTileCoords.x * TTerrainRenderer.TERRAIN_TILE_WIDTH, 
+								(int)mouseWorldTileCoords.y * TTerrainRenderer.TERRAIN_TILE_HEIGHT, 
+								64, new Color().set(0xffffff34));
 		}
 		if(TInput.zoomOut) {
 			TGraphics.requestCameraZoomChange(false);

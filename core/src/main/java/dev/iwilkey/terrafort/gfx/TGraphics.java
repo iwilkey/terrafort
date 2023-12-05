@@ -28,14 +28,14 @@ import com.crashinvaders.vfx.effects.WaterDistortionEffect;
 import com.crashinvaders.vfx.effects.util.MixEffect;
 
 import dev.iwilkey.terrafort.TClock;
+import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.math.TInterpolator;
 import dev.iwilkey.terrafort.math.TMath;
 
 
 /**
- * The TGraphics class is the central rendering module for the Terrafort game engine.
- * It handles the rendering of all in-game objects and manages the game's camera.
- * This class follows a static API design, allowing it to be accessed from anywhere within the engine.
+ * The TGraphics class is the central rendering module for the Terrafort game engine. This module follows a static API design, 
+ * allowing it to be accessed from anywhere within the engine.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TGraphics implements Disposable {
@@ -45,8 +45,8 @@ public final class TGraphics implements Disposable {
 	public static final int                        DATA_HEIGHT           = 16;
 	public static final float                      PIXELS_PER_METER      = 1f;
 	
-	public static final  Texture                   DATA                 = new Texture(Gdx.files.internal("dat.png"));
-	public static final  OrthographicCamera        CAMERA               = new OrthographicCamera();
+	public static final  Texture                   DATA                  = new Texture(Gdx.files.internal("dat.png"));
+	public static final  OrthographicCamera        CAMERA                = new OrthographicCamera();
 	
 	private static final TInterpolator             CAMERA_X              = new TInterpolator(0);
 	private static final TInterpolator             CAMERA_Y              = new TInterpolator(0);
@@ -75,6 +75,7 @@ public final class TGraphics implements Disposable {
 	
 	private static       int                       currentZoomTwoFactor  = -1;
 	private static       TInterpolator             screenFade            = new TInterpolator(0.0f);
+	private static       TRect                     fadeRect              = new TRect(0, 0, 0, 0);
 	private static       boolean                   zoomRequest           = false;
     private static       boolean                   fadingDown            = false;
 	
@@ -156,7 +157,7 @@ public final class TGraphics implements Disposable {
 	 */
 	public static void fadeOutIn(float time) {
 		screenFade.setSpeed(time);
-		screenFade.set(-1.0f);
+		screenFade.set(1.0f);
 		fadingDown = true;
 	}
 	
@@ -166,7 +167,7 @@ public final class TGraphics implements Disposable {
 	 */
 	public static void fadeIn(float time) {
 		screenFade.setSpeed(time);
-		screenFade.force(-1.0f);
+		screenFade.force(1.0f);
 		screenFade.set(0.0f);
 	}
 	
@@ -228,7 +229,12 @@ public final class TGraphics implements Disposable {
 	 */
 	private void calculateFadeAndZoom() {
 		screenFade.update();
-		POST_LEVELS.setBrightness(screenFade.get());
+		int a = Math.round(screenFade.get() * 0xff);
+		fadeRect.setCX(CAMERA.position.x);
+        fadeRect.setCY(CAMERA.position.y);
+        fadeRect.setWidth(Gdx.graphics.getWidth());
+        fadeRect.setHeight(Gdx.graphics.getHeight());
+		fadeRect.setColor(new Color().set(a));
 		if(fadingDown && screenFade.getProgress() > 1.0f) {
 			screenFade.set(0.0f);
 			if(zoomRequest) {
@@ -311,6 +317,27 @@ public final class TGraphics implements Disposable {
 		// OBJECT_RENDERABLES.sort((r1, r2) -> Integer.compare(r2.getDepth(), r1.getDepth()));
 	}
 	
+	/**
+	 * Use the shape renderer to render a given batch of {@link TRenderableShape}s. Allows control over rendering context.
+	 * @param batch the batch to draw.
+	 * @param line whether or not to draw with lines (true) or filled (false).
+	 * @param blend whether or not to enable OpenGL blending. Useful for transparency.
+	 */
+	private void useShapeRenderer(Array<TRenderableShape> batch, boolean line, boolean blend) {
+		if(blend) {
+			Gdx.gl.glEnable(GL20.GL_BLEND);
+			Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+		}
+		GEOMETRIC_RENDERER.begin((!line) ? ShapeRenderer.ShapeType.Filled : ShapeRenderer.ShapeType.Line);
+        GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
+        for(final TRenderableShape s : batch) {
+        	if(!line) s.drawFilled(CAMERA, GEOMETRIC_RENDERER);
+        	else s.drawLined(CAMERA, GEOMETRIC_RENDERER);
+        }
+        GEOMETRIC_RENDERER.end();
+        if(blend) Gdx.gl.glDisable(GL20.GL_BLEND);
+	}
+	
 	float t = 0.0f;
 	
 	/**
@@ -326,11 +353,9 @@ public final class TGraphics implements Disposable {
 		calculateTileBatchPool();
 		calculatePerspective();
 		sortObjectRenderables();
-		OBJECT_BATCH.setProjectionMatrix(CAMERA.combined);
 		cls();
 		POST_PROCESSING.cleanUpBuffers();
 		POST_PROCESSING.beginInputCapture();
-		// tile batch pooling for efficiency and "infinite" renderables allowed.
 		if(TILE_BATCH_POOL.size >= 1) {
 	        int batch         = 0;
 	        int tileIDInBatch = 0;
@@ -349,38 +374,20 @@ public final class TGraphics implements Disposable {
 	        }
 	        TILE_BATCH_POOL.get(batch).end();
 		}
-		// render tile level geometry
-		if(TL_GEO_RENDERABLES.size != 0) {
-	        GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Filled);
-	        GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
-	        for(TRenderableShape s : TL_GEO_RENDERABLES)
-	        	s.drawFilled(CAMERA, GEOMETRIC_RENDERER);
-	        GEOMETRIC_RENDERER.end();
-	        GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Line);
-	        GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
-	        for(TRenderableShape s : TL_GEO_RENDERABLES)
-	        	s.drawLined(CAMERA, GEOMETRIC_RENDERER);
-	        GEOMETRIC_RENDERER.end();
+		if(TL_GEO_RENDERABLES.size >= 1) {
+			useShapeRenderer(TL_GEO_RENDERABLES, false, true);
+			useShapeRenderer(TL_GEO_RENDERABLES, true, false);
 		}
-		// draw objects
-		if(OBJECT_RENDERABLES.size != 0) {
+		if(OBJECT_RENDERABLES.size >= 1) {
+			OBJECT_BATCH.setProjectionMatrix(CAMERA.combined);
 	        OBJECT_BATCH.begin();
 	        for(final TRenderableSprite r : OBJECT_RENDERABLES)
 	        	r.render(CAMERA, OBJECT_BATCH);
 	        OBJECT_BATCH.end();
 		}
-		
-        // render object level geometry
-        GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Filled);
-        GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
-        for(TRenderableShape s : OL_GEO_RENDERABLES)
-        	s.drawFilled(CAMERA, GEOMETRIC_RENDERER);
-        GEOMETRIC_RENDERER.end();
-        GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Line);
-        GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
-        for(TRenderableShape s : OL_GEO_RENDERABLES)
-        	s.drawLined(CAMERA, GEOMETRIC_RENDERER);
-        GEOMETRIC_RENDERER.end();
+        OL_GEO_RENDERABLES.add(fadeRect);
+        useShapeRenderer(OL_GEO_RENDERABLES, false, true);
+        useShapeRenderer(OL_GEO_RENDERABLES, true, false);
         POST_PROCESSING.endInputCapture();
         POST_PROCESSING.applyEffects();
         POST_PROCESSING.renderToScreen();
@@ -410,14 +417,6 @@ public final class TGraphics implements Disposable {
 			batch.dispose();
 		TILE_BATCH_POOL.clear();
 	}
-
-	@Override
-	public void dispose() {
-		gc();
-		disposeGraphicsBatches();
-		disposePostProcessing();
-		DATA.dispose();
-	}
 	
 	/**
 	 * Flushes (clears) the render queues.
@@ -429,11 +428,17 @@ public final class TGraphics implements Disposable {
 	    TILE_RENDERABLES.clear();
 	}
 	
+	/**
+	 * Disposes of all statically allocated rendering batches.
+	 */
 	private void disposeGraphicsBatches() {
 		OBJECT_BATCH.dispose();
 		GEOMETRIC_RENDERER.dispose();
 	}
 	
+	/**
+	 * Disposes of all post processing artifacts.
+	 */
 	private void disposePostProcessing() {
 		POST_FXAA.dispose();
 		POST_BLOOM.dispose();
@@ -447,6 +452,14 @@ public final class TGraphics implements Disposable {
 		POST_WATER_DISTORT.dispose();
 		POST_RADIAL_DISTORT.dispose();
 		POST_PROCESSING.dispose();
+	}
+	
+	@Override
+	public void dispose() {
+		gc();
+		disposeGraphicsBatches();
+		disposePostProcessing();
+		DATA.dispose();
 	}
 	
 }

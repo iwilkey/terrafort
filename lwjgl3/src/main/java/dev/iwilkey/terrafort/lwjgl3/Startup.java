@@ -33,11 +33,11 @@ import java.util.ArrayList;
  * <a href="https://jvm-gaming.org/t/starting-jvm-on-mac-with-xstartonfirstthread-programmatically/57547">Based on this java-gaming.org post by kappa</a>
  * @author damios
  */
-public class StartupHelper {
+public class Startup {
 
     private static final String JVM_RESTARTED_ARG = "jvmIsRestarted";
 
-    private StartupHelper() {
+    private Startup() {
         throw new UnsupportedOperationException();
     }
 

@@ -7,14 +7,14 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
 import dev.iwilkey.terrafort.TEngine;
 
 /** Launches the desktop (LWJGL3) application. */
-public class Lwjgl3Launcher {
+public class Terrafort {
 	
 	public static final float MIN_SCREEN_WIDTH_RATIO     = 0.50f;
 	public static final float DEFAULT_SCREEN_WIDTH_RATIO = 0.50f;
 	public static final float DEFAULT_ASPECT_RATIO       = (16 / 9.0f);
 	
     public static void main(String[] args) {
-        if (StartupHelper.startNewJvmIfRequired()) return;
+        if (Startup.startNewJvmIfRequired()) return;
         createApplication();
     }
 
