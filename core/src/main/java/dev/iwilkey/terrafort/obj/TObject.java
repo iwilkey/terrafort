@@ -18,15 +18,15 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
 public class TObject implements TRenderableSprite {
 	
 	protected final TWorld world;
-	private final Body     body;
-	private float          x;
-	private float          y;
-	private float          colliderOffX;
-	private float          colliderOffY;
+	protected final Body   body;
+	protected float        x;
+	protected float        y;
+	protected float        colliderOffX;
+	protected float        colliderOffY;
 	protected int          z; // z buffer render order.
-	private float          width;
-	private float          height;
-	private float          rotationInRadians;
+	protected float        width;
+	protected float        height;
+	protected float        rotationInRadians;
 	protected int          dataOffsetX;
 	protected int          dataOffsetY;
 	protected int          dataSelectionSquareWidth;

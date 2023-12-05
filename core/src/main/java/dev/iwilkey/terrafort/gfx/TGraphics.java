@@ -36,8 +36,9 @@ public final class TGraphics implements Disposable {
 	public static final int                       DATA_HEIGHT           = 16;
 	public static final float                     PIXELS_PER_METER      = 1f;
 	
-	public static final Texture                   DATA                  = new Texture(Gdx.files.internal("dat.png"));
-	public static final OrthographicCamera        CAMERA                = new OrthographicCamera();
+	public static final  Texture                  DATA                 = new Texture(Gdx.files.internal("dat.png"));
+	public static final  OrthographicCamera       CAMERA               = new OrthographicCamera();
+	
 	private static final TInterpolator            CAMERA_X              = new TInterpolator(0);
 	private static final TInterpolator            CAMERA_Y              = new TInterpolator(0);
 	private static final TInterpolator            CAMERA_ZOOM           = new TInterpolator(1);
@@ -50,9 +51,9 @@ public final class TGraphics implements Disposable {
 	private static final ShapeRenderer            GEOMETRIC_RENDERER    = new ShapeRenderer();
 	
 	private static final VfxManager               POST_PROCESSING       = new VfxManager(Pixmap.Format.RGBA8888);
-	public static final FxaaEffect                POST_FXAA             = new FxaaEffect();
-	public static final BloomEffect               POST_BLOOM            = new BloomEffect();
-	public static final GaussianBlurEffect        POST_GAUSSIAN_BLUR    = new GaussianBlurEffect();
+	public static final  FxaaEffect               POST_FXAA             = new FxaaEffect();
+	public static final  BloomEffect              POST_BLOOM            = new BloomEffect();
+	public static final  GaussianBlurEffect       POST_GAUSSIAN_BLUR    = new GaussianBlurEffect();
 	
 	public TGraphics() {
 		
@@ -64,7 +65,7 @@ public final class TGraphics implements Disposable {
 		CAMERA_ZOOM.setEquation(Interpolation.linear);
 		
 		POST_PROCESSING.addEffect(POST_FXAA);
-		// POST_PROCESSING.addEffect(POST_BLOOM);
+		POST_PROCESSING.addEffect(POST_BLOOM);
 		// POST_PROCESSING.addEffect(POST_GAUSSIAN_BLUR);
 		
 		CAMERA_ZOOM.set((float)Math.pow(2, currentZoomTwoFactor));
@@ -190,7 +191,7 @@ public final class TGraphics implements Disposable {
      */
 	public static void changeCameraZoom(boolean in) {
 		int suggested = (!in) ? currentZoomTwoFactor + 1 : currentZoomTwoFactor - 1;
-		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -3.0f, -1.0f));
+		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -3.0f, -2.0f));
 		CAMERA_ZOOM.set((float)Math.pow(2, currentZoomTwoFactor));
 	}
 	
@@ -250,7 +251,7 @@ public final class TGraphics implements Disposable {
 		CAMERA_X.update();
 	    CAMERA_Y.update();
 	    CAMERA_ZOOM.update();
-	    float z                            = CAMERA_ZOOM.getTarget();
+	    float z                            = CAMERA_ZOOM.get();
 	    float effectivePixelsPerUnit       = PIXELS_PER_METER / z;
 	    float screenWidthInWorldUnits      = Gdx.graphics.getWidth() / effectivePixelsPerUnit;
 	    float screenHeightInWorldUnits     = Gdx.graphics.getHeight() / effectivePixelsPerUnit;

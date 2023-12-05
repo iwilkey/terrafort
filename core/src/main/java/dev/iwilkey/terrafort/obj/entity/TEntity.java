@@ -3,6 +3,7 @@ package dev.iwilkey.terrafort.obj.entity;
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.TFrame;
+import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.gfx.anim.TAnimationController;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.world.TWorld;
@@ -130,6 +131,14 @@ public abstract class TEntity extends TObject {
 	
 	public int getMaxHP() {
 		return maxHP;
+	}
+	
+	public int getCurrentTileX() {
+		return Math.round(x / TTerrainRenderer.TERRAIN_TILE_WIDTH);
+	}
+	
+	public int getCurrentTileY() {
+		return Math.round(y / TTerrainRenderer.TERRAIN_TILE_HEIGHT);
 	}
 	
 	/**

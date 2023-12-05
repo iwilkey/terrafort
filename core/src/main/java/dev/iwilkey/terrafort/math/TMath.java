@@ -1,5 +1,11 @@
 package dev.iwilkey.terrafort.math;
 
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
+
+import dev.iwilkey.terrafort.gfx.TGraphics;
+import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
+
 /**
  * Quick and efficient mathematical utilities.
  * @author Ian Wilkey (iwilkey)
@@ -17,6 +23,43 @@ public final class TMath {
 		in = Math.max(min, in);
 		in = Math.min(max, in);
 		return in;
+	}
+	
+	/**
+	 * Translates coordinates in screen-space to world-space coordinates by using inverse projection
+	 * of the projection matrix.
+	 * @return a new {@link Vector2} that contains the world-space coordinates.
+	 */
+	public static Vector2 translateScreenToWorldCoordinates(int x, int y) {
+		final Vector3 screenCoords = new Vector3(x, y, 0);
+	    final Vector3 worldCoords  = TGraphics.CAMERA.unproject(screenCoords);
+	    return new Vector2(worldCoords.x, worldCoords.y);
+	}
+	
+	/**
+	 * Returns a coordinate that is the input coordinate rounded to the nearest world tile grid location.
+	 * @param x the x value input coordinate.
+	 * @param y the y value input coordinate.
+	 * @return a rounded {@link Vector2} representing the input coordinates rounded to the nearest tile grid location.
+	 */
+	public static Vector2 roundToWorldTileGrid(float x, float y) {
+		x = Math.round(x / TTerrainRenderer.TERRAIN_TILE_WIDTH) * TTerrainRenderer.TERRAIN_TILE_WIDTH;
+		y = Math.round(y / TTerrainRenderer.TERRAIN_TILE_HEIGHT) * TTerrainRenderer.TERRAIN_TILE_HEIGHT;
+		return new Vector2(x, y);
+	}
+	
+	/**
+	 * Translates coordinates in screen-space to tile-space coordinates.
+	 * @param x the x value input coordinate.
+	 * @param y the y value input coordinate.
+	 * @return A {@link Vector2} in tile-space coordinates.
+	 */
+	public static Vector2 translateScreenToTileCoordinates(int x, int y) {
+		final Vector2 ret = translateScreenToWorldCoordinates(x, y);
+		ret.set(roundToWorldTileGrid(ret.x, ret.y));
+		ret.x = Math.round(ret.x / TTerrainRenderer.TERRAIN_TILE_WIDTH);
+		ret.y = Math.round(ret.y / TTerrainRenderer.TERRAIN_TILE_HEIGHT);
+		return ret;
 	}
 	
 	/**

@@ -2,10 +2,8 @@ package dev.iwilkey.terrafort.obj.world;
 
 import java.util.HashMap;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.Filter;
@@ -20,9 +18,9 @@ import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
-import dev.iwilkey.terrafort.obj.entity.TAnimal;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
-import dev.iwilkey.terrafort.obj.entity.TPlayer;
+import dev.iwilkey.terrafort.obj.entity.intelligent.TIntelligent;
+import dev.iwilkey.terrafort.obj.entity.intelligent.TPlayer;
 
 /**
  * A physical space that manages {@link TObjects}, global and local forces, and dynamic lighting.
@@ -39,12 +37,12 @@ public final class TWorld implements Disposable {
 	}
 
 	private final World              	world;
+	private final long                  seed;
 	private final HashMap<Long, TChunk> loadedChunks;
-	private final RayHandler            lighting;
 	private final Array<TObject>        objects;
 	private final Array<TEntity>        deathrow;
 	private final Box2DDebugRenderer    debugRenderer;
-	private final long                  seed;
+	private final RayHandler            lightRenderer;
 	
 	private TPlayer                     player;
 	private boolean                     debug;
@@ -58,7 +56,7 @@ public final class TWorld implements Disposable {
 		this.seed                       = seed;
 		world                           = new World(new Vector2(0, 0), false);
 		loadedChunks                    = new HashMap<>();
-		lighting                        = new RayHandler(world);
+		lightRenderer                   = new RayHandler(world);
 		objects                         = new Array<>();
 		deathrow                        = new Array<>();
 		debugRenderer                   = new Box2DDebugRenderer();
@@ -69,27 +67,7 @@ public final class TWorld implements Disposable {
 		dusk                            = false;
 		night                           = false;
 		dawn                            = false;
-		lighting.setAmbientLight(0.1f, 0.1f, 0.1f, 0.5f);
-	}
-	
-	/**
-	 * Returns the world location currently selected by the cursors position on the screen.
-	 */
-	public Vector2 getMousePositionInWorld() {
-	    final Vector3 screenCoords = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
-	    final Vector3 worldCoords  = TGraphics.CAMERA.unproject(screenCoords);
-	    return new Vector2(worldCoords.x, worldCoords.y);
-	}
-	
-	/**
-	 * Returns the cursors location in world space rounded to the tile grid. Useful in
-	 * selecting objects that snap to the world tile grid.
-	 */
-	public Vector2 roundMousePositionToWorldTileGrid() {
-		Vector2 ret = new Vector2().set(getMousePositionInWorld());
-		ret.x = Math.round(ret.x / TTerrainRenderer.TERRAIN_TILE_WIDTH) * TTerrainRenderer.TERRAIN_TILE_WIDTH;
-		ret.y = Math.round(ret.y / TTerrainRenderer.TERRAIN_TILE_HEIGHT) * TTerrainRenderer.TERRAIN_TILE_HEIGHT;
-		return ret;
+		lightRenderer.setAmbientLight(0.1f, 0.1f, 0.1f, 0.5f);
 	}
 	
 	/**
@@ -103,7 +81,7 @@ public final class TWorld implements Disposable {
 	 * Adds and returns a point light to the world.
 	 */
 	public PointLight addPointLight(int x, int y, float r, Color color) {
-		PointLight ret = new PointLight(lighting, 256, color, r, x, y);
+		PointLight ret = new PointLight(lightRenderer, 256, color, r, x, y);
 		ret.setContactFilter(LIGHTING_COLLISION_MASK);
 		return ret;
 	}
@@ -116,7 +94,7 @@ public final class TWorld implements Disposable {
 	public TObject addObject(final TObject obj) {
 		if(obj instanceof TPlayer)
 			player = (TPlayer)obj;
-		if(obj instanceof TAnimal) 
+		if(obj instanceof TIntelligent) 
 			obj.getFixture().getFilterData().categoryBits = IGNORE_LIGHTING;
 		else obj.getFixture().getFilterData().categoryBits = ~IGNORE_LIGHTING;
 		objects.add(obj);
@@ -139,13 +117,11 @@ public final class TWorld implements Disposable {
 	 * @param dt the change in time since the last tick.
 	 */
 	public void update(float dt) {
-		
 		time += dt;
 		if(time > 1.0f) {
 			System.out.println("Loaded chunks: " + loadedChunks.keySet().size());
 			time = 0.0f;
 		}
-		
 		world.step(dt, 6, 2);
 		updateDayNightCycle(dt);
         for(final TObject obj : objects) {
@@ -174,12 +150,12 @@ public final class TWorld implements Disposable {
 		for(final TObject obj : objects)
 			TGraphics.draw(obj);
 		if(debug) debugRenderer.render(world, TGraphics.CAMERA.combined);
-		lighting.setCombinedMatrix(TGraphics.CAMERA);
-		lighting.updateAndRender();
+		lightRenderer.setCombinedMatrix(TGraphics.CAMERA);
+		lightRenderer.updateAndRender();
 	}
 	
 	/**
-	 * Get the tile height at any given pair of tile coordinates. Will always return a non-negative value, and
+	 * Get the tile height at any given tile coordinates. Will always return a non-negative value, and
 	 * will load a chunk that contains (x, y) if not loaded.
 	 * 
 	 * <p>
@@ -192,16 +168,25 @@ public final class TWorld implements Disposable {
 	 * @return the z value of the tile.
 	 */
 	public int getTileHeightAt(int x, int y) {
-		// Figure out what chunk the coordinates are in...
-		int chunkX = (x / TChunk.CHUNK_SIZE);
-		int chunkY = (y / TChunk.CHUNK_SIZE);
-		long hash = (((long)chunkX) << 32) | (chunkY & 0xffffffffL);
-		if(!loadedChunks.containsKey(hash)) {
-			// Chunk isn't loaded, so load it.
-			final TChunk newChunk = new TChunk(this, chunkX, chunkY);
-			loadedChunks.put(hash, newChunk);
+		return requestChunkThatContains(x, y).getTileHeightAt(x, y);
+	}
+	
+	/**
+	 * Updates the world terrain data at given tile coordinates to a given height.
+	 * 
+	 * <p>
+	 * Note: z value will be clamped to [0, TERRAIN_MAX_HEIGHT - 1].
+	 * </p>
+	 * @param x the tile x coordinate.
+	 * @param y the tile y coordinate.
+	 * @param z the height to set the tile.
+	 */
+	public void setTileHeightAt(int x, int y, int z) {
+		if(z != 0) {
+			// We know it's not stone, so we might need to remove a tile physical.
+			TTerrainRenderer.removePhysicalAt(this, x, y);
 		}
-		return loadedChunks.get(hash).getTileHeightAt(x, y);
+		requestChunkThatContains(x, y).setTileHeightAt(x, y, z);
 	}
 	
 	public long getSeed() {
@@ -229,24 +214,28 @@ public final class TWorld implements Disposable {
 	}
 	
 	/**
-	 * Destroys all bodies and objects current active in the world.
-	 */
-	public void clearAllActiveObjectsAndBodies() {
-		 for(final TObject obj : objects)
-			 world.destroyBody(obj.getPhysicalBody());
-		 deathrow.clear();
-		 objects.clear();
-		 Array<Body> others = new Array<>();
-		 world.getBodies(others);
-		 for(Body b : others)
-			 world.destroyBody(b);
-	}
-	
-	/**
 	 * Set to render Box2D debug information.
 	 */
 	public void setDebug(boolean debug) {
 		this.debug = debug;
+	}
+	
+	/**
+	 * Requests and returns the {@link TChunk} that contains the given tile coordinates. If the chunk is not
+	 * loaded in the chunk cache, it will be loaded automatically.
+	 * @param x the tile x coordinate.
+	 * @param y the tile y coordinate.
+	 * @return the chunk that contains the given tile coordinates.
+	 */
+	private TChunk requestChunkThatContains(int x, int y) {
+		int chunkX = (x / TChunk.CHUNK_SIZE);
+		int chunkY = (y / TChunk.CHUNK_SIZE);
+		long hash  = (((long)chunkX) << 32) | (chunkY & 0xffffffffL);
+		if(!loadedChunks.containsKey(hash)) {
+			final TChunk newChunk = new TChunk(this, chunkX, chunkY);
+			loadedChunks.put(hash, newChunk);
+		}
+		return loadedChunks.get(hash);
 	}
 	
 	/**
@@ -263,14 +252,28 @@ public final class TWorld implements Disposable {
 	    dusk                    = (progress >= 0.25f && progress < 0.375f);
 	    night                   = (progress >= 0.375f && progress < 0.625f);
 	    dawn                    = (progress >= 0.625f && progress < 0.75f);
-	    lighting.setAmbientLight(0.1f, 0.1f, 0.1f, sunlightIntensity);
+	    lightRenderer.setAmbientLight(0.1f, 0.1f, 0.1f, sunlightIntensity);
 	}
-
+	
+	/**
+	 * Destroys all bodies and objects current active in the world.
+	 */
+	public void clearAllActiveObjectsAndBodies() {
+		 for(final TObject obj : objects)
+			 world.destroyBody(obj.getPhysicalBody());
+		 deathrow.clear();
+		 objects.clear();
+		 Array<Body> others = new Array<>();
+		 world.getBodies(others);
+		 for(Body b : others)
+			 world.destroyBody(b);
+	}
+	
 	@Override
 	public void dispose() {
 		loadedChunks.clear();
-		lighting.removeAll();
-		lighting.dispose();
+		lightRenderer.removeAll();
+		lightRenderer.dispose();
 		clearAllActiveObjectsAndBodies();
 		world.dispose();
 		debugRenderer.dispose();

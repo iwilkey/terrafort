@@ -7,7 +7,7 @@ import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.obj.TObject;
-import dev.iwilkey.terrafort.obj.entity.TPlayer;
+import dev.iwilkey.terrafort.obj.entity.intelligent.TPlayer;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -21,9 +21,9 @@ public final class TTerrainRenderer {
 	public static final int    TERRAIN_TILE_HEIGHT              = 8;
 	public static final int    HALF_TERRAIN_TILE_WIDTH          = TERRAIN_TILE_WIDTH / 2;
 	public static final int    HALF_TERRAIN_TILE_HEIGHT         = TERRAIN_TILE_HEIGHT / 2;
-	public static final int    TERRAIN_HEIGHT                   = 4;
+	public static final int    TERRAIN_LEVELS                   = 4;
 	public static final int    TRANSITION_THICKNESS_FACTOR      = 4; // higher value = thinner transition borders.
-	public static final int    TERRAIN_VIEWPORT_CULLING_PADDING = 3;
+	public static final int    TERRAIN_VIEWPORT_CULLING_PADDING = 4;
 	
 	public static final byte   DX[]          					= new byte[9];
 	public static final byte   DY[]          					= new byte[9];
@@ -33,8 +33,8 @@ public final class TTerrainRenderer {
 	public static final TFrame SAND                             = new TFrame(5, 0, 1, 1);
 	public static final TFrame WATER                            = new TFrame(6, 0, 1, 1);
 	
-	public static final TFrame LEVELS[]                         = new TFrame[TERRAIN_HEIGHT];
-	public static final Color  TRANSITION_COLORS[]              = new Color[TERRAIN_HEIGHT - 1];
+	public static final TFrame LEVELS[]                         = new TFrame[TERRAIN_LEVELS];
+	public static final Color  TRANSITION_COLORS[]              = new Color[TERRAIN_LEVELS - 1];
 	
 	/**
 	 * A dynamic way to keep track of tiles that require a physical presence, like Stone.
@@ -177,6 +177,20 @@ public final class TTerrainRenderer {
 		        TGraphics.draw(LEVELS[vq], i * TERRAIN_TILE_WIDTH, j * TERRAIN_TILE_HEIGHT, vq, TERRAIN_TILE_WIDTH, TERRAIN_TILE_HEIGHT);
 	        }
 	    }
+	}
+	
+	/**
+	 * Manually removes a physical at given tile location. Will do nothing if there is no physical there.
+	 * @param world the world the physical exists in.
+	 * @param x the tile x coordinate of the physical.
+	 * @param y the tile y coordinate of the physical.
+	 */
+	public static void removePhysicalAt(TWorld world, int x, int y) {
+		long hash = (((long)x) << 32) | (y & 0xffffffffL);
+		if(TILE_PHYSICALS.containsKey(hash)) {
+			world.removeObject(TILE_PHYSICALS.get(hash));
+			TILE_PHYSICALS.remove(hash);
+		}
 	}
 
 	/**

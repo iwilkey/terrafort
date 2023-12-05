@@ -1,21 +1,30 @@
-package dev.iwilkey.terrafort.obj.entity;
-
-import java.util.concurrent.ThreadLocalRandom;
+package dev.iwilkey.terrafort.obj.entity.intelligent;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
-import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 
+import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.TGraphics;
+import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.gfx.anim.TAnimation;
 import dev.iwilkey.terrafort.gfx.anim.TAnimationController;
+import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
-public final class TPlayer extends TAnimal {
+/**
+ * The player of Terrafort; entity controlled by the user.
+ * @author Ian Wilkey (iwilkey)
+ */
+public final class TPlayer extends TIntelligent {
 	
+	public static final int        PLAYER_MAX_HP          = 10;
+	public static final float      PLAYER_WALK_SPEED      = 48.0f;
+	public static final float      PLAYER_RUN_SPEED       = 96.0f;
+	public static final float      PLAYER_WIDTH           = 16.0f;
+	public static final float      PLAYER_HEIGHT          = 32.0f;
 	public static final TAnimation PLAYER_IDLE_SOUTH      = new TAnimation("idle_south", 
             												new TFrame(0, 0, 1, 2));
 	public static final TAnimation PLAYER_IDLE_SOUTH_EAST = new TAnimation("idle_south_east", 
@@ -78,6 +87,7 @@ public final class TPlayer extends TAnimal {
 	private float   										currentMoveSpeed;
 	private Vector2 										movementVector;
 	private boolean 										isMoving;
+	private boolean                                         isInWater;
 	private String 		 									lastNonZeroDirection;
 	
 	public TPlayer(TWorld world) {
@@ -86,24 +96,24 @@ public final class TPlayer extends TAnimal {
 			  0.0f,
 			  0.0f,
 			  0,
-			  16.0f,
-			  32.0f,
+			  PLAYER_WIDTH,
+			  PLAYER_HEIGHT,
 			  3.0f,
-			  4.0f,
+			  3.0f,
 			  0,
 			  0,
 			  1,
 			  2,
 			  Color.WHITE.cpy(),
-			  10);
-		setGraphicsColliderOffset(0, 6);
-		setHealthBarOffset(0.30f, 10.25f);
+			  PLAYER_MAX_HP);
+		setGraphicsColliderOffset(-1, 6);
 		movementVector       = new Vector2();
-		moveSpeedWalk        = 48.0f;
-		moveSpeedRun         = 96.0f;
+		moveSpeedWalk        = PLAYER_WALK_SPEED;
+		moveSpeedRun         = PLAYER_RUN_SPEED;
 		currentMoveSpeed     = moveSpeedWalk;
 		lastNonZeroDirection = "idle_south";
 		isMoving             = false;
+		isInWater            = false;
 	}
 	
 	@Override
@@ -125,7 +135,7 @@ public final class TPlayer extends TAnimal {
 		anim.addAnimation(PLAYER_MOVE_NORTH_WEST);
 		anim.addAnimation(PLAYER_MOVE_WEST);
 		anim.addAnimation(PLAYER_MOVE_SOUTH_WEST);
-		// TODO: Make the starting animation random every time.
+		// TODO: Make the starting animation random every time??
 		anim.setAnimation("idle_south");
 	}
 
@@ -133,22 +143,33 @@ public final class TPlayer extends TAnimal {
 	public void spawn() {
 
 	}
-	
-	float t = 0;
-	
+
 	@Override
 	public void task(float dt) {
 		super.task(dt);
-		t += dt;
-		if(t > 0.25f) {
-			if(ThreadLocalRandom.current().nextDouble() <= 0.50f)
-				heal(getMaxHP());
-			else hurt(ThreadLocalRandom.current().nextInt(1, getMaxHP() / 4));
-			t = 0.0f;
-		}
 		focusCamera();
 		calculateMovement();
 		calculateGraphics();
+		checkInWater();
+	}
+	
+	/**
+	 * Checks if the player is in water and facilitates side-effects of being in water.
+	 */
+	private void checkInWater() {
+		if(world.getTileHeightAt(getCurrentTileX(), getCurrentTileY()) == TTerrainRenderer.TERRAIN_LEVELS - 1) {
+			moveSpeedWalk             = PLAYER_WALK_SPEED / 3f;
+			moveSpeedRun              = PLAYER_RUN_SPEED / 3f;
+			dataSelectionSquareHeight = 1;
+			height                    = PLAYER_HEIGHT / 2f;
+			isInWater                 = true;
+		} else {
+			moveSpeedWalk             = PLAYER_WALK_SPEED;
+			moveSpeedRun              = PLAYER_RUN_SPEED;
+			dataSelectionSquareHeight = 2;
+			height                    = PLAYER_HEIGHT;
+			isInWater                 = false;
+		}
 	}
 	
 	/**
@@ -163,26 +184,26 @@ public final class TPlayer extends TAnimal {
 	 */
 	private void calculateMovement() {
 		movementVector.setZero();
-		if(Gdx.input.isKeyPressed(Keys.A))
+		if(TInput.left)
 			movementVector.add(-currentMoveSpeed, 0);
-		if(Gdx.input.isKeyPressed(Keys.D))
+		if(TInput.right)
 			movementVector.add(currentMoveSpeed, 0);
-		if(Gdx.input.isKeyPressed(Keys.W))
+		if(TInput.up)
 			movementVector.add(0, currentMoveSpeed);
-		if(Gdx.input.isKeyPressed(Keys.S))
+		if(TInput.down)
 			movementVector.add(0, -currentMoveSpeed);
-		if(Gdx.input.isKeyPressed(Keys.SHIFT_LEFT))
+		if(TInput.run)
 			currentMoveSpeed = moveSpeedRun;
 		else currentMoveSpeed = moveSpeedWalk;
 		setVelocity(movementVector.x, movementVector.y);
 		isMoving = (movementVector.x != 0 || movementVector.y != 0);
-		getAnimationController().setTargetFrameRate(currentMoveSpeed / 6);
 	}
 	
 	/**
 	 * Calculates what animation should play based on player state.
 	 */
 	private void calculateGraphics() {
+		getAnimationController().setTargetFrameRate(currentMoveSpeed / 6);
 		String animationLabel = lastNonZeroDirection;
 		animationLabel = lookTowardMovementDirection(animationLabel);
         if (isMoving) lastNonZeroDirection = animationLabel.replace("move_", "idle_");
@@ -216,7 +237,7 @@ public final class TPlayer extends TAnimal {
 	 * Update the direction of the player to look toward the mouse.
 	 */
 	private void lookTowardMouse() {
-	    final Vector2 mousePos = world.getMousePositionInWorld();
+	    final Vector2 mousePos = TMath.translateScreenToWorldCoordinates(Gdx.input.getX(), Gdx.input.getY());
 	    final Vector2 direction = new Vector2(mousePos.x - getRenderX(), mousePos.y - getRenderY()).nor();
 	    final float angle = direction.angleDeg();
 	    if (angle >= 22.5 && angle < 67.5) lastNonZeroDirection = "idle_north_east";
@@ -232,10 +253,14 @@ public final class TPlayer extends TAnimal {
 	public boolean isMoving() {
 		return isMoving;
 	}
+	
+	public boolean isInWater() {
+		return isInWater;
+	}
 
 	@Override
 	public void die() {
-		
+
 	}
 
 }
