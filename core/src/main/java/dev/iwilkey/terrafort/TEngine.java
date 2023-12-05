@@ -39,6 +39,7 @@ public final class TEngine extends ApplicationAdapter {
 			return;
 		state = toState;
 		state.start();
+		TGraphics.fadeIn(1.0f);
 	}
 	
     @Override

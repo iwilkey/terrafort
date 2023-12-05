@@ -81,6 +81,9 @@ public final class TWorld implements Disposable {
 	 * Adds and returns a point light to the world.
 	 */
 	public PointLight addPointLight(int x, int y, float r, Color color) {
+		
+		
+		
 		PointLight ret = new PointLight(lightRenderer, 256, color, r, x, y);
 		ret.setContactFilter(LIGHTING_COLLISION_MASK);
 		return ret;

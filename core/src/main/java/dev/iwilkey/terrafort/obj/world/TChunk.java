@@ -68,8 +68,7 @@ public final class TChunk {
 	}
 	
 	/**
-	 * Returns the tile height at any given pair of tile coordinates. Will return -1 if the pair of
-	 * coordinates is not in the chunk.
+	 * Returns the tile height at any given pair of tile coordinates.
 	 * @param x the tile x coordinate.
 	 * @param y the tile y coordinate.
 	 * @return the z value of the tile.

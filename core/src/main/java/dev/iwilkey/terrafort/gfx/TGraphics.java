@@ -22,6 +22,7 @@ import com.crashinvaders.vfx.effects.FxaaEffect;
 import com.crashinvaders.vfx.effects.GaussianBlurEffect;
 import com.crashinvaders.vfx.effects.LevelsEffect;
 import com.crashinvaders.vfx.effects.MotionBlurEffect;
+import com.crashinvaders.vfx.effects.RadialBlurEffect;
 import com.crashinvaders.vfx.effects.RadialDistortionEffect;
 import com.crashinvaders.vfx.effects.WaterDistortionEffect;
 import com.crashinvaders.vfx.effects.util.MixEffect;
@@ -63,13 +64,19 @@ public final class TGraphics implements Disposable {
 	public static final  FxaaEffect                POST_FXAA             = new FxaaEffect();
 	public static final  BloomEffect               POST_BLOOM            = new BloomEffect();
 	public static final  GaussianBlurEffect        POST_GAUSSIAN_BLUR    = new GaussianBlurEffect();
+	public static final  RadialBlurEffect          POST_RADIAL_BLUR      = new RadialBlurEffect(16);
 	public static final  ChromaticAberrationEffect POST_CHROME_ABER      = new ChromaticAberrationEffect(16);
 	public static final  CrtEffect                 POST_CRT              = new CrtEffect();
 	public static final  FilmGrainEffect           POST_FILM_GRAIN       = new FilmGrainEffect();
-	public static final  MotionBlurEffect          POST_MOTION_BLUR      = new MotionBlurEffect(Pixmap.Format.RGBA8888, MixEffect.Method.MIX, 0.7f);
+	public static final  MotionBlurEffect          POST_MOTION_BLUR      = new MotionBlurEffect(Pixmap.Format.RGBA8888, MixEffect.Method.MIX, 0.80f);
 	public static final  LevelsEffect              POST_LEVELS           = new LevelsEffect();
 	public static final  WaterDistortionEffect     POST_WATER_DISTORT    = new WaterDistortionEffect(1.0f, 1.0f);
 	public static final  RadialDistortionEffect    POST_RADIAL_DISTORT   = new RadialDistortionEffect();
+	
+	private static       int                       currentZoomTwoFactor  = -1;
+	private static       TInterpolator             screenFade            = new TInterpolator(0.0f);
+	private static       boolean                   zoomRequest           = false;
+    private static       boolean                   fadingDown            = false;
 	
 	public TGraphics() {
 		DATA.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
@@ -77,15 +84,9 @@ public final class TGraphics implements Disposable {
 		CAMERA_X.setEquation(Interpolation.linear);
 		CAMERA_Y.setEquation(Interpolation.linear);
 		CAMERA_ZOOM.setEquation(Interpolation.linear);
+		CAMERA_ZOOM.setSpeed(2.0f);
 		POST_PROCESSING.addEffect(POST_FXAA);
 		POST_PROCESSING.addEffect(POST_LEVELS);
-		// POST_GAUSSIAN_BLUR.setPasses(16);
-		// POST_PROCESSING.addEffect(POST_GAUSSIAN_BLUR);
-		// POST_PROCESSING.addEffect(POST_RADIAL_DISTORT);
-		// POST_PROCESSING.addEffect(POST_WATER_DISTORT);
-		// POST_PROCESSING.addEffect(POST_MOTION_BLUR);
-		// POST_PROCESSING.addEffect(POST_CHROME_ABER);
-		
 		CAMERA_ZOOM.set((float)Math.pow(2, currentZoomTwoFactor));
 	}
 	
@@ -125,50 +126,48 @@ public final class TGraphics implements Disposable {
 	public static void draw(final TFrame frame, int x, int y, int z, int width, int height) {
 		TILE_RENDERABLES.add(new TRenderableSprite() {
 			@Override
-			public float getRenderX() {
-				return x;
-			}
+			public float getRenderX()                   { return x;                         	 }
 			@Override
-			public float getRenderY() {
-				return y;
-			}
+			public float getRenderY()                   { return y; 							 }
 			@Override
-			public float getRenderWidth() {
-				return width;
-			}
+			public float getRenderWidth()               { return width; 						 }
 			@Override
-			public float getRenderHeight() {
-				return height;
-			}
+			public float getRenderHeight()              { return height; 						 }
 			@Override
-			public float getRotationInRadians() {
-				return 0;
-			}
+			public float getRotationInRadians()         { return 0; 							 }
 			@Override
-			public int getDepth() {
-				return z;
-			}
+			public int   getDepth()                     { return z; 							 }
 			@Override
-			public int getDataSelectionOffsetX() {
-				return frame.getDataOffsetX();
-			}
+			public int   getDataSelectionOffsetX()      { return frame.getDataOffsetX();         }
 			@Override
-			public int getDataSelectionOffsetY() {
-				return frame.getDataOffsetY();
-			}
+			public int   getDataSelectionOffsetY()      { return frame.getDataOffsetY();         }
 			@Override
-			public int getDataSelectionSquareWidth() {
-				return frame.getDataSelectionWidth();
-			}
+			public int   getDataSelectionSquareWidth()  { return frame.getDataSelectionWidth();  }
 			@Override
-			public int getDataSelectionSquareHeight() {
-				return frame.getDataSelectionHeight();
-			}
+			public int   getDataSelectionSquareHeight() { return frame.getDataSelectionHeight(); }
 			@Override
-			public Color getRenderTint() {
-				return Color.WHITE.cpy();
-			}
+			public Color getRenderTint() 				{ return Color.WHITE.cpy();              }
 		});
+	}
+	
+	/**
+	 * Gradually fades the screen to black then back in.
+	 * @param time the time of the fade.
+	 */
+	public static void fadeOutIn(float time) {
+		screenFade.setSpeed(time);
+		screenFade.set(-1.0f);
+		fadingDown = true;
+	}
+	
+	/**
+	 * Forces the screen directly to black and fades in naturally over time.
+	 * @param time the time of the fade.
+	 */
+	public static void fadeIn(float time) {
+		screenFade.setSpeed(time);
+		screenFade.force(-1.0f);
+		screenFade.set(0.0f);
 	}
 	
 	/**
@@ -198,27 +197,19 @@ public final class TGraphics implements Disposable {
 	public static void setCameraSpeedToTarget(float speed) {
 		CAMERA_X.setSpeed(speed);
 		CAMERA_Y.setSpeed(speed);
-		CAMERA_ZOOM.setSpeed(speed);
 	}
-	
-	private static int currentZoomTwoFactor = -1;
 	
 	/**
      * Sets the target zoom level for the camera to smoothly transition to. Will be a power of two.
      * @param target The target zoom level.
      */
-	public static void changeCameraZoom(boolean in) {
+	public static void requestCameraZoomChange(boolean in) {
 		int suggested = (!in) ? currentZoomTwoFactor + 1 : currentZoomTwoFactor - 1;
 		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -3.0f, -1.0f));
-		CAMERA_ZOOM.set((float)Math.pow(2, currentZoomTwoFactor));
-	}
-	
-	/**
-     * Immediately sets the camera's zoom level to the specified value.
-     * @param zoom The zoom level to set.
-     */
-	public static void forceCameraZoom(float zoom) {
-		CAMERA_ZOOM.force(zoom);
+		if(suggested == currentZoomTwoFactor) {
+			fadeOutIn(6.0f);
+			zoomRequest = true;
+		}
 	}
 	
 	/**
@@ -232,6 +223,25 @@ public final class TGraphics implements Disposable {
 	// END API
 	///////////////////////////////////////////////////////
 	
+	/**
+	 * Calculates the screens fade effect and handles zoom requests.
+	 */
+	private void calculateFadeAndZoom() {
+		screenFade.update();
+		POST_LEVELS.setBrightness(screenFade.get());
+		if(fadingDown && screenFade.getProgress() > 1.0f) {
+			screenFade.set(0.0f);
+			if(zoomRequest) {
+				CAMERA_ZOOM.set((float)Math.pow(2, currentZoomTwoFactor));
+				zoomRequest = false;
+			}
+			fadingDown = false;
+		}
+	}
+	
+	/**
+	 * Calculates the dynamic allocation (or deallocation) of sprite batches according to the number of tile render requests.
+	 */
 	private void calculateTileBatchPool() {
 		final int requestedTiles  = TILE_RENDERABLES.size;
 		final int neededBatches   = (int)Math.ceil((float)requestedTiles / MAX_RENDERABLES);
@@ -268,8 +278,7 @@ public final class TGraphics implements Disposable {
 	private void calculatePerspective() {
 		CAMERA_X.update();
 	    CAMERA_Y.update();
-	    CAMERA_ZOOM.update();
-	    float z                            = CAMERA_ZOOM.get();
+	    float z                            = CAMERA_ZOOM.getTarget();
 	    float effectivePixelsPerUnit       = PIXELS_PER_METER / z;
 	    float screenWidthInWorldUnits      = Gdx.graphics.getWidth() / effectivePixelsPerUnit;
 	    float screenHeightInWorldUnits     = Gdx.graphics.getHeight() / effectivePixelsPerUnit;
@@ -313,6 +322,7 @@ public final class TGraphics implements Disposable {
 			System.out.println("fps: " + (1 / TClock.dt()));
 			t = 0;
 		}
+		calculateFadeAndZoom();
 		calculateTileBatchPool();
 		calculatePerspective();
 		sortObjectRenderables();
@@ -340,21 +350,26 @@ public final class TGraphics implements Disposable {
 	        TILE_BATCH_POOL.get(batch).end();
 		}
 		// render tile level geometry
-        GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Filled);
-        GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
-        for(TRenderableShape s : TL_GEO_RENDERABLES)
-        	s.drawFilled(CAMERA, GEOMETRIC_RENDERER);
-        GEOMETRIC_RENDERER.end();
-        GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Line);
-        GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
-        for(TRenderableShape s : TL_GEO_RENDERABLES)
-        	s.drawLined(CAMERA, GEOMETRIC_RENDERER);
-        GEOMETRIC_RENDERER.end();
+		if(TL_GEO_RENDERABLES.size != 0) {
+	        GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Filled);
+	        GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
+	        for(TRenderableShape s : TL_GEO_RENDERABLES)
+	        	s.drawFilled(CAMERA, GEOMETRIC_RENDERER);
+	        GEOMETRIC_RENDERER.end();
+	        GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Line);
+	        GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
+	        for(TRenderableShape s : TL_GEO_RENDERABLES)
+	        	s.drawLined(CAMERA, GEOMETRIC_RENDERER);
+	        GEOMETRIC_RENDERER.end();
+		}
 		// draw objects
-        OBJECT_BATCH.begin();
-        for(final TRenderableSprite r : OBJECT_RENDERABLES)
-        	r.render(CAMERA, OBJECT_BATCH);
-        OBJECT_BATCH.end();
+		if(OBJECT_RENDERABLES.size != 0) {
+	        OBJECT_BATCH.begin();
+	        for(final TRenderableSprite r : OBJECT_RENDERABLES)
+	        	r.render(CAMERA, OBJECT_BATCH);
+	        OBJECT_BATCH.end();
+		}
+		
         // render object level geometry
         GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Filled);
         GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
@@ -423,6 +438,7 @@ public final class TGraphics implements Disposable {
 		POST_FXAA.dispose();
 		POST_BLOOM.dispose();
 		POST_GAUSSIAN_BLUR.dispose();
+		POST_RADIAL_BLUR.dispose();
 		POST_CHROME_ABER.dispose();
 		POST_CRT.dispose();
 		POST_FILM_GRAIN.dispose();

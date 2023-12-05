@@ -53,6 +53,14 @@ public final class TInterpolator {
     	current = value;
     	prog    = 1.0f;
     }
+    
+    /**
+     * Force the interpolators progress to 100%.
+     */
+    public void finish() {
+    	prog = 1.0f;
+    	current = equ.apply(current, target, prog);
+    }
 
     /**
      * Sets the interpolation equation to be used for the transition.
@@ -89,6 +97,14 @@ public final class TInterpolator {
      */
     public float getTarget() {
     	return target;
+    }
+    
+    /**
+     * Get the current progress of the interpolator.
+     * @return a value between [0, 1], the current progress of the interpolator.
+     */
+    public float getProgress() {
+    	return prog;
     }
 
     /**

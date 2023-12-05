@@ -40,11 +40,11 @@ public class TDebugState implements TState {
 			world.addPointLight((int)mouseWorldTileCoords.x * TTerrainRenderer.TERRAIN_TILE_WIDTH, (int)mouseWorldTileCoords.y * TTerrainRenderer.TERRAIN_TILE_HEIGHT, 64, Color.WHITE);
 		}
 		if(TInput.zoomOut) {
-			TGraphics.changeCameraZoom(false);
+			TGraphics.requestCameraZoomChange(false);
 			TInput.zoomOut = false;
 		}
 		if(TInput.zoomIn) {
-			TGraphics.changeCameraZoom(true);
+			TGraphics.requestCameraZoomChange(true);
 			TInput.zoomIn = false;
 		}
 	}
