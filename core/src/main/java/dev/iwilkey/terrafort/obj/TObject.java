@@ -7,6 +7,7 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.gfx.TRenderableSprite;
 import dev.iwilkey.terrafort.obj.world.TWorld;
@@ -18,23 +19,24 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public class TObject implements TRenderableSprite {
 	
-	public boolean shouldDraw = true;
+	public boolean                 shouldDraw = true;
 	
-	protected final TWorld world;
-	protected final Body   body;
-	protected float        x;
-	protected float        y;
-	protected float        colliderOffX;
-	protected float        colliderOffY;
-	protected int          z; // z buffer render order.
-	protected float        width;
-	protected float        height;
-	protected float        rotationInRadians;
-	protected int          dataOffsetX;
-	protected int          dataOffsetY;
-	protected int          dataSelectionSquareWidth;
-	protected int          dataSelectionSquareHeight;
-	protected Color        renderTint;
+	protected final TWorld         world;
+	protected final Body           body;
+	protected final Array<TObject> collisionManifold;
+	protected float                x;
+	protected float                y;
+	protected float                colliderOffX;
+	protected float                colliderOffY;
+	protected int                  z; // z buffer render order.
+	protected float                width;
+	protected float                height;
+	protected float                rotationInRadians;
+	protected int                  dataOffsetX;
+	protected int                  dataOffsetY;
+	protected int                  dataSelectionSquareWidth;
+	protected int                  dataSelectionSquareHeight;
+	protected Color                renderTint;
 	
 	public TObject(TWorld   world, 
 				   boolean isDynamic, 
@@ -53,6 +55,7 @@ public class TObject implements TRenderableSprite {
 		final BodyDef bodyDef          = new BodyDef();
 		final PolygonShape shape       = new PolygonShape();
 		final FixtureDef fixtureDef    = new FixtureDef();
+		collisionManifold              = new Array<>();
 		this.world                     = world;
 		this.x                         = x;
 		this.y                         = y;
@@ -70,6 +73,7 @@ public class TObject implements TRenderableSprite {
 		bodyDef.position.set(x, y);
 		bodyDef.type = isDynamic ? BodyDef.BodyType.DynamicBody : BodyDef.BodyType.StaticBody;
 		body = world.getPhysicalWorld().createBody(bodyDef);
+		body.setUserData(this);
 		shape.setAsBox(colliderWidth, colliderHeight);
 		fixtureDef.shape = shape;
 		body.createFixture(fixtureDef);
@@ -110,6 +114,27 @@ public class TObject implements TRenderableSprite {
 	 */
 	public final void applyImpulse(float impulseX, float impulseY) {
 	    body.applyLinearImpulse(impulseX, impulseY, body.getWorldCenter().x, body.getWorldCenter().y, true);
+	}
+	
+	/**
+	 * Called by the {@link TCollisionManifold} module. Never call this yourself.
+	 */
+	public final void addToCollisionManifold(TObject o) {
+		collisionManifold.add(o);
+	}
+	
+	/**
+	 * Called by the {@link TCollisionManifold} module. Never call this yourself.
+	 */
+	public final void removeFromCollisionManifold(TObject o) {
+		collisionManifold.removeValue(o, false);
+	}
+	
+	/**
+	 * Returns all the {@link TObject} that are currently colliding with (touching) this {@link TObject}.
+	 */
+	public final Array<TObject> getCollisionManifold() {
+		return collisionManifold;
 	}
 	
 	/**

@@ -1,12 +1,14 @@
 package dev.iwilkey.terrafort.obj.world;
 
 import java.util.HashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 import box2dLight.Light;
 
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.math.TNoise;
+import dev.iwilkey.terrafort.obj.entity.vegetation.TTree;
 
 /**
  * Manages local lighting, caches known tile heights and hashes terraform requests for a chunk of a given
@@ -84,6 +86,14 @@ public final class TChunk {
 			v         = (v + 1) / 2;
 			int vq    = TMath.quantize(v, TTerrainRenderer.TERRAIN_LEVELS);
 			terrainData.put(hash, vq);
+			
+			// Testing a tree...
+			if(vq == 1) {
+				if(ThreadLocalRandom.current().nextDouble() > 0.90f) {
+					world.addObject(new TTree(world, x, y));
+				}
+			}
+			
 		}
 		return terrainData.get(hash);
 	}

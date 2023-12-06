@@ -32,7 +32,7 @@ import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.math.TInterpolator;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
-
+import dev.iwilkey.terrafort.obj.entity.tile.TStoneTile;
 
 /**
  * The TGraphics class is the central rendering module for the Terrafort game engine. This module follows a static API design, 
@@ -117,7 +117,9 @@ public final class TGraphics implements Disposable {
 				return;
 		if(OBJECT_RENDERABLES.size + 1 > MAX_RENDERABLES)
 			OBJECT_RENDERABLES.removeIndex(0);
-		OBJECT_RENDERABLES.add(renderable);
+		if(renderable instanceof TStoneTile) {
+			TILE_RENDERABLES.add(renderable);
+		} else OBJECT_RENDERABLES.add(renderable);
 	}
 	
 	/**
@@ -128,7 +130,7 @@ public final class TGraphics implements Disposable {
 	 * @param width the world width.
 	 * @param height the world height.
 	 */
-	public static void draw(final TFrame frame, int x, int y, int z, int width, int height, boolean tile) {
+	public static void draw(final TFrame frame, int x, int y, int z, int width, int height, Color tint, boolean tile) {
 		Array<TRenderableSprite> to = tile ? TILE_RENDERABLES : OBJECT_RENDERABLES;
 		to.add(new TRenderableSprite() {
 			@Override
@@ -152,7 +154,7 @@ public final class TGraphics implements Disposable {
 			@Override
 			public int   getDataSelectionSquareHeight() { return frame.getDataSelectionHeight(); }
 			@Override
-			public Color getRenderTint() 				{ return Color.WHITE.cpy();              }
+			public Color getRenderTint() 				{ return tint;                           }
 		});
 	}
 	
@@ -211,7 +213,7 @@ public final class TGraphics implements Disposable {
      */
 	public static void requestCameraZoomChange(boolean in) {
 		int suggested = (!in) ? currentZoomTwoFactor + 1 : currentZoomTwoFactor - 1;
-		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -3.0f, -2.0f));
+		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -4.0f, -2.0f));
 		if(suggested == currentZoomTwoFactor) {
 			fadeOutIn(6.0f);
 			zoomRequest = true;
@@ -319,7 +321,7 @@ public final class TGraphics implements Disposable {
 	private void sortObjectRenderables() {
 		TILE_RENDERABLES.sort((r1, r2) -> Integer.compare(r2.getDepth(), r1.getDepth()));
 		OBJECT_RENDERABLES.sort((r1, r2) -> Float.compare(r2.getRenderY(), r1.getRenderY()));
-		// OBJECT_RENDERABLES.sort((r1, r2) -> Integer.compare(r2.getDepth(), r1.getDepth()));
+		OBJECT_RENDERABLES.sort((r1, r2) -> Integer.compare(r2.getDepth(), r1.getDepth()));
 	}
 	
 	/**

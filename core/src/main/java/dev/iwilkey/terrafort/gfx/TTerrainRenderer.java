@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.Array;
 import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
+import dev.iwilkey.terrafort.obj.entity.tile.TStoneTile;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -88,7 +89,7 @@ public final class TTerrainRenderer {
 	    final int ys                    = playerTileY - (tilesInViewHeight + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    final int ye                    = playerTileY + (tilesInViewHeight + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    // remove physicals that are outside current tile viewport.
-	    Array<Long> deadHash = new Array<>();
+	    final Array<Long> deadHash = new Array<>();
 	    for(final long hash : TILE_PHYSICALS.keySet()) {
 	    	int x = (int)(hash >> 32);
 	    	int y = (int)hash;
@@ -116,20 +117,7 @@ public final class TTerrainRenderer {
 	                		long hash = (((long)i) << 32) | (j & 0xffffffffL);
 	                		if(!TILE_PHYSICALS.containsKey(hash)) {
 	                			// Add a new physical and hash it...
-	                			final TObject tilePhysical = new TObject(world, 
-	                													 false, 
-	                													 i * TERRAIN_TILE_WIDTH,
-	                													 j * TERRAIN_TILE_HEIGHT,
-	                													 0,
-	                													 TERRAIN_TILE_WIDTH,
-	                													 TERRAIN_TILE_HEIGHT,
-	                													 TERRAIN_TILE_WIDTH / 2,
-	                													 TERRAIN_TILE_HEIGHT / 2,
-	                													 3,
-	                													 0,
-	                													 1,
-	                													 1,
-	                													 new Color().set(0));
+	                			final TStoneTile tilePhysical = new TStoneTile(world, i, j);
 	                			world.addObject(tilePhysical);
 	                			TILE_PHYSICALS.put(hash, tilePhysical);
 	                		}
@@ -174,7 +162,7 @@ public final class TTerrainRenderer {
 	                    TGraphics.draw(border, false);
 	                }
 	        	}
-		        TGraphics.draw(LEVELS[vq], i * TERRAIN_TILE_WIDTH, j * TERRAIN_TILE_HEIGHT, vq, TERRAIN_TILE_WIDTH, TERRAIN_TILE_HEIGHT, true);
+		        TGraphics.draw(LEVELS[vq], i * TERRAIN_TILE_WIDTH, j * TERRAIN_TILE_HEIGHT, vq, TERRAIN_TILE_WIDTH, TERRAIN_TILE_HEIGHT, Color.WHITE.cpy(), true);
 	        }
 	    }
 	}
@@ -188,7 +176,8 @@ public final class TTerrainRenderer {
 	public static void removePhysicalAt(TWorld world, int x, int y) {
 		long hash = (((long)x) << 32) | (y & 0xffffffffL);
 		if(TILE_PHYSICALS.containsKey(hash)) {
-			world.removeObject(TILE_PHYSICALS.get(hash));
+			// Don't need to do this because the entity handler handles it.
+			// world.removeObject(TILE_PHYSICALS.get(hash));
 			TILE_PHYSICALS.remove(hash);
 		}
 	}

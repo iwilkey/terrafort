@@ -1,5 +1,7 @@
 package dev.iwilkey.terrafort.math;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
@@ -128,5 +130,15 @@ public final class TMath {
 	public static double lerp(double a, double b, double t) {
 		return a + t * (b - a);
     }
+	
+	/**
+	 * Uses ThreadLocalRandom to generate a random float between [a, b) of uniform distribution.
+	 * @param a the lower bound (inclusive).
+	 * @param b the upper bound (exclusive).
+	 * @return a random number [a, b) of uniform distribution.
+	 */
+	public static float uniFloat(float a, float b) {
+		return (float)ThreadLocalRandom.current().nextDouble(a, b);
+	}
 	
 }

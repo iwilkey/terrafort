@@ -2,15 +2,12 @@ package dev.iwilkey.terrafort.obj.entity.lifeform;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 
-import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
-import dev.iwilkey.terrafort.gfx.anim.TMovementAnimationArray;
+import dev.iwilkey.terrafort.gfx.anim.TLifeformAnimationArray;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
@@ -20,19 +17,17 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  * @author Ian Wilkey (iwilkey)
  */
 public abstract class TLifeform extends TEntity {
-
-	public static final float HURT_HEAL_ANIMATION_TIMER = 0.1f;
-	public static final float ATTACK_COOLDOWN           = 0.2f;
 	
-	private TMovementAnimationArray         movementAnimationArray;
+	private TLifeformAnimationArray         movementAnimationArray;
 	private Vector2 		                movementVector;
 	private String 		                    lastNonZeroDirection;
 	private boolean 		                isMoving;
 	private boolean                         isInWater;
 	private int                             directionFace;
-	private float   		                moveSpeed;
-	private float                           hurtTimer;
-	private float                           healTimer;
+	private float                           regHeight;
+	private float   		                requestedMoveSpeed;
+	private float                           actualMoveSpeed;
+	private float                           attackCooldownAmt;
 	private float                           attackTimer;
 	
 	public TLifeform(TWorld  world, 
@@ -50,7 +45,7 @@ public abstract class TLifeform extends TEntity {
 			       int                             dataSelectionSquareHeight, 
 			       Color                           renderTint, 
 			       int                             maxHP,
-			       TMovementAnimationArray array) {
+			       TLifeformAnimationArray array) {
 		super(world, 
 			  isDynamic, 
 			  x, 
@@ -69,49 +64,53 @@ public abstract class TLifeform extends TEntity {
 		movementAnimationArray = array;
 		movementAnimationArray.addToAnimationController(animationController);
 		movementVector         = new Vector2();
-		moveSpeed              = 0.0f;
-		lastNonZeroDirection   = TMovementAnimationArray.LABELS[ThreadLocalRandom.current().nextInt(0, 8)].replace("move_", "idle_");
-		hurtTimer              = HURT_HEAL_ANIMATION_TIMER;
-		healTimer              = HURT_HEAL_ANIMATION_TIMER;
-		attackTimer            = ATTACK_COOLDOWN;
+		regHeight              = height;
+		requestedMoveSpeed     = 0.0f;
+		actualMoveSpeed        = 0.0f;
+		lastNonZeroDirection   = TLifeformAnimationArray.LABELS[ThreadLocalRandom.current().nextInt(0, 8)].replace("move_", "idle_");
+		attackCooldownAmt      = 0.25f;
+		attackTimer            = attackCooldownAmt;
 	}
-	
-	@Override
-	public boolean shouldUseAdditiveBlending() {
-		if(healTimer < HURT_HEAL_ANIMATION_TIMER)
-			return true;
-		return false;
-	}
-	
-	@Override
-	public void hurt(int amt) {
-		super.hurt(amt);
-		hurtTimer = 0.0f;
-	}
-	
-	@Override
-	public void heal(int amt) {
-		int ab = getCurrentHP();
-		super.heal(amt);
-		if(ab != getCurrentHP())
-			healTimer = 0.0f;
-	}
-	
+
 	@Override
 	public void task(float dt) {
+		
 		// Resets the movement vector, polls for changes, and sets the appropriate velocity.
 		movementVector.setZero();
 		movementProcedure();
 		setVelocity(movementVector.x, movementVector.y);
 		
 		// Updates global flags about TLifeform's state.
-		isMoving = (movementVector.x != 0 || movementVector.y != 0);
+		isMoving  = (movementVector.x != 0 || movementVector.y != 0);
+		
+		// Water mechanics...
 		isInWater = world.getTileHeightAt(getCurrentTileX(), getCurrentTileY()) == TTerrainRenderer.TERRAIN_LEVELS - 1;
+		if(isInWater) {
+			actualMoveSpeed           = requestedMoveSpeed / 3f;
+			dataSelectionSquareHeight = 1;
+			height                    = regHeight / 2f;
+		} else {
+			actualMoveSpeed           = requestedMoveSpeed;
+			dataSelectionSquareHeight = 2;
+			height                    = regHeight;
+		}
 		
 		// Calculates the sprite version of the TLifeform to render based on state.
 		calculateFacingDirection();
 		calculateGraphics(dt);
+		
 	}
+	
+	/**
+	 * Method that returns true when a {@link TLifeform} wants to attack. Might be ignored based on internal 
+	 * attack timer.
+	 */
+	public abstract boolean requestAttack();
+	
+	/**
+	 * Function called when a {@link TLifeform}'s attack request has been accepted and will attack this frame.
+	 */
+	public abstract void attackProcedure();
 	
 	/**
 	 * Function called to calculate the movement of a {@link TLifeform}.
@@ -131,67 +130,79 @@ public abstract class TLifeform extends TEntity {
 	public abstract void movementProcedure();
 	
 	public final void moveLeft() {
-		movementVector.add(-moveSpeed, 0);
+		movementVector.add(-actualMoveSpeed, 0);
 	}
 	
 	public final void moveRight() {
-		movementVector.add(moveSpeed, 0);
+		movementVector.add(actualMoveSpeed, 0);
 	}
 	
 	public final void moveUp() {
-		movementVector.add(0, moveSpeed);
+		movementVector.add(0, actualMoveSpeed);
 	}
 	
 	public final void moveDown() {
-		movementVector.add(0, -moveSpeed);
+		movementVector.add(0, -actualMoveSpeed);
 	}
 	
 	public final void setMoveSpeed(float moveSpeed) {
-		this.moveSpeed = moveSpeed;
+		this.requestedMoveSpeed = moveSpeed;
+	}
+	
+	/**
+	 * Sets the {@link TLifeform} attack cooldown time.
+	 */
+	public final void setAttackCooldownTime(float time) {
+		attackCooldownAmt = time;
 	}
 	
 	/**
 	 * Calculates what animation should play based on {@link TLifeform} state.
 	 */
 	private final void calculateGraphics(float dt) {
-		// Animates the event of a {@link TLifeform} getting hurt or healed.
-		if(hurtTimer < HURT_HEAL_ANIMATION_TIMER) {
-			setRenderTint(Color.RED);
-			hurtTimer += dt;
-		} else if(healTimer < HURT_HEAL_ANIMATION_TIMER) {
-			healTimer += dt;
-		} else {
-			setRenderTint(Color.WHITE);
-			hurtTimer = HURT_HEAL_ANIMATION_TIMER;
-		}
 		
 		// Animates a {@link TLifeform} moving in any of the 8 possible directions based on the animations provided by the
-		// {@link TLifeformMovementAnimationArray}.
-		getAnimationController().setTargetFrameRate(moveSpeed / 6);
-		String animationLabel = TMovementAnimationArray.LABELS[directionFace];
+		// {@link TLifeformAnimationArray}...
+		getAnimationController().setTargetFrameRate(requestedMoveSpeed / 6);
+		String animationLabel = TLifeformAnimationArray.LABELS[directionFace];
         lastNonZeroDirection = animationLabel.replace("move_", "idle_");
         if(!shouldDraw) 
         	shouldDraw = true;
         
-        // Handles the attack clock and animations.
-        if(attackTimer < ATTACK_COOLDOWN) {
+        // Handles the attack clock and animations...
+        if(attackTimer < attackCooldownAmt) {
         	attackTimer += dt;
-        	if(attackTimer <= (ATTACK_COOLDOWN / 2f)) {
-        		shouldDraw = false;
-        		TGraphics.draw(TMovementAnimationArray.ATTACK[directionFace], (int)getRenderX(), (int)getRenderY(), 0, (int)width, (int)height, false);
-        	}
-        } else attackTimer = ATTACK_COOLDOWN;
-    	if(TInput.attack && attackTimer == ATTACK_COOLDOWN && !isInWater) {
-    		// Attack!
-    		TInput.attack = false;
+        	shouldDraw = false;
+        	if(attackTimer <= (attackCooldownAmt / 2f))
+        		TGraphics.draw(movementAnimationArray.getAttackFrame(directionFace, 0), 
+        				(int)getRenderX(), 
+        				(int)getRenderY(), 
+        				0, 
+        				(int)width, 
+        				(int)height,
+        				renderTint,
+        				false);
+        	else TGraphics.draw(movementAnimationArray.getAttackFrame(directionFace, 1), 
+        				(int)getRenderX(), 
+        				(int)getRenderY(), 
+        				0, 
+        				(int)width,
+        				(int)height,
+        				renderTint,
+        				false);
+        } else attackTimer = attackCooldownAmt;
+        
+        // Facilitates fair attack requesting...
+    	if(requestAttack() && attackTimer == attackCooldownAmt && !isInWater) {
+    		attackProcedure();
     		attackTimer = 0.0f;
     	}
     	
-    	// Queues idle animations if not moving.
+    	// Queues idle animations if not moving...
         if(!isMoving)
         	animationLabel = lastNonZeroDirection;
         
-        // Sets final deduced state.
+        // Sets final deduced state...
 	    getAnimationController().setAnimation(animationLabel);
 	}
 	
@@ -200,15 +211,15 @@ public abstract class TLifeform extends TEntity {
 	 */
 	private final void calculateFacingDirection() {
         if (movementVector.x > 0)
-            if (movementVector.y > 0) directionFace = TMovementAnimationArray.NORTH_EAST;
-            else if (movementVector.y < 0) directionFace = TMovementAnimationArray.SOUTH_EAST;
-            else directionFace = TMovementAnimationArray.EAST;
+            if (movementVector.y > 0) directionFace = TLifeformAnimationArray.NORTH_EAST;
+            else if (movementVector.y < 0) directionFace = TLifeformAnimationArray.SOUTH_EAST;
+            else directionFace = TLifeformAnimationArray.EAST;
         else if (movementVector.x < 0)
-            if (movementVector.y > 0) directionFace = TMovementAnimationArray.NORTH_WEST;
-            else if (movementVector.y < 0) directionFace = TMovementAnimationArray.SOUTH_WEST;
-            else directionFace = TMovementAnimationArray.WEST;
-        else if (movementVector.y > 0) directionFace = TMovementAnimationArray.NORTH;
-        else if (movementVector.y < 0) directionFace = TMovementAnimationArray.SOUTH;
+            if (movementVector.y > 0) directionFace = TLifeformAnimationArray.NORTH_WEST;
+            else if (movementVector.y < 0) directionFace = TLifeformAnimationArray.SOUTH_WEST;
+            else directionFace = TLifeformAnimationArray.WEST;
+        else if (movementVector.y > 0) directionFace = TLifeformAnimationArray.NORTH;
+        else if (movementVector.y < 0) directionFace = TLifeformAnimationArray.SOUTH;
 	}
 
 	/**

@@ -6,6 +6,7 @@ import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.gfx.anim.TAnimationController;
 import dev.iwilkey.terrafort.obj.TObject;
+import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -14,9 +15,13 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public abstract class TEntity extends TObject {
 	
+	public static final float      HURT_HEAL_ANIMATION_TIMER = 0.1f;
+	
 	private boolean                alive;
 	private int                    maxHP;
 	private int                    currentHP;
+	private float                  hurtTimer;
+	private float                  healTimer;
 	protected TAnimationController animationController;
 	
 	public TEntity(TWorld   world, 
@@ -51,6 +56,8 @@ public abstract class TEntity extends TObject {
 		this.maxHP          = maxHP;
 		this.currentHP      = maxHP;
 		alive               = true;
+		hurtTimer           = HURT_HEAL_ANIMATION_TIMER;
+		healTimer           = HURT_HEAL_ANIMATION_TIMER;
 		animationController = new TAnimationController(this);
 		initAnimations(animationController);
 		spawn();
@@ -72,6 +79,12 @@ public abstract class TEntity extends TObject {
 	public abstract void task(float dt);
 	
 	/**
+	 * Called when a {@link TLifeform} chooses to interact with this {@link TEntity}.
+	 * @param interactee the {@link TLifeform} interacting.
+	 */
+	public abstract void onInteraction(TLifeform interactee);
+	
+	/**
 	 * Called right as the entity dies.
 	 */
 	public abstract void die();
@@ -81,6 +94,17 @@ public abstract class TEntity extends TObject {
 	 */
 	public void tick(float dt) {
 		animationController.tick(dt);
+		// Animates the event of a {@link TEntity} getting hurt or healed...
+		if(hurtTimer < HURT_HEAL_ANIMATION_TIMER) {
+			setRenderTint(new Color().set(0xC41E3Aff));
+			hurtTimer += dt;
+		} else if(healTimer < HURT_HEAL_ANIMATION_TIMER) {
+			healTimer += dt;
+		} else {
+			setRenderTint(Color.WHITE.cpy());
+			hurtTimer = HURT_HEAL_ANIMATION_TIMER;
+			healTimer = HURT_HEAL_ANIMATION_TIMER;
+		}
 		task(dt);
 	}
 	
@@ -94,10 +118,18 @@ public abstract class TEntity extends TObject {
 		dataSelectionSquareHeight = frame.getDataSelectionHeight();
 	}
 	
+	@Override
+	public boolean shouldUseAdditiveBlending() {
+		if((healTimer < HURT_HEAL_ANIMATION_TIMER))
+			return true;
+		return false;
+	}
+	
 	/**
 	 * Deal a given amount of damage to the entity.
 	 */
 	public void hurt(int amt) {
+		hurtTimer = 0.0f;
 		if(currentHP - amt <= 0) {
 			currentHP = 0;
 			alive = false;
@@ -110,11 +142,14 @@ public abstract class TEntity extends TObject {
 	 * Gives the entity a given amount of health.
 	 */
 	public void heal(int amt) {
+		int ab = getCurrentHP();
 		if(currentHP + amt > maxHP) {
 			currentHP = maxHP;
 			return;
 		}
 		currentHP += amt;
+		if(ab != getCurrentHP())
+			healTimer = 0.0f;
 	}
 	
 	public TAnimationController getAnimationController() {

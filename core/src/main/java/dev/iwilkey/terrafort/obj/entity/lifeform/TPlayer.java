@@ -5,7 +5,9 @@ import com.badlogic.gdx.graphics.Color;
 import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.anim.TMovementAnimationArray;
+import dev.iwilkey.terrafort.gfx.anim.TLifeformAnimationArray;
+import dev.iwilkey.terrafort.obj.TObject;
+import dev.iwilkey.terrafort.obj.entity.TEntity;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -19,9 +21,6 @@ public final class TPlayer extends TLifeform {
 	public static final float PLAYER_RUN_SPEED  = 96.0f;
 	public static final float PLAYER_WIDTH      = 16.0f;
 	public static final float PLAYER_HEIGHT     = 32.0f;
-	
-	private float   		  moveSpeedWalk;
-	private float   		  moveSpeedRun;
 	
 	public TPlayer(TWorld world) {
 		super(world,
@@ -39,11 +38,10 @@ public final class TPlayer extends TLifeform {
 			  2,
 			  Color.WHITE.cpy(),
 			  PLAYER_MAX_HP,
-			  new TMovementAnimationArray(new TFrame(0, 0, 1, 2)));
-		setGraphicsColliderOffset(-1, 6);
-		moveSpeedWalk = PLAYER_WALK_SPEED;
-		moveSpeedRun  = PLAYER_RUN_SPEED;
+			  new TLifeformAnimationArray(new TFrame(0, 0, 1, 2), new TFrame(14, 0, 1, 2)));
+		setGraphicsColliderOffset(-1, 8);
 		setMoveSpeed(PLAYER_WALK_SPEED);
+		setAttackCooldownTime(0.16f);
 	}
 
 	@Override
@@ -55,18 +53,6 @@ public final class TPlayer extends TLifeform {
 	public void task(float dt) {
 		super.task(dt);
 		focusCamera();
-		// water mechanics...
-		if(isInWater()) {
-			moveSpeedWalk             = PLAYER_WALK_SPEED / 3f;
-			moveSpeedRun              = PLAYER_RUN_SPEED / 3f;
-			dataSelectionSquareHeight = 1;
-			height                    = PLAYER_HEIGHT / 2f;
-		} else {
-			moveSpeedWalk             = PLAYER_WALK_SPEED;
-			moveSpeedRun              = PLAYER_RUN_SPEED;
-			dataSelectionSquareHeight = 2;
-			height                    = PLAYER_HEIGHT;
-		}
 	}
 	
 	@Override
@@ -75,8 +61,35 @@ public final class TPlayer extends TLifeform {
 		if(TInput.right) moveRight();
 		if(TInput.up) moveUp();
 		if(TInput.down) moveDown();
-		if(TInput.run) setMoveSpeed(moveSpeedRun);
-		else setMoveSpeed(moveSpeedWalk);
+		if(TInput.run) setMoveSpeed(PLAYER_RUN_SPEED);
+		else setMoveSpeed(PLAYER_WALK_SPEED);
+	}
+	
+	@Override
+	public boolean requestAttack() {
+		if(TInput.attack) {
+			TInput.attack = false;
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
+	public void attackProcedure() {
+		if(getCollisionManifold().size != 0) {
+			// Interact with all entities in manifold? Just one? Based off of direction?
+			for(TObject o : getCollisionManifold()) {
+				if(o instanceof TEntity) {
+					((TEntity)o).onInteraction(this);
+					break;
+				}
+			}
+		}
+	}
+	
+	@Override
+	public void onInteraction(TLifeform interactee) {
+		
 	}
 	
 	/**

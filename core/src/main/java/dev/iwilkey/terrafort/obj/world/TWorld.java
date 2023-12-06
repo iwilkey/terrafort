@@ -16,11 +16,13 @@ import box2dLight.RayHandler;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
+import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
+import dev.iwilkey.terrafort.obj.particle.TParticle;
 
 /**
  * A physical space that manages {@link TObjects}, global and local forces, and dynamic lighting.
@@ -29,7 +31,8 @@ import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
 public final class TWorld implements Disposable {
 
 	public static final short           IGNORE_LIGHTING         = 0x0001;
-	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 120.0f;
+	public static final short           LIGHTING_RAYS           = 16;
+	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 12000.0f;
 	public static final Filter          LIGHTING_COLLISION_MASK = new Filter();
 	
 	static {
@@ -40,7 +43,7 @@ public final class TWorld implements Disposable {
 	private final long                  seed;
 	private final HashMap<Long, TChunk> loadedChunks;
 	private final Array<TObject>        objects;
-	private final Array<TEntity>        deathrow;
+	private final Array<TObject>        deathrow;
 	private final Box2DDebugRenderer    debugRenderer;
 	private final RayHandler            lightRenderer;
 	
@@ -68,6 +71,7 @@ public final class TWorld implements Disposable {
 		night                           = false;
 		dawn                            = false;
 		lightRenderer.setAmbientLight(0.1f, 0.1f, 0.1f, 0.5f);
+		world.setContactListener(new TCollisionManifold());
 	}
 	
 	/**
@@ -81,10 +85,7 @@ public final class TWorld implements Disposable {
 	 * Adds and returns a point light to the world.
 	 */
 	public PointLight addPointLight(int x, int y, float r, Color color) {
-		
-		
-		
-		PointLight ret = new PointLight(lightRenderer, 256, color, r, x, y);
+		PointLight ret = new PointLight(lightRenderer, LIGHTING_RAYS, color, r, x, y);
 		ret.setContactFilter(LIGHTING_COLLISION_MASK);
 		return ret;
 	}
@@ -136,13 +137,23 @@ public final class TWorld implements Disposable {
             		continue;
             	}
             	e.tick(dt);
+            } else if(obj instanceof TParticle) {
+            	TParticle p = (TParticle)obj;
+            	if(p.isDone()) {
+            		deathrow.add(p);
+            		continue;
+            	}
+            	p.tick(dt);
             }
         }
-        for(final TEntity e : deathrow) {
-        	e.die();
-        	world.destroyBody(e.getPhysicalBody());
+        for(final TObject e : deathrow) {
+        	if(e instanceof TEntity)
+        		((TEntity)e).die();
+        	if (e.getPhysicalBody() != null)
+        		world.destroyBody(e.getPhysicalBody());
         }
         objects.removeAll(deathrow, false);
+        deathrow.clear();
 	}
 	
 	/**
