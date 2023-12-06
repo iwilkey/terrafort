@@ -43,11 +43,11 @@ public final class TTerrainRenderer {
 	
 	static {
 		LEVELS[0]                                               = TTerrainRenderer.STONE;
-		TRANSITION_COLORS[0]                                    = new Color().set(0x868689ff);
+		TRANSITION_COLORS[0]                                    = new Color().set(0x868689FF);
 		LEVELS[1] 					                            = TTerrainRenderer.GRASS;
-		TRANSITION_COLORS[1]                                    = new Color().set(0x3D823Dff);
+		TRANSITION_COLORS[1]                                    = new Color().set(0x3D823DFF);
 		LEVELS[2]           									= TTerrainRenderer.SAND;
-		TRANSITION_COLORS[2]                                    = new Color().set(0xA38F4Eff);
+		TRANSITION_COLORS[2]                                    = new Color().set(0xA38F4EFF);
 		LEVELS[3] 												= TTerrainRenderer.WATER;
 		DX[0] 													= 0;
 		DX[1] 													= -1;
@@ -174,7 +174,7 @@ public final class TTerrainRenderer {
 	                    TGraphics.draw(border, false);
 	                }
 	        	}
-		        TGraphics.draw(LEVELS[vq], i * TERRAIN_TILE_WIDTH, j * TERRAIN_TILE_HEIGHT, vq, TERRAIN_TILE_WIDTH, TERRAIN_TILE_HEIGHT);
+		        TGraphics.draw(LEVELS[vq], i * TERRAIN_TILE_WIDTH, j * TERRAIN_TILE_HEIGHT, vq, TERRAIN_TILE_WIDTH, TERRAIN_TILE_HEIGHT, true);
 	        }
 	    }
 	}

@@ -31,6 +31,7 @@ import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.math.TInterpolator;
 import dev.iwilkey.terrafort.math.TMath;
+import dev.iwilkey.terrafort.obj.TObject;
 
 
 /**
@@ -73,7 +74,7 @@ public final class TGraphics implements Disposable {
 	public static final  WaterDistortionEffect     POST_WATER_DISTORT    = new WaterDistortionEffect(1.0f, 1.0f);
 	public static final  RadialDistortionEffect    POST_RADIAL_DISTORT   = new RadialDistortionEffect();
 	
-	private static       int                       currentZoomTwoFactor  = -1;
+	private static       int                       currentZoomTwoFactor  = -2;
 	private static       TInterpolator             screenFade            = new TInterpolator(0.0f);
 	private static       TRect                     fadeRect              = new TRect(0, 0, 0, 0);
 	private static       boolean                   zoomRequest           = false;
@@ -111,6 +112,9 @@ public final class TGraphics implements Disposable {
      * @param renderable The {@link TRenderableSprite} object to be rendered.
      */
 	public static void draw(final TRenderableSprite renderable) {
+		if(renderable instanceof TObject)
+			if(!((TObject)renderable).shouldDraw)
+				return;
 		if(OBJECT_RENDERABLES.size + 1 > MAX_RENDERABLES)
 			OBJECT_RENDERABLES.removeIndex(0);
 		OBJECT_RENDERABLES.add(renderable);
@@ -124,8 +128,9 @@ public final class TGraphics implements Disposable {
 	 * @param width the world width.
 	 * @param height the world height.
 	 */
-	public static void draw(final TFrame frame, int x, int y, int z, int width, int height) {
-		TILE_RENDERABLES.add(new TRenderableSprite() {
+	public static void draw(final TFrame frame, int x, int y, int z, int width, int height, boolean tile) {
+		Array<TRenderableSprite> to = tile ? TILE_RENDERABLES : OBJECT_RENDERABLES;
+		to.add(new TRenderableSprite() {
 			@Override
 			public float getRenderX()                   { return x;                         	 }
 			@Override
@@ -206,7 +211,7 @@ public final class TGraphics implements Disposable {
      */
 	public static void requestCameraZoomChange(boolean in) {
 		int suggested = (!in) ? currentZoomTwoFactor + 1 : currentZoomTwoFactor - 1;
-		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -3.0f, -1.0f));
+		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -3.0f, -2.0f));
 		if(suggested == currentZoomTwoFactor) {
 			fadeOutIn(6.0f);
 			zoomRequest = true;
@@ -235,7 +240,7 @@ public final class TGraphics implements Disposable {
         fadeRect.setWidth(Gdx.graphics.getWidth());
         fadeRect.setHeight(Gdx.graphics.getHeight());
 		fadeRect.setColor(new Color().set(a));
-		if(fadingDown && screenFade.getProgress() > 1.0f) {
+		if(fadingDown && screenFade.getProgress() > 0.7f) {
 			screenFade.set(0.0f);
 			if(zoomRequest) {
 				CAMERA_ZOOM.set((float)Math.pow(2, currentZoomTwoFactor));

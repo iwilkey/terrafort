@@ -59,7 +59,7 @@ public abstract class TEntity extends TObject {
 	/**
 	 * Called at construction. Utility to include animation controller to add animations.
 	 */
-	public abstract void initAnimations(TAnimationController anim);
+	public void initAnimations(TAnimationController anim) {}
 	
 	/**
 	 * Called right as the entity becomes active in the world.

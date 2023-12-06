@@ -1,5 +1,6 @@
 package dev.iwilkey.terrafort;
 
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.controllers.Controller;
@@ -18,6 +19,7 @@ public final class TInput implements InputProcessor {
 	public static boolean right   = false;
 	public static boolean left    = false;
 	public static boolean run     = false;
+	public static boolean attack  = false;
 	public static boolean zoomIn  = false;
 	public static boolean zoomOut = false;
 	
@@ -37,6 +39,9 @@ public final class TInput implements InputProcessor {
 		public boolean buttonDown(Controller controller, int buttonCode) {
 			System.out.println("Button down: " + buttonCode);
 			switch(buttonCode) {
+				case 0: // pressing 'A'...
+					attack = true;
+					break;
 				case 7: // pressing left stick...
 					run = true;
 					break;
@@ -53,6 +58,9 @@ public final class TInput implements InputProcessor {
 		@Override
 		public boolean buttonUp(Controller controller, int buttonCode) {
 			switch(buttonCode) {
+				case 0: // releasing 'A'...
+					attack = false;
+					break;
 				case 7: // releasing left stick...
 					run = false;
 					break;
@@ -108,6 +116,9 @@ public final class TInput implements InputProcessor {
 			case Keys.E:
 				zoomIn = true;
 				break;
+			case Keys.ENTER:
+				attack = true;
+				break;
 		}
 		return false;
 	}
@@ -136,6 +147,9 @@ public final class TInput implements InputProcessor {
 			case Keys.E:
 				zoomIn = false;
 				break;
+			case Keys.ENTER:
+				attack = false;
+				break;
 		}
 		return false;
 	}
@@ -147,11 +161,21 @@ public final class TInput implements InputProcessor {
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+		switch(button) {
+			case Buttons.LEFT:
+				attack = true;
+				break;
+		}
 		return false;
 	}
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+		switch(button) {
+			case Buttons.LEFT:
+				attack = false;
+				break;
+		}
 		return false;
 	}
 

@@ -12,10 +12,13 @@ import dev.iwilkey.terrafort.gfx.TRenderableSprite;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
- * A {@link TRenderableSprite} with a physical presence; reacts with and blocks light, interacts with physical force and collisions.
+ * A {@link TRenderableSprite} with a physical presence; reacts with and (if desired) blocks light, 
+ * interacts with physical force and collisions.
  * @author Ian Wilkey (iwilkey)
  */
 public class TObject implements TRenderableSprite {
+	
+	public boolean shouldDraw = true;
 	
 	protected final TWorld world;
 	protected final Body   body;
