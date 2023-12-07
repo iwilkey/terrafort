@@ -15,7 +15,7 @@ import box2dLight.PointLight;
 import box2dLight.RayHandler;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
+import dev.iwilkey.terrafort.gfx.TTerrain;
 import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
@@ -30,13 +30,12 @@ import dev.iwilkey.terrafort.obj.particle.TParticle;
  */
 public final class TWorld implements Disposable {
 
-	public static final short           IGNORE_LIGHTING         = 0x0001;
 	public static final short           LIGHTING_RAYS           = 16;
-	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 12000.0f;
+	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 1200.0f;
 	public static final Filter          LIGHTING_COLLISION_MASK = new Filter();
 	
 	static {
-		LIGHTING_COLLISION_MASK.maskBits = (short)(~IGNORE_LIGHTING);
+		LIGHTING_COLLISION_MASK.maskBits                        = (short)(~TCollisionManifold.IGNORE_GROUP);
 	}
 
 	private final World              	world;
@@ -99,8 +98,8 @@ public final class TWorld implements Disposable {
 		if(obj instanceof TPlayer)
 			player = (TPlayer)obj;
 		if(obj instanceof TLifeform) 
-			obj.getFixture().getFilterData().categoryBits = IGNORE_LIGHTING;
-		else obj.getFixture().getFilterData().categoryBits = ~IGNORE_LIGHTING;
+			obj.getPhysicalFixture().getFilterData().categoryBits = TCollisionManifold.IGNORE_GROUP;
+		else obj.getPhysicalFixture().getFilterData().categoryBits = ~TCollisionManifold.IGNORE_GROUP;
 		objects.add(obj);
 		return obj;
 	}
@@ -114,18 +113,11 @@ public final class TWorld implements Disposable {
 		objects.removeValue(obj, false);
 	}
 	
-	float time = 0.0f;
-	
 	/**
 	 * Steps the world simulation forward one tick.
 	 * @param dt the change in time since the last tick.
 	 */
 	public void update(float dt) {
-		time += dt;
-		if(time > 1.0f) {
-			System.out.println("Loaded chunks: " + loadedChunks.keySet().size());
-			time = 0.0f;
-		}
 		world.step(dt, 6, 2);
 		updateDayNightCycle(dt);
         for(final TObject obj : objects) {
@@ -160,7 +152,7 @@ public final class TWorld implements Disposable {
 	 * Renders the world's objects, Box2D debug information, and dynamic lighting.
 	 */
 	public void render() {
-		TTerrainRenderer.render(this, player);
+		TTerrain.render(this, player);
 		for(final TObject obj : objects)
 			TGraphics.draw(obj);
 		if(debug) debugRenderer.render(world, TGraphics.CAMERA.combined);
@@ -198,7 +190,7 @@ public final class TWorld implements Disposable {
 	public void setTileHeightAt(int x, int y, int z) {
 		if(z != 0) {
 			// We know it's not stone, so we might need to remove a tile physical.
-			TTerrainRenderer.removePhysicalAt(this, x, y);
+			TTerrain.removePhysicalAt(this, x, y);
 		}
 		requestChunkThatContains(x, y).setTileHeightAt(x, y, z);
 	}
@@ -291,7 +283,7 @@ public final class TWorld implements Disposable {
 		clearAllActiveObjectsAndBodies();
 		world.dispose();
 		debugRenderer.dispose();
-		TTerrainRenderer.gc();
+		TTerrain.gc();
 	}
 
 }

@@ -1,6 +1,7 @@
 package dev.iwilkey.terrafort.obj.entity.lifeform;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.gfx.TFrame;
@@ -36,7 +37,7 @@ public final class TPlayer extends TLifeform {
 			  0,
 			  1,
 			  2,
-			  Color.WHITE.cpy(),
+			  Color.GREEN.cpy(),
 			  PLAYER_MAX_HP,
 			  new TLifeformAnimationArray(new TFrame(0, 0, 1, 2), new TFrame(14, 0, 1, 2)));
 		setGraphicsColliderOffset(-1, 8);
@@ -76,14 +77,10 @@ public final class TPlayer extends TLifeform {
 	
 	@Override
 	public void attackProcedure() {
-		if(getCollisionManifold().size != 0) {
-			// Interact with all entities in manifold? Just one? Based off of direction?
-			for(TObject o : getCollisionManifold()) {
-				if(o instanceof TEntity) {
-					((TEntity)o).onInteraction(this);
-					break;
-				}
-			}
+		Array<TObject> manifold = getCollisionManifold();
+		if(manifold.size != 0) {
+			TEntity picked = (TEntity)getNextCollisionFromManifold();
+			picked.onInteraction(this);
 		}
 	}
 	

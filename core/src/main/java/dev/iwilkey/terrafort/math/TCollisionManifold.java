@@ -10,10 +10,12 @@ import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.particle.TParticle;
 
 /**
- * Facilitates the efficient facilitation of the Terrafort collision system.
+ * Efficiently facilitates the the Terrafort physical collision filtering and notification system.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TCollisionManifold implements ContactListener {
+	
+	public static final short IGNORE_GROUP = 0x0001;
 	
 	@Override
 	public void beginContact(Contact contact) {

@@ -10,6 +10,7 @@ import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.gfx.TRenderableSprite;
+import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -83,7 +84,7 @@ public class TObject implements TRenderableSprite {
 	/**
 	 * Syncs the object's physical translation with the graphical representation.
 	 */
-	public final void sync() {
+	public void sync() {
 		x                 = body.getPosition().x;
 		y                 = body.getPosition().y;
 		rotationInRadians = (float)body.getAngle();
@@ -148,6 +149,23 @@ public class TObject implements TRenderableSprite {
 		colliderOffY = y;
 	}
 	
+	/**
+	 * Marks the {@link TObject} as a sensor. This means it will not react physically with
+	 * the colliding body, but will still get added to the collision manifold.
+	 */
+	public final void setAsSensor() {
+		getPhysicalFixture().setSensor(true);
+	}
+	
+	/**
+	 * Marks the {@link TObject} as a physical. This means during collisions,
+	 * it will be added to the collision manifold and react physically with the colliding
+	 * body.
+	 */
+	public final void setAsPhysical() {
+		getPhysicalFixture().setSensor(false);
+	}
+	
 	public final void setRenderTint(Color color) {
 		this.renderTint.set(color);
 	}
@@ -156,7 +174,7 @@ public class TObject implements TRenderableSprite {
 		return body;
 	}
 	
-	public final Fixture getFixture() {
+	public final Fixture getPhysicalFixture() {
 		return body.getFixtureList().get(0);
 	}
 

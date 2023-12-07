@@ -6,13 +6,22 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
+import dev.iwilkey.terrafort.gfx.TTerrain;
 
 /**
  * Quick and efficient mathematical utilities.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TMath {
+	
+	public static final byte SOUTH      = 0;
+	public static final byte SOUTH_EAST = 1;
+	public static final byte EAST       = 2;
+	public static final byte NORTH_EAST = 3;
+	public static final byte NORTH      = 4;
+	public static final byte NORTH_WEST = 5;
+	public static final byte WEST       = 6;
+	public static final byte SOUTH_WEST = 7;
 	
 	/**
 	 * Clamp a floating point number to a lower and upper bound.
@@ -45,8 +54,8 @@ public final class TMath {
 	 * @return a rounded {@link Vector2} representing the input coordinates rounded to the nearest tile grid location.
 	 */
 	public static Vector2 roundToWorldTileGrid(float x, float y) {
-		x = Math.round(x / TTerrainRenderer.TERRAIN_TILE_WIDTH) * TTerrainRenderer.TERRAIN_TILE_WIDTH;
-		y = Math.round(y / TTerrainRenderer.TERRAIN_TILE_HEIGHT) * TTerrainRenderer.TERRAIN_TILE_HEIGHT;
+		x = Math.round(x / TTerrain.TERRAIN_TILE_WIDTH) * TTerrain.TERRAIN_TILE_WIDTH;
+		y = Math.round(y / TTerrain.TERRAIN_TILE_HEIGHT) * TTerrain.TERRAIN_TILE_HEIGHT;
 		return new Vector2(x, y);
 	}
 	
@@ -59,13 +68,13 @@ public final class TMath {
 	public static Vector2 translateScreenToTileCoordinates(int x, int y) {
 		final Vector2 ret = translateScreenToWorldCoordinates(x, y);
 		ret.set(roundToWorldTileGrid(ret.x, ret.y));
-		ret.x = Math.round(ret.x / TTerrainRenderer.TERRAIN_TILE_WIDTH);
-		ret.y = Math.round(ret.y / TTerrainRenderer.TERRAIN_TILE_HEIGHT);
+		ret.x = Math.round(ret.x / TTerrain.TERRAIN_TILE_WIDTH);
+		ret.y = Math.round(ret.y / TTerrain.TERRAIN_TILE_HEIGHT);
 		return ret;
 	}
 	
 	/**
-	 * This function will return an integer between 0 and levels - 1, indicating the quantization region of the input value.
+	 * This function will return an integer between 0 and levels - 1, indicating the segmentation region of the input value.
 	 * 
 	 * <p>
 	 * Ex. 0.24 quantized to level 4 would return 1 because 0.24 lies in the first equal division of the [0, 1] interval in four slices.
@@ -74,11 +83,35 @@ public final class TMath {
 	 * @param levels the level to quantize to. Must be at least 1.
 	 * @return
 	 */
-	public static int quantize(double value, int levels) {
-		if(value < 0 || value > 1)
+	public static int segment(double value, int levels, float... customSegments) {
+		if(value < 0 || value > 1) {
+			System.err.println("TMath.segment(): only accepts a value between [0, 1]!");
 			return -1;
-		if(levels < 1)
+		}
+		if(levels < 1) {
+			System.err.println("TMath.segment(): only accepts a levels value greater than or equal to 1!");
 			return -1;
+		}
+		if(customSegments.length != 0) {
+			if(customSegments.length != (levels - 1)) {
+				System.err.println("TMath.segment(): 'customSegments...' option will mandates that the list is has a value for each (levels - 1)! Nothing more, nothing less.");
+				return -1;
+			} else {
+				// Validate custom segments...
+			    for(int i = 0; i < customSegments.length - 1; i++) {
+			        if(customSegments[i] >= customSegments[i + 1] || customSegments[i] < 0 || customSegments[i] > 1) {
+			            System.err.println("TMath.segment() 'customSegments...' must be in ascending order and within [0, 1]!");
+			            return -1;
+			        }
+			    }
+			    // Determine the segment
+			    for(int i = 0; i < customSegments.length; i++) {
+			        if(value <= customSegments[i]) {
+			            return i;
+			        }
+			    }
+			}
+		}
 		int ret = (int)Math.floor(value * levels);
 		return Math.min(ret, levels - 1);
 	}
@@ -137,8 +170,52 @@ public final class TMath {
 	 * @param b the upper bound (exclusive).
 	 * @return a random number [a, b) of uniform distribution.
 	 */
-	public static float uniFloat(float a, float b) {
+	public static float nextFloat(float a, float b) {
 		return (float)ThreadLocalRandom.current().nextDouble(a, b);
 	}
+	
+	/**
+	 * Returns a number of the list that is selected with uniform distribution.
+	 * @param values the amount of values to pick from
+	 * @return a number from the list, all with equal chance to be picked.
+	 */
+	public static float equalPick(float... values) {
+		return values[ThreadLocalRandom.current().nextInt(0, values.length)];
+	}
+	
+	/**
+     * Selects a value from the provided values array based on the specified likelihoods in the chances array.
+     * Each index in the chances array represents the probability of selecting the corresponding index in the values array.
+     * The sum of the chances array should be 1 to represent a valid probability distribution.
+     * 
+     * @param values Array of values to choose from.
+     * @param chances Array representing the probability of each index being chosen, must sum to 1.
+     * @return A value from the values array, selected based on the specified probabilities in the chances array.
+     */
+    public static float unequalPick(float[] values, float[] chances) {
+    	if(chances.length != values.length) {
+    		System.err.println("TMath.unequalPick(): Chance and value vector should be of equal length!");
+            return -1.0f;
+    	}
+    	if(chances.length == 0) {
+    		System.err.println("TMath.unequalPick(): Chance and value vector should have at least one value!");
+            return -1.0f;
+    	}
+        float sum = 0;
+        for (float chance : chances)
+            sum += chance;
+        if (Math.abs(sum - 1.0f) > 0.0001) {
+            System.err.println("TMath.unequalPick(): Sum of chances must be approximately 1!");
+            return -1.0f;
+        }
+        float randomFloat = ThreadLocalRandom.current().nextFloat();
+        float cumulativeProbability = 0.0f;
+        for (int i = 0; i < chances.length; i++) {
+            cumulativeProbability += chances[i];
+            if (randomFloat < cumulativeProbability)
+                return values[i];
+        }
+        return values[values.length - 1];
+    }
 	
 }

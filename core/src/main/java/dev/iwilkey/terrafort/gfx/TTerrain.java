@@ -16,40 +16,49 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  * representing {@link TWorld} terrain that provides the seed for layered OpenSimplex noise.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TTerrainRenderer {
+public final class TTerrain {
 	
 	public static final int    TERRAIN_TILE_WIDTH               = 8;
 	public static final int    TERRAIN_TILE_HEIGHT              = 8;
 	public static final int    HALF_TERRAIN_TILE_WIDTH          = TERRAIN_TILE_WIDTH / 2;
 	public static final int    HALF_TERRAIN_TILE_HEIGHT         = TERRAIN_TILE_HEIGHT / 2;
-	public static final int    TERRAIN_LEVELS                   = 4;
+	public static final int    TERRAIN_LEVELS                   = 5;
 	public static final int    TRANSITION_THICKNESS_FACTOR      = 4; // higher value = thinner transition borders.
 	public static final int    TERRAIN_VIEWPORT_CULLING_PADDING = 4;
-	
-	public static final byte   DX[]          					= new byte[9];
-	public static final byte   DY[]          					= new byte[9];
+	public static final int    STONE_TILE                       = 0;
+	public static final int    ASPHALT_TILE                     = 1;
+	public static final int    GRASS_TILE                       = 2;
+	public static final int    SAND_TILE                        = 3;
+	public static final int    WATER_TILE                       = 4;
 	
 	public static final TFrame STONE                            = new TFrame(3, 0, 1, 1);
+	public static final TFrame ASPHALT                          = new TFrame(4, 1, 1, 1);
 	public static final TFrame GRASS                            = new TFrame(4, 0, 1, 1);
 	public static final TFrame SAND                             = new TFrame(5, 0, 1, 1);
 	public static final TFrame WATER                            = new TFrame(6, 0, 1, 1);
 	
+	public static final byte   DX[]          					= new byte[9];
+	public static final byte   DY[]          					= new byte[9];
+	
 	public static final TFrame LEVELS[]                         = new TFrame[TERRAIN_LEVELS];
+	
 	public static final Color  TRANSITION_COLORS[]              = new Color[TERRAIN_LEVELS - 1];
 	
 	/**
-	 * A dynamic way to keep track of tiles that require a physical presence, like Stone.
+	 * A dynamic way to keep track of tiles that require a physical presence, like Stone. TODO: move this to the chunk itself.
 	 */
 	private static final HashMap<Long, TObject> TILE_PHYSICALS  = new HashMap<>();
 	
 	static {
-		LEVELS[0]                                               = TTerrainRenderer.STONE;
+		LEVELS[0]                                               = TTerrain.STONE;
 		TRANSITION_COLORS[0]                                    = new Color().set(0x868689FF);
-		LEVELS[1] 					                            = TTerrainRenderer.GRASS;
-		TRANSITION_COLORS[1]                                    = new Color().set(0x3D823DFF);
-		LEVELS[2]           									= TTerrainRenderer.SAND;
-		TRANSITION_COLORS[2]                                    = new Color().set(0xA38F4EFF);
-		LEVELS[3] 												= TTerrainRenderer.WATER;
+		LEVELS[1]                                               = TTerrain.ASPHALT;
+		TRANSITION_COLORS[1]                                    = new Color().set(0x3E3E3FFF);
+		LEVELS[2] 					                            = TTerrain.GRASS;
+		TRANSITION_COLORS[2]                                    = new Color().set(0x3D823DFF);
+		LEVELS[3]           									= TTerrain.SAND;
+		TRANSITION_COLORS[3]                                    = new Color().set(0xA38F4EFF);
+		LEVELS[4] 												= TTerrain.WATER;
 		DX[0] 													= 0;
 		DX[1] 													= -1;
 		DX[2]													= -1;
@@ -162,7 +171,7 @@ public final class TTerrainRenderer {
 	                    TGraphics.draw(border, false);
 	                }
 	        	}
-		        TGraphics.draw(LEVELS[vq], i * TERRAIN_TILE_WIDTH, j * TERRAIN_TILE_HEIGHT, vq, TERRAIN_TILE_WIDTH, TERRAIN_TILE_HEIGHT, Color.WHITE.cpy(), true);
+	        	TGraphics.draw(LEVELS[vq], i * TERRAIN_TILE_WIDTH, j * TERRAIN_TILE_HEIGHT, vq, TERRAIN_TILE_WIDTH, TERRAIN_TILE_HEIGHT, Color.WHITE.cpy(), true);
 	        }
 	    }
 	}

@@ -1,6 +1,7 @@
 package dev.iwilkey.terrafort.gfx.anim;
 
 import dev.iwilkey.terrafort.gfx.TFrame;
+import dev.iwilkey.terrafort.math.TMath;
 
 /**
  * A special grouping of {@link TAnimation} that encapsulate and label all movement animation frames
@@ -36,26 +37,17 @@ import dev.iwilkey.terrafort.gfx.TFrame;
  */
 public final class TLifeformAnimationArray {
 	
-	public static final byte SOUTH      = 0;
-	public static final byte SOUTH_EAST = 1;
-	public static final byte EAST       = 2;
-	public static final byte NORTH_EAST = 3;
-	public static final byte NORTH      = 4;
-	public static final byte NORTH_WEST = 5;
-	public static final byte WEST       = 6;
-	public static final byte SOUTH_WEST = 7;
-	
 	public static final String LABELS[] = new String[8];
 	
 	static {
-		LABELS[SOUTH]      = "move_south";
-		LABELS[SOUTH_EAST] = "move_south_east";
-		LABELS[EAST]       = "move_east";
-		LABELS[NORTH_EAST] = "move_north_east";
-		LABELS[NORTH]      = "move_north";
-		LABELS[NORTH_WEST] = "move_north_west";
-		LABELS[WEST]       = "move_west";
-		LABELS[SOUTH_WEST] = "move_south_west";
+		LABELS[TMath.SOUTH]      = "move_south";
+		LABELS[TMath.SOUTH_EAST] = "move_south_east";
+		LABELS[TMath.EAST]       = "move_east";
+		LABELS[TMath.NORTH_EAST] = "move_north_east";
+		LABELS[TMath.NORTH]      = "move_north";
+		LABELS[TMath.NORTH_WEST] = "move_north_west";
+		LABELS[TMath.WEST]       = "move_west";
+		LABELS[TMath.SOUTH_WEST] = "move_south_west";
 	}
 	
 	private TAnimation idleAnimations[];

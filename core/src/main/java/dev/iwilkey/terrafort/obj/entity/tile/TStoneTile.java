@@ -2,6 +2,7 @@ package dev.iwilkey.terrafort.obj.entity.tile;
 
 import com.badlogic.gdx.graphics.Color;
 
+import dev.iwilkey.terrafort.obj.entity.element.ore.TCopper;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
 import dev.iwilkey.terrafort.obj.particle.TParticle;
 import dev.iwilkey.terrafort.obj.world.TWorld;
@@ -12,7 +13,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public final class TStoneTile extends TTile {
 	
-	public static final int MAX_HP = 16;
+	public static final int MAX_HP = 6;
 
 	public TStoneTile(TWorld world, int tileX, int tileY) {
 		super(world, 
@@ -48,6 +49,9 @@ public final class TStoneTile extends TTile {
 		world.setTileHeightAt(getTileX(), getTileY(), 1);
 		for(int i = 0; i < 16; i++)
 			world.addObject(new TParticle(world, x, y, Color.GRAY));
+		if(Math.random() > 0.90f) {
+			world.addObject(new TCopper(world, getTileX(), getTileY()));
+		}
 	}
 
 }

@@ -6,8 +6,10 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
+import dev.iwilkey.terrafort.gfx.TTerrain;
 import dev.iwilkey.terrafort.gfx.anim.TLifeformAnimationArray;
+import dev.iwilkey.terrafort.math.TMath;
+import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
@@ -23,12 +25,12 @@ public abstract class TLifeform extends TEntity {
 	private String 		                    lastNonZeroDirection;
 	private boolean 		                isMoving;
 	private boolean                         isInWater;
-	private int                             directionFace;
 	private float                           regHeight;
 	private float   		                requestedMoveSpeed;
 	private float                           actualMoveSpeed;
 	private float                           attackCooldownAmt;
 	private float                           attackTimer;
+	protected int                           directionFace;
 	
 	public TLifeform(TWorld  world, 
 			       boolean                         isDynamic, 
@@ -84,7 +86,7 @@ public abstract class TLifeform extends TEntity {
 		isMoving  = (movementVector.x != 0 || movementVector.y != 0);
 		
 		// Water mechanics...
-		isInWater = world.getTileHeightAt(getCurrentTileX(), getCurrentTileY()) == TTerrainRenderer.TERRAIN_LEVELS - 1;
+		isInWater = world.getTileHeightAt(getCurrentTileX(), getCurrentTileY()) == TTerrain.TERRAIN_LEVELS - 1;
 		if(isInWater) {
 			actualMoveSpeed           = requestedMoveSpeed / 3f;
 			dataSelectionSquareHeight = 1;
@@ -157,6 +159,56 @@ public abstract class TLifeform extends TEntity {
 	}
 	
 	/**
+	 * Return the object from the collision manifold that is most likely to match the {@link TLifeform}s expectations.
+	 */
+	public final TObject getNextCollisionFromManifold() {
+		if(getCollisionManifold().size == 0)
+			return this;
+		// Otherwise, pick based on directional criteria.
+		for(final TObject o : getCollisionManifold()) {
+			final float ox = o.getRenderX();
+			final float oy = o.getRenderY();
+			final int dx = Math.round(ox - x) / (TTerrain.TERRAIN_TILE_WIDTH / 2);
+			final int dy = Math.round(oy - y) / (TTerrain.TERRAIN_TILE_HEIGHT / 2);
+			switch(directionFace) {
+				case TMath.SOUTH:
+					if(dx == 0 && dy == -1)
+						return o;
+					break;
+				case TMath.SOUTH_EAST:
+					if(dx == 1 && dy == -1)
+						return o;
+					break;
+				case TMath.EAST:
+					if(dx == 1 && dy == 0)
+						return o;
+					break;
+				case TMath.NORTH_EAST:
+					if(dx == 1 && dy == 1)
+						return o;
+					break;
+				case TMath.NORTH:
+					if(dx == 0 && dy == 1)
+						return o;
+					break;
+				case TMath.NORTH_WEST:
+					if(dx == -1 && dy == 1)
+						return o;
+					break;
+				case TMath.WEST:
+					if(dx == -1 && dy == 0)
+						return o;
+					break;
+				case TMath.SOUTH_WEST:
+					if(dx == -1 && dy == -1)
+						return o;
+					break;
+			}
+		}
+		return getCollisionManifold().get(0);
+	}
+	
+	/**
 	 * Calculates what animation should play based on {@link TLifeform} state.
 	 */
 	private final void calculateGraphics(float dt) {
@@ -211,15 +263,15 @@ public abstract class TLifeform extends TEntity {
 	 */
 	private final void calculateFacingDirection() {
         if (movementVector.x > 0)
-            if (movementVector.y > 0) directionFace = TLifeformAnimationArray.NORTH_EAST;
-            else if (movementVector.y < 0) directionFace = TLifeformAnimationArray.SOUTH_EAST;
-            else directionFace = TLifeformAnimationArray.EAST;
+            if (movementVector.y > 0) directionFace = TMath.NORTH_EAST;
+            else if (movementVector.y < 0) directionFace = TMath.SOUTH_EAST;
+            else directionFace = TMath.EAST;
         else if (movementVector.x < 0)
-            if (movementVector.y > 0) directionFace = TLifeformAnimationArray.NORTH_WEST;
-            else if (movementVector.y < 0) directionFace = TLifeformAnimationArray.SOUTH_WEST;
-            else directionFace = TLifeformAnimationArray.WEST;
-        else if (movementVector.y > 0) directionFace = TLifeformAnimationArray.NORTH;
-        else if (movementVector.y < 0) directionFace = TLifeformAnimationArray.SOUTH;
+            if (movementVector.y > 0) directionFace = TMath.NORTH_WEST;
+            else if (movementVector.y < 0) directionFace = TMath.SOUTH_WEST;
+            else directionFace = TMath.WEST;
+        else if (movementVector.y > 0) directionFace = TMath.NORTH;
+        else if (movementVector.y < 0) directionFace = TMath.SOUTH;
 	}
 
 	/**

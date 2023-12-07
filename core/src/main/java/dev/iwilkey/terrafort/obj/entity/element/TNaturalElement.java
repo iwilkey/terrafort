@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.obj.entity.vegetation;
+package dev.iwilkey.terrafort.obj.entity.element;
 
 import com.badlogic.gdx.graphics.Color;
 
@@ -6,12 +6,12 @@ import dev.iwilkey.terrafort.obj.entity.TEntity;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
- * A plant or tree that can be harvested.
+ * A plant, tree, rock; any object found in nature that can be harvested.
  * @author Ian Wilkey (iwilkey)
  */
-public abstract class TVegetation extends TEntity {
+public abstract class TNaturalElement extends TEntity {
 
-	public TVegetation(TWorld  world, 
+	public TNaturalElement(TWorld  world, 
 			           boolean isDynamic, 
 			           float   x, 
 			           float   y, 

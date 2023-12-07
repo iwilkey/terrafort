@@ -115,8 +115,6 @@ public final class TGraphics implements Disposable {
 		if(renderable instanceof TObject)
 			if(!((TObject)renderable).shouldDraw)
 				return;
-		if(OBJECT_RENDERABLES.size + 1 > MAX_RENDERABLES)
-			OBJECT_RENDERABLES.removeIndex(0);
 		if(renderable instanceof TStoneTile) {
 			TILE_RENDERABLES.add(renderable);
 		} else OBJECT_RENDERABLES.add(renderable);
@@ -419,7 +417,7 @@ public final class TGraphics implements Disposable {
 	 */
 	public static void gc() {
 		flush();
-		TTerrainRenderer.gc();
+		TTerrain.gc();
 		for(SpriteBatch batch : TILE_BATCH_POOL)
 			batch.dispose();
 		TILE_BATCH_POOL.clear();
