@@ -64,7 +64,7 @@ public final class TWorld implements Disposable {
 		objects                         = new Array<>();
 		deathrow                        = new Array<>();
 		debugRenderer                   = new Box2DDebugRenderer();
-		debug                           = false;
+		debug                           = true;
 		clientPlayer                    = null;
 		worldTime                       = DAY_NIGHT_CYCLE_PERIOD;
 		day                             = true;

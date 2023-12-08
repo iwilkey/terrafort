@@ -10,7 +10,7 @@ import dev.iwilkey.terrafort.obj.particle.TParticle;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
- * A boulder. Found in grasslands.
+ * A boulder. Found on asphalt and stone; near mountains.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TBoulder extends TNaturalElement {
@@ -26,14 +26,14 @@ public final class TBoulder extends TNaturalElement {
 		      TTerrainRenderer.TERRAIN_TILE_WIDTH * 2, 
 		      TTerrainRenderer.TERRAIN_TILE_HEIGHT * 2, 
 		      TTerrainRenderer.TERRAIN_TILE_WIDTH / 2f, 
-		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 4f,
+		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 2f,
 		      10, 
-		      ThreadLocalRandom.current().nextInt(0, 4),
+		      ThreadLocalRandom.current().nextInt(0, 3),
 			  1, 
 			  1, 
 			  Color.WHITE.cpy(), 
 			  MAX_HP);
-		setGraphicsColliderOffset(0, TTerrainRenderer.TERRAIN_TILE_WIDTH);
+		setGraphicsColliderOffset(0, TTerrainRenderer.TERRAIN_TILE_WIDTH / 4f);
 	}
 
 	@Override

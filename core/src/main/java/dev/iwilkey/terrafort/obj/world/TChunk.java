@@ -29,7 +29,7 @@ public final class TChunk {
 	public static final int   TREE_ELEMENT      = 0;
 	public static final int   FLOWER_ELEMENT    = 1;
 	public static final int   BUSH_ELEMENT      = 2;
-	public static final int   BOULDER_ELEMENT   = 4;
+	public static final int   BOULDER_ELEMENT   = 3;
 	
 	private final Random                         random;
 	private final TWorld                         world;
@@ -116,13 +116,7 @@ public final class TChunk {
 			if(random.nextFloat() < 0.75f) {
 				double layer3 = TNoise.get(this.world.getSeed() - 1, x * layer0Norm2, y * layer0Norm2);
 				layer3        = (layer3 + 1) / 2;
-				element       = TMath.segment(layer3, 
-											  5, 
-											  0.20f, 
-											  0.21f, 
-											  0.22f, 
-											  0.23f
-											 );
+				element       = TMath.segment(layer3, 4);
 			}
 			switch(tile) {
 				case TTerrainRenderer.GRASS_TILE:
@@ -132,19 +126,27 @@ public final class TChunk {
 								world.addObject(new TTree(world, x, y));
 							break;
 						case BUSH_ELEMENT:
-							if(random.nextFloat() < 0.40f)
-								world.addObject(new TBush(world, x, y));
+							if(random.nextFloat() < 0.20f)
+								world.addObject(new TTree(world, x, y));
 							break;
 						case FLOWER_ELEMENT:
 							if(random.nextFloat() < 0.60f)
 								world.addObject(new TFlower(world, x, y));
 							break;
-						case BOULDER_ELEMENT:
-							if(random.nextFloat() < 0.80f)
-								world.addObject(new TBoulder(world, x, y));
-							break;
 					}
 					break;
+				
+				case TTerrainRenderer.ASPHALT_TILE:
+				case TTerrainRenderer.STONE_TILE:
+					
+					switch(element) {
+						case BOULDER_ELEMENT:
+							world.addObject(new TBoulder(world, x, y));
+							break;
+					}
+					
+					break;
+					
 			}
 		}
 		return terrainData.get(hash);
