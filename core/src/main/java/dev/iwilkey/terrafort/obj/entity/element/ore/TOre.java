@@ -2,7 +2,7 @@ package dev.iwilkey.terrafort.obj.entity.element.ore;
 
 import com.badlogic.gdx.graphics.Color;
 
-import dev.iwilkey.terrafort.gfx.TTerrain;
+import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.obj.entity.element.TNaturalElement;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
@@ -23,13 +23,13 @@ public abstract class TOre extends TNaturalElement {
 				int maxHP) {
 		super(world, 
 			  false, 
-			  tileX * TTerrain.TERRAIN_TILE_WIDTH, 
-			  tileY * TTerrain.TERRAIN_TILE_HEIGHT, 
+			  tileX * TTerrainRenderer.TERRAIN_TILE_WIDTH, 
+			  tileY * TTerrainRenderer.TERRAIN_TILE_HEIGHT, 
 			  1, 
-			  TTerrain.TERRAIN_TILE_WIDTH, 
-			  TTerrain.TERRAIN_TILE_HEIGHT, 
-			  TTerrain.TERRAIN_TILE_WIDTH / 4f, 
-			  TTerrain.TERRAIN_TILE_HEIGHT / 4f, 
+			  TTerrainRenderer.TERRAIN_TILE_WIDTH, 
+			  TTerrainRenderer.TERRAIN_TILE_HEIGHT, 
+			  TTerrainRenderer.TERRAIN_TILE_WIDTH / 4f, 
+			  TTerrainRenderer.TERRAIN_TILE_HEIGHT / 4f, 
 			  dataOffsetX, 
 			  dataOffsetY,
 			  dataSelectionSquareWidth, 

@@ -15,7 +15,7 @@ import box2dLight.PointLight;
 import box2dLight.RayHandler;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.TTerrain;
+import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
@@ -40,20 +40,22 @@ public final class TWorld implements Disposable {
 
 	private final World              	world;
 	private final long                  seed;
+	
 	private final HashMap<Long, TChunk> loadedChunks;
 	private final Array<TObject>        objects;
 	private final Array<TObject>        deathrow;
+	
 	private final Box2DDebugRenderer    debugRenderer;
 	private final RayHandler            lightRenderer;
 	
-	private TPlayer                     player;
+	private TPlayer                     clientPlayer;
 	private boolean                     debug;
 	private float                       worldTime;
 	private boolean                     day;
 	private boolean                     dusk;
 	private boolean                     night;
 	private boolean                     dawn;
-
+	
 	public TWorld(long seed) {
 		this.seed                       = seed;
 		world                           = new World(new Vector2(0, 0), false);
@@ -63,7 +65,7 @@ public final class TWorld implements Disposable {
 		deathrow                        = new Array<>();
 		debugRenderer                   = new Box2DDebugRenderer();
 		debug                           = false;
-		player                          = null;
+		clientPlayer                    = null;
 		worldTime                       = DAY_NIGHT_CYCLE_PERIOD;
 		day                             = true;
 		dusk                            = false;
@@ -84,7 +86,7 @@ public final class TWorld implements Disposable {
 	 * Adds and returns a point light to the world.
 	 */
 	public PointLight addPointLight(int x, int y, float r, Color color) {
-		PointLight ret = new PointLight(lightRenderer, LIGHTING_RAYS, color, r, x, y);
+		final PointLight ret = new PointLight(lightRenderer, LIGHTING_RAYS, color, r, x, y);
 		ret.setContactFilter(LIGHTING_COLLISION_MASK);
 		return ret;
 	}
@@ -95,10 +97,9 @@ public final class TWorld implements Disposable {
 	 * @return the object added. NOTE: Keep track of this object, as it must be explicitly removed.
 	 */
 	public TObject addObject(final TObject obj) {
-		if(obj instanceof TPlayer)
-			player = (TPlayer)obj;
+		if(obj instanceof TPlayer) clientPlayer                    = (TPlayer)obj;
 		if(obj instanceof TLifeform) 
-			obj.getPhysicalFixture().getFilterData().categoryBits = TCollisionManifold.IGNORE_GROUP;
+			obj.getPhysicalFixture().getFilterData().categoryBits  = TCollisionManifold.IGNORE_GROUP;
 		else obj.getPhysicalFixture().getFilterData().categoryBits = ~TCollisionManifold.IGNORE_GROUP;
 		objects.add(obj);
 		return obj;
@@ -109,18 +110,37 @@ public final class TWorld implements Disposable {
 	 * @param obj the object to remove.
 	 */
 	public void removeObject(final TObject obj) {
-		world.destroyBody(obj.getPhysicalBody());
+		if(obj.getPhysicalBody() != null)
+			world.destroyBody(obj.getPhysicalBody());
 		objects.removeValue(obj, false);
 	}
+	
+	float time = 0.0f;
 	
 	/**
 	 * Steps the world simulation forward one tick.
 	 * @param dt the change in time since the last tick.
 	 */
 	public void update(float dt) {
+		
+		time += dt;
+		if(time > 1.0f) {
+			System.out.println("Concerned metrics: \n"
+					+ "Loaded chunks: " + loadedChunks.size() + "\n"
+					+ "Physical bodies: " + world.getBodyCount() + "\n");
+			time = 0.0f;
+		}
+
+		// step physical simulation and day/night.
+
 		world.step(dt, 6, 2);
 		updateDayNightCycle(dt);
+		
+		// tick all active objects.
+		
         for(final TObject obj : objects) {
+        	if(!obj.isEnabled())
+        		continue;
             obj.sync();
             if(obj instanceof TEntity) {
             	TEntity e = (TEntity)obj;
@@ -138,6 +158,9 @@ public final class TWorld implements Disposable {
             	p.tick(dt);
             }
         }
+        
+        // safely remove objects that are no longer needed; avoids concurrent modification.
+        
         for(final TObject e : deathrow) {
         	if(e instanceof TEntity)
         		((TEntity)e).die();
@@ -146,13 +169,14 @@ public final class TWorld implements Disposable {
         }
         objects.removeAll(deathrow, false);
         deathrow.clear();
+        
 	}
 	
 	/**
 	 * Renders the world's objects, Box2D debug information, and dynamic lighting.
 	 */
 	public void render() {
-		TTerrain.render(this, player);
+		TTerrainRenderer.render(this, clientPlayer);
 		for(final TObject obj : objects)
 			TGraphics.draw(obj);
 		if(debug) debugRenderer.render(world, TGraphics.CAMERA.combined);
@@ -190,7 +214,7 @@ public final class TWorld implements Disposable {
 	public void setTileHeightAt(int x, int y, int z) {
 		if(z != 0) {
 			// We know it's not stone, so we might need to remove a tile physical.
-			TTerrain.removePhysicalAt(this, x, y);
+			TTerrainRenderer.removePhysicalAt(this, x, y);
 		}
 		requestChunkThatContains(x, y).setTileHeightAt(x, y, z);
 	}
@@ -233,7 +257,7 @@ public final class TWorld implements Disposable {
 	 * @param y the tile y coordinate.
 	 * @return the chunk that contains the given tile coordinates.
 	 */
-	private TChunk requestChunkThatContains(int x, int y) {
+	public TChunk requestChunkThatContains(int x, int y) {
 		int chunkX = (x / TChunk.CHUNK_SIZE);
 		int chunkY = (y / TChunk.CHUNK_SIZE);
 		long hash  = (((long)chunkX) << 32) | (chunkY & 0xffffffffL);
@@ -266,7 +290,8 @@ public final class TWorld implements Disposable {
 	 */
 	public void clearAllActiveObjectsAndBodies() {
 		 for(final TObject obj : objects)
-			 world.destroyBody(obj.getPhysicalBody());
+			 if(obj.getPhysicalBody() != null)
+				 world.destroyBody(obj.getPhysicalBody());
 		 deathrow.clear();
 		 objects.clear();
 		 Array<Body> others = new Array<>();
@@ -283,7 +308,7 @@ public final class TWorld implements Disposable {
 		clearAllActiveObjectsAndBodies();
 		world.dispose();
 		debugRenderer.dispose();
-		TTerrain.gc();
+		TTerrainRenderer.gc();
 	}
 
 }

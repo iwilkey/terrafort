@@ -4,7 +4,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.badlogic.gdx.graphics.Color;
 
-import dev.iwilkey.terrafort.gfx.TTerrain;
+import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
 import dev.iwilkey.terrafort.obj.particle.TParticle;
@@ -21,20 +21,20 @@ public final class TTree extends TNaturalElement {
 	public TTree(TWorld world, int tileX, int tileY) {
 		super(world, 
 		      false, 
-		      tileX * TTerrain.TERRAIN_TILE_WIDTH, 
-		      tileY * TTerrain.TERRAIN_TILE_HEIGHT, 
+		      tileX * TTerrainRenderer.TERRAIN_TILE_WIDTH, 
+		      tileY * TTerrainRenderer.TERRAIN_TILE_HEIGHT, 
 		      0, 
-		      TTerrain.TERRAIN_TILE_WIDTH * 4, 
-		      TTerrain.TERRAIN_TILE_HEIGHT * 4, 
-		      TTerrain.TERRAIN_TILE_WIDTH / 2f, 
-		      TTerrain.TERRAIN_TILE_HEIGHT / 2f,
+		      TTerrainRenderer.TERRAIN_TILE_WIDTH * 4, 
+		      TTerrainRenderer.TERRAIN_TILE_HEIGHT * 4, 
+		      TTerrainRenderer.TERRAIN_TILE_WIDTH / 2f, 
+		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 2f,
 		      8, 
 		      ThreadLocalRandom.current().nextInt(0, 2),
 			  1, 
 			  1, 
 			  Color.WHITE.cpy(), 
 			  MAX_HP);
-		setGraphicsColliderOffset(0, TTerrain.TERRAIN_TILE_HEIGHT * 1.5f);
+		setGraphicsColliderOffset(0, TTerrainRenderer.TERRAIN_TILE_HEIGHT * 1.5f);
 	}
 
 	@Override

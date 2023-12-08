@@ -1,23 +1,17 @@
 package dev.iwilkey.terrafort.state;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Buttons;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.math.Vector2;
-
 import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.TState;
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.TTerrain;
-import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
+ * A single-player game of Terrafort.
  * @author Ian Wilkey (iwilkey)
  */
-public class TDebugState implements TState {
+public class TSinglePlayer implements TState {
 	
 	TWorld world;
 	
@@ -33,16 +27,6 @@ public class TDebugState implements TState {
 	public void render() {
 		world.update((float)TClock.dt());
 		world.render();
-		
-		/*
-		if(Gdx.input.isButtonJustPressed(Buttons.LEFT)) {
-			final Vector2 mouseWorldTileCoords = TMath.translateScreenToTileCoordinates(Gdx.input.getX(), Gdx.input.getY());
-			world.setTileHeightAt((int)mouseWorldTileCoords.x, (int)mouseWorldTileCoords.y, 1);
-			world.addPointLight((int)mouseWorldTileCoords.x * TTerrain.TERRAIN_TILE_WIDTH, 
-								(int)mouseWorldTileCoords.y * TTerrain.TERRAIN_TILE_HEIGHT, 
-								64, new Color().set(0xffffff34));
-		}*/
-	
 		if(TInput.zoomOut) {
 			TGraphics.requestCameraZoomChange(false);
 			TInput.zoomOut = false;

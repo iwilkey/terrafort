@@ -4,7 +4,7 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.state.TDebugState;
+import dev.iwilkey.terrafort.state.TSinglePlayer;
 
 /**
  * The TEngine class serves as the central entry point and controller for Terrafort.
@@ -48,7 +48,7 @@ public final class TEngine extends ApplicationAdapter {
     	input    = new TInput();
     	renderer = new TGraphics();
     	Gdx.input.setInputProcessor(input);
-    	setState(new TDebugState());
+    	setState(new TSinglePlayer());
     }
 
     @Override

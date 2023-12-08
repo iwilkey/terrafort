@@ -16,7 +16,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  * representing {@link TWorld} terrain that provides the seed for layered OpenSimplex noise.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TTerrain {
+public final class TTerrainRenderer {
 	
 	public static final int    TERRAIN_TILE_WIDTH               = 8;
 	public static final int    TERRAIN_TILE_HEIGHT              = 8;
@@ -25,6 +25,7 @@ public final class TTerrain {
 	public static final int    TERRAIN_LEVELS                   = 5;
 	public static final int    TRANSITION_THICKNESS_FACTOR      = 4; // higher value = thinner transition borders.
 	public static final int    TERRAIN_VIEWPORT_CULLING_PADDING = 4;
+	
 	public static final int    STONE_TILE                       = 0;
 	public static final int    ASPHALT_TILE                     = 1;
 	public static final int    GRASS_TILE                       = 2;
@@ -50,15 +51,15 @@ public final class TTerrain {
 	private static final HashMap<Long, TObject> TILE_PHYSICALS  = new HashMap<>();
 	
 	static {
-		LEVELS[0]                                               = TTerrain.STONE;
+		LEVELS[0]                                               = TTerrainRenderer.STONE;
 		TRANSITION_COLORS[0]                                    = new Color().set(0x868689FF);
-		LEVELS[1]                                               = TTerrain.ASPHALT;
+		LEVELS[1]                                               = TTerrainRenderer.ASPHALT;
 		TRANSITION_COLORS[1]                                    = new Color().set(0x3E3E3FFF);
-		LEVELS[2] 					                            = TTerrain.GRASS;
+		LEVELS[2] 					                            = TTerrainRenderer.GRASS;
 		TRANSITION_COLORS[2]                                    = new Color().set(0x3D823DFF);
-		LEVELS[3]           									= TTerrain.SAND;
+		LEVELS[3]           									= TTerrainRenderer.SAND;
 		TRANSITION_COLORS[3]                                    = new Color().set(0xA38F4EFF);
-		LEVELS[4] 												= TTerrain.WATER;
+		LEVELS[4] 												= TTerrainRenderer.WATER;
 		DX[0] 													= 0;
 		DX[1] 													= -1;
 		DX[2]													= -1;
@@ -87,7 +88,8 @@ public final class TTerrain {
 	 */
 	public static void render(final TWorld world, final TPlayer player) {
 		if(player == null) return;
-	    final float camWidthWorldUnits  = TGraphics.CAMERA.viewportWidth * TGraphics.CAMERA.zoom;
+	    
+		final float camWidthWorldUnits  = TGraphics.CAMERA.viewportWidth * TGraphics.CAMERA.zoom;
 	    final float camHeightWorldUnits = TGraphics.CAMERA.viewportHeight * TGraphics.CAMERA.zoom;
 	    final int tilesInViewWidth      = Math.round(camWidthWorldUnits / TERRAIN_TILE_WIDTH) / 2;
 	    final int tilesInViewHeight     = Math.round(camHeightWorldUnits / TERRAIN_TILE_HEIGHT) / 2;
@@ -97,6 +99,7 @@ public final class TTerrain {
 	    final int xe                    = playerTileX + (tilesInViewWidth + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    final int ys                    = playerTileY - (tilesInViewHeight + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    final int ye                    = playerTileY + (tilesInViewHeight + TERRAIN_VIEWPORT_CULLING_PADDING);
+	    
 	    // remove physicals that are outside current tile viewport.
 	    final Array<Long> deadHash = new Array<>();
 	    for(final long hash : TILE_PHYSICALS.keySet()) {
@@ -109,6 +112,7 @@ public final class TTerrain {
 	    	world.removeObject(TILE_PHYSICALS.get(hash));
     		TILE_PHYSICALS.remove(hash);
 	    }
+	    
 	    for (int i = xs; i <= xe; i++) {
 	        for (int j = ys; j <= ye; j++) {
                 final int vq = world.getTileHeightAt(i, j);
@@ -120,7 +124,7 @@ public final class TTerrain {
 	                final int vvq = world.getTileHeightAt(xx, yy);
 	                if(vvq != vq && vvq > vq) {
 	                	// check if it's stone...
-	                	if(vvq == 1) {
+	                	if((vvq == ASPHALT_TILE || vvq == GRASS_TILE) && vq == STONE_TILE) {
 	                		// Since manageTilePhysicals handles everything else, all this should be concerned with doing is allocating physicals
 	                		// to stone tiles that don't have one yet...
 	                		long hash = (((long)i) << 32) | (j & 0xffffffffL);

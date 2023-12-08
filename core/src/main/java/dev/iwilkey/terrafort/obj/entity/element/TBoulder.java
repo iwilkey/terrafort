@@ -4,7 +4,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.badlogic.gdx.graphics.Color;
 
-import dev.iwilkey.terrafort.gfx.TTerrain;
+import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
 import dev.iwilkey.terrafort.obj.particle.TParticle;
 import dev.iwilkey.terrafort.obj.world.TWorld;
@@ -20,20 +20,20 @@ public final class TBoulder extends TNaturalElement {
 	public TBoulder(TWorld world, int tileX, int tileY) {
 		super(world, 
 		      false,
-		      tileX * TTerrain.TERRAIN_TILE_WIDTH, 
-		      tileY * TTerrain.TERRAIN_TILE_HEIGHT, 
+		      tileX * TTerrainRenderer.TERRAIN_TILE_WIDTH, 
+		      tileY * TTerrainRenderer.TERRAIN_TILE_HEIGHT, 
 		      0, 
-		      TTerrain.TERRAIN_TILE_WIDTH * 2, 
-		      TTerrain.TERRAIN_TILE_HEIGHT * 2, 
-		      TTerrain.TERRAIN_TILE_WIDTH / 2f, 
-		      TTerrain.TERRAIN_TILE_HEIGHT / 4f,
+		      TTerrainRenderer.TERRAIN_TILE_WIDTH * 2, 
+		      TTerrainRenderer.TERRAIN_TILE_HEIGHT * 2, 
+		      TTerrainRenderer.TERRAIN_TILE_WIDTH / 2f, 
+		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 4f,
 		      10, 
 		      ThreadLocalRandom.current().nextInt(0, 4),
 			  1, 
 			  1, 
 			  Color.WHITE.cpy(), 
 			  MAX_HP);
-		setGraphicsColliderOffset(0, TTerrain.TERRAIN_TILE_HEIGHT * 0.75f);
+		setGraphicsColliderOffset(0, TTerrainRenderer.TERRAIN_TILE_WIDTH);
 	}
 
 	@Override

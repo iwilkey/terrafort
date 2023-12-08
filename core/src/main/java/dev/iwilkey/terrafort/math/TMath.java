@@ -6,7 +6,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.TTerrain;
+import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 
 /**
  * Quick and efficient mathematical utilities.
@@ -54,8 +54,8 @@ public final class TMath {
 	 * @return a rounded {@link Vector2} representing the input coordinates rounded to the nearest tile grid location.
 	 */
 	public static Vector2 roundToWorldTileGrid(float x, float y) {
-		x = Math.round(x / TTerrain.TERRAIN_TILE_WIDTH) * TTerrain.TERRAIN_TILE_WIDTH;
-		y = Math.round(y / TTerrain.TERRAIN_TILE_HEIGHT) * TTerrain.TERRAIN_TILE_HEIGHT;
+		x = Math.round(x / TTerrainRenderer.TERRAIN_TILE_WIDTH) * TTerrainRenderer.TERRAIN_TILE_WIDTH;
+		y = Math.round(y / TTerrainRenderer.TERRAIN_TILE_HEIGHT) * TTerrainRenderer.TERRAIN_TILE_HEIGHT;
 		return new Vector2(x, y);
 	}
 	
@@ -68,8 +68,8 @@ public final class TMath {
 	public static Vector2 translateScreenToTileCoordinates(int x, int y) {
 		final Vector2 ret = translateScreenToWorldCoordinates(x, y);
 		ret.set(roundToWorldTileGrid(ret.x, ret.y));
-		ret.x = Math.round(ret.x / TTerrain.TERRAIN_TILE_WIDTH);
-		ret.y = Math.round(ret.y / TTerrain.TERRAIN_TILE_HEIGHT);
+		ret.x = Math.round(ret.x / TTerrainRenderer.TERRAIN_TILE_WIDTH);
+		ret.y = Math.round(ret.y / TTerrainRenderer.TERRAIN_TILE_HEIGHT);
 		return ret;
 	}
 	
