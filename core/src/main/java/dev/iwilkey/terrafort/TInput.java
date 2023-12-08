@@ -19,6 +19,7 @@ public final class TInput implements InputProcessor {
 	public static boolean right   = false;
 	public static boolean left    = false;
 	public static boolean run     = false;
+	public static boolean slide   = false;
 	public static boolean attack  = false;
 	public static boolean zoomIn  = false;
 	public static boolean zoomOut = false;
@@ -110,6 +111,9 @@ public final class TInput implements InputProcessor {
 			case Keys.SHIFT_LEFT:
 				run = true;
 				break;
+			case Keys.SPACE:
+				slide = true;
+				break;
 			case Keys.Q:
 				zoomOut = true;
 				break;
@@ -140,6 +144,9 @@ public final class TInput implements InputProcessor {
 				break;
 			case Keys.SHIFT_LEFT:
 				run = false;
+				break;
+			case Keys.SPACE:
+				slide = false;
 				break;
 			case Keys.Q:
 				zoomOut = false;

@@ -7,7 +7,6 @@ import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.math.TNoise;
 
-import dev.iwilkey.terrafort.obj.entity.element.TBush;
 import dev.iwilkey.terrafort.obj.entity.element.TFlower;
 import dev.iwilkey.terrafort.obj.entity.element.TBoulder;
 import dev.iwilkey.terrafort.obj.entity.element.TTree;

@@ -62,8 +62,8 @@ public final class TPlayer extends TLifeform {
 		if(TInput.right) moveRight();
 		if(TInput.up) moveUp();
 		if(TInput.down) moveDown();
-		if(TInput.run) setMoveSpeed(PLAYER_RUN_SPEED);
-		else setMoveSpeed(PLAYER_WALK_SPEED);
+		if(TInput.run) setMoveSpeed((TInput.slide) ? (PLAYER_RUN_SPEED / 2f) : PLAYER_RUN_SPEED);
+		else setMoveSpeed((TInput.slide) ? (PLAYER_WALK_SPEED / 2f) : PLAYER_WALK_SPEED);
 	}
 	
 	@Override
@@ -87,6 +87,14 @@ public final class TPlayer extends TLifeform {
 	@Override
 	public void onInteraction(TLifeform interactee) {
 		
+	}
+	
+	@Override
+	protected void calculateFacingDirection() {
+		// check if "sliding"
+		if(TInput.slide)
+			return;
+		super.calculateFacingDirection();
 	}
 	
 	/**

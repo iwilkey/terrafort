@@ -261,7 +261,7 @@ public abstract class TLifeform extends TEntity {
 	/**
 	 * Updates {@link TLifeform}'s direction to look toward the direction in which they are moving.
 	 */
-	private final void calculateFacingDirection() {
+	protected void calculateFacingDirection() {
         if (movementVector.x > 0)
             if (movementVector.y > 0) directionFace = TMath.NORTH_EAST;
             else if (movementVector.y < 0) directionFace = TMath.SOUTH_EAST;
