@@ -15,8 +15,8 @@ public final class TCopper extends TOre {
 		super(world, 
 			  tileX, 
 			  tileY, 
-			  8, 
-			  1, 
+			  11, 
+			  0, 
 			  1, 
 			  1, 
 			  MAX_HP);

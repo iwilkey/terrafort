@@ -18,7 +18,7 @@ else {
 }
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
-mainClassName = 'dev.iwilkey.terrafort.lwjgl3.Lwjgl3Launcher'
+mainClassName = 'dev.iwilkey.terrafort.lwjgl3.Terrafort'
 eclipse.project.name = appName + '-lwjgl3'
 sourceCompatibility = 11
 

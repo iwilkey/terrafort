@@ -417,7 +417,6 @@ public final class TGraphics implements Disposable {
 	 */
 	public static void gc() {
 		flush();
-		TTerrainRenderer.gc();
 		for(SpriteBatch batch : TILE_BATCH_POOL)
 			batch.dispose();
 		TILE_BATCH_POOL.clear();

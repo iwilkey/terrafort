@@ -19,10 +19,7 @@ import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
-import dev.iwilkey.terrafort.obj.entity.TEntity;
-import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
-import dev.iwilkey.terrafort.obj.particle.TParticle;
 
 /**
  * A physical space that manages {@link TObjects}, global and local forces, and dynamic lighting.
@@ -31,7 +28,8 @@ import dev.iwilkey.terrafort.obj.particle.TParticle;
 public final class TWorld implements Disposable {
 
 	public static final short           LIGHTING_RAYS           = 16;
-	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 1200.0f;
+	public static final short           CHUNK_DORMANT_THRESHOLD = 4;
+	public static final float           DAY_NIGHT_CYCLE_PERIOD  = Float.MAX_VALUE;
 	public static final Filter          LIGHTING_COLLISION_MASK = new Filter();
 	
 	static {
@@ -42,8 +40,6 @@ public final class TWorld implements Disposable {
 	private final long                  seed;
 	
 	private final HashMap<Long, TChunk> loadedChunks;
-	private final Array<TObject>        objects;
-	private final Array<TObject>        deathrow;
 	
 	private final Box2DDebugRenderer    debugRenderer;
 	private final RayHandler            lightRenderer;
@@ -61,8 +57,6 @@ public final class TWorld implements Disposable {
 		world                           = new World(new Vector2(0, 0), false);
 		loadedChunks                    = new HashMap<>();
 		lightRenderer                   = new RayHandler(world);
-		objects                         = new Array<>();
-		deathrow                        = new Array<>();
 		debugRenderer                   = new Box2DDebugRenderer();
 		debug                           = false;
 		clientPlayer                    = null;
@@ -97,11 +91,12 @@ public final class TWorld implements Disposable {
 	 * @return the object added. NOTE: Keep track of this object, as it must be explicitly removed.
 	 */
 	public TObject addObject(final TObject obj) {
-		if(obj instanceof TPlayer) clientPlayer                    = (TPlayer)obj;
-		if(obj instanceof TLifeform) 
-			obj.getPhysicalFixture().getFilterData().categoryBits  = TCollisionManifold.IGNORE_GROUP;
-		else obj.getPhysicalFixture().getFilterData().categoryBits = ~TCollisionManifold.IGNORE_GROUP;
-		objects.add(obj);
+		if(obj instanceof TPlayer) 
+			clientPlayer = (TPlayer)obj;
+		final int xx = Math.round(obj.getActualX() / TTerrainRenderer.TERRAIN_TILE_WIDTH);
+		final int yy = Math.round(obj.getActualY() / TTerrainRenderer.TERRAIN_TILE_HEIGHT);
+		final TChunk chunk = requestChunkThatContains(xx, yy);
+		chunk.register(obj);
 		return obj;
 	}
 	
@@ -110,11 +105,13 @@ public final class TWorld implements Disposable {
 	 * @param obj the object to remove.
 	 */
 	public void removeObject(final TObject obj) {
-		if(obj.getPhysicalBody() != null)
-			world.destroyBody(obj.getPhysicalBody());
-		objects.removeValue(obj, false);
+		final int xx = Math.round(obj.getActualX() / TTerrainRenderer.TERRAIN_TILE_WIDTH);
+		final int yy = Math.round(obj.getActualY() / TTerrainRenderer.TERRAIN_TILE_HEIGHT);
+		final TChunk chunk = requestChunkThatContains(xx, yy);
+		chunk.remove(obj);
 	}
 	
+	int dormantChunks = 0;
 	float time = 0.0f;
 	
 	/**
@@ -122,54 +119,26 @@ public final class TWorld implements Disposable {
 	 * @param dt the change in time since the last tick.
 	 */
 	public void update(float dt) {
-		
 		time += dt;
 		if(time > 1.0f) {
 			System.out.println("Concerned metrics: \n"
 					+ "Loaded chunks: " + loadedChunks.size() + "\n"
+					+ "Dormant chunks: " + dormantChunks + "\n"
 					+ "Physical bodies: " + world.getBodyCount() + "\n");
 			time = 0.0f;
 		}
-
-		// step physical simulation and day/night.
-
+		dormantChunks = 0;
 		world.step(dt, 6, 2);
 		updateDayNightCycle(dt);
-		
-		// tick all active objects.
-		
-        for(final TObject obj : objects) {
-        	if(!obj.isEnabled())
-        		continue;
-            obj.sync();
-            if(obj instanceof TEntity) {
-            	TEntity e = (TEntity)obj;
-            	if(!e.isAlive()) {
-            		deathrow.add(e);
-            		continue;
-            	}
-            	e.tick(dt);
-            } else if(obj instanceof TParticle) {
-            	TParticle p = (TParticle)obj;
-            	if(p.isDone()) {
-            		deathrow.add(p);
-            		continue;
-            	}
-            	p.tick(dt);
-            }
-        }
-        
-        // safely remove objects that are no longer needed; avoids concurrent modification.
-        
-        for(final TObject e : deathrow) {
-        	if(e instanceof TEntity)
-        		((TEntity)e).die();
-        	if (e.getPhysicalBody() != null)
-        		world.destroyBody(e.getPhysicalBody());
-        }
-        objects.removeAll(deathrow, false);
-        deathrow.clear();
-        
+		for(final TChunk o : loadedChunks.values()) {
+			if(o.tileDistTo(clientPlayer) > (CHUNK_DORMANT_THRESHOLD * TChunk.CHUNK_SIZE)) o.sleep();
+			else o.wake();
+			if(o.isDormant()) {
+				dormantChunks++;
+				continue;
+			}
+			o.tick(dt);
+		}
 	}
 	
 	/**
@@ -177,8 +146,11 @@ public final class TWorld implements Disposable {
 	 */
 	public void render() {
 		TTerrainRenderer.render(this, clientPlayer);
-		for(final TObject obj : objects)
-			TGraphics.draw(obj);
+		for(final TChunk o : loadedChunks.values()) {
+			if(o.isDormant())
+				continue;
+			o.render();
+		}
 		if(debug) debugRenderer.render(world, TGraphics.CAMERA.combined);
 		lightRenderer.setCombinedMatrix(TGraphics.CAMERA);
 		lightRenderer.updateAndRender();
@@ -212,10 +184,6 @@ public final class TWorld implements Disposable {
 	 * @param z the height to set the tile.
 	 */
 	public void setTileHeightAt(int x, int y, int z) {
-		if(z != 0) {
-			// We know it's not stone, so we might need to remove a tile physical.
-			TTerrainRenderer.removePhysicalAt(this, x, y);
-		}
 		requestChunkThatContains(x, y).setTileHeightAt(x, y, z);
 	}
 	
@@ -289,12 +257,9 @@ public final class TWorld implements Disposable {
 	 * Destroys all bodies and objects current active in the world.
 	 */
 	public void clearAllActiveObjectsAndBodies() {
-		 for(final TObject obj : objects)
-			 if(obj.getPhysicalBody() != null)
-				 world.destroyBody(obj.getPhysicalBody());
-		 deathrow.clear();
-		 objects.clear();
-		 Array<Body> others = new Array<>();
+		for(final TChunk o : loadedChunks.values())
+			o.destroy();
+		 final Array<Body> others = new Array<>();
 		 world.getBodies(others);
 		 for(Body b : others)
 			 world.destroyBody(b);
@@ -302,13 +267,12 @@ public final class TWorld implements Disposable {
 	
 	@Override
 	public void dispose() {
+		clearAllActiveObjectsAndBodies();
 		loadedChunks.clear();
 		lightRenderer.removeAll();
 		lightRenderer.dispose();
-		clearAllActiveObjectsAndBodies();
 		world.dispose();
 		debugRenderer.dispose();
-		TTerrainRenderer.gc();
 	}
 
 }

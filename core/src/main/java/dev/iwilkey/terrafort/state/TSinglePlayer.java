@@ -1,5 +1,7 @@
 package dev.iwilkey.terrafort.state;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.TState;
@@ -19,7 +21,7 @@ public class TSinglePlayer implements TState {
 	public void start() {
 		TGraphics.setGlLineWidth(1.0f);
 		TGraphics.setCameraSpeedToTarget(4.0f);
-		world   = new TWorld(512);
+		world   = new TWorld(ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE - 1));
 		world.addObject(new TPlayer(world));
 	}
 

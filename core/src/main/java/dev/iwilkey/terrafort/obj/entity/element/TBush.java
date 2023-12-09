@@ -1,7 +1,5 @@
 package dev.iwilkey.terrafort.obj.entity.element;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
@@ -28,10 +26,10 @@ public final class TBush extends TNaturalElement {
 		      TTerrainRenderer.TERRAIN_TILE_HEIGHT * 2.5f, 
 		      TTerrainRenderer.TERRAIN_TILE_WIDTH / 2f, 
 		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 4f,
-		      9, 
-		      ThreadLocalRandom.current().nextInt(0, 2),
-			  1, 
-			  1, 
+		      5, 
+		      (int)TMath.equalPick(3.0f, 5.0f),
+			  2,
+			  2, 
 			  Color.WHITE.cpy(), 
 			  MAX_HP);
 		setGraphicsColliderOffset(0, TTerrainRenderer.TERRAIN_TILE_HEIGHT * 0.5f);

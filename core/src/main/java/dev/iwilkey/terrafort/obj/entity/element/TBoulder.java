@@ -1,10 +1,9 @@
 package dev.iwilkey.terrafort.obj.entity.element;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
+import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
 import dev.iwilkey.terrafort.obj.particle.TParticle;
 import dev.iwilkey.terrafort.obj.world.TWorld;
@@ -25,15 +24,15 @@ public final class TBoulder extends TNaturalElement {
 		      0, 
 		      TTerrainRenderer.TERRAIN_TILE_WIDTH * 2, 
 		      TTerrainRenderer.TERRAIN_TILE_HEIGHT * 2, 
-		      TTerrainRenderer.TERRAIN_TILE_WIDTH / 2f, 
-		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 2f,
-		      10, 
-		      ThreadLocalRandom.current().nextInt(0, 3),
-			  1, 
-			  1, 
+		      TTerrainRenderer.TERRAIN_TILE_WIDTH / 1.5f, 
+		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 3f,
+		      3, 
+		      (int)TMath.equalPick(7.0f, 9.0f),
+			  2, 
+			  2, 
 			  Color.WHITE.cpy(), 
 			  MAX_HP);
-		setGraphicsColliderOffset(0, TTerrainRenderer.TERRAIN_TILE_WIDTH / 4f);
+		setGraphicsColliderOffset(-2, TTerrainRenderer.TERRAIN_TILE_HEIGHT / 2f);
 	}
 
 	@Override

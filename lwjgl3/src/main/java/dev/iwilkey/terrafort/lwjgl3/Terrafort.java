@@ -42,7 +42,7 @@ public class Terrafort {
 		configuration.setResizable(true);
 		configuration.setInitialVisible(true);
 		configuration.setBackBufferConfig(0x8, 0x8, 0x8, 0x8, 0, 0, 4);
-		// configuration.setWindowIcon("icon-128.png", "icon-64.png", "icon-32.png", "icon-16.png");
+		configuration.setWindowIcon("icon-raw.png", "icon-raw.png", "icon-raw.png", "icon-raw.png");
 		configuration.enableGLDebugOutput(true, System.out);
 		configuration.setAudioConfig(16, 512, 9);
 		return configuration;

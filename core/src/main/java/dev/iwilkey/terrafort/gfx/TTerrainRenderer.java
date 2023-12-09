@@ -1,14 +1,9 @@
 package dev.iwilkey.terrafort.gfx;
 
-import java.util.HashMap;
-
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.gfx.shape.TRect;
-import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
-import dev.iwilkey.terrafort.obj.entity.tile.TStoneTile;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -44,11 +39,6 @@ public final class TTerrainRenderer {
 	public static final TFrame LEVELS[]                         = new TFrame[TERRAIN_LEVELS];
 	
 	public static final Color  TRANSITION_COLORS[]              = new Color[TERRAIN_LEVELS - 1];
-	
-	/**
-	 * A dynamic way to keep track of tiles that require a physical presence, like Stone. TODO: move this to the chunk itself.
-	 */
-	private static final HashMap<Long, TObject> TILE_PHYSICALS  = new HashMap<>();
 	
 	static {
 		LEVELS[0]                                               = TTerrainRenderer.STONE;
@@ -100,19 +90,6 @@ public final class TTerrainRenderer {
 	    final int ys                    = playerTileY - (tilesInViewHeight + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    final int ye                    = playerTileY + (tilesInViewHeight + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    
-	    // remove physicals that are outside current tile viewport.
-	    final Array<Long> deadHash = new Array<>();
-	    for(final long hash : TILE_PHYSICALS.keySet()) {
-	    	int x = (int)(hash >> 32);
-	    	int y = (int)hash;
-	    	if(((x < xs) || (x > xe)) && ((y < ys) || (y > ye)))
-	    		deadHash.add(hash);
-	    }
-	    for(final long hash : deadHash) {
-	    	world.removeObject(TILE_PHYSICALS.get(hash));
-    		TILE_PHYSICALS.remove(hash);
-	    }
-	    
 	    for (int i = xs; i <= xe; i++) {
 	        for (int j = ys; j <= ye; j++) {
                 final int vq = world.getTileHeightAt(i, j);
@@ -123,18 +100,6 @@ public final class TTerrainRenderer {
 	        		final int yy  = j - dy;
 	                final int vvq = world.getTileHeightAt(xx, yy);
 	                if(vvq != vq && vvq > vq) {
-	                	// check if it's stone...
-	                	if((vvq == ASPHALT_TILE || vvq == GRASS_TILE) && vq == STONE_TILE) {
-	                		// Since manageTilePhysicals handles everything else, all this should be concerned with doing is allocating physicals
-	                		// to stone tiles that don't have one yet...
-	                		long hash = (((long)i) << 32) | (j & 0xffffffffL);
-	                		if(!TILE_PHYSICALS.containsKey(hash)) {
-	                			// Add a new physical and hash it...
-	                			final TStoneTile tilePhysical = new TStoneTile(world, i, j);
-	                			world.addObject(tilePhysical);
-	                			TILE_PHYSICALS.put(hash, tilePhysical);
-	                		}
-	                	}
 	                	float borderCX               = (i + 0.5f) * TERRAIN_TILE_WIDTH;
 	                    float borderCY               = (j + 0.5f) * TERRAIN_TILE_HEIGHT;
 	                    float borderWidth            = TERRAIN_TILE_WIDTH / TRANSITION_THICKNESS_FACTOR;
@@ -178,27 +143,5 @@ public final class TTerrainRenderer {
 	        	TGraphics.draw(LEVELS[vq], i * TERRAIN_TILE_WIDTH, j * TERRAIN_TILE_HEIGHT, vq, TERRAIN_TILE_WIDTH, TERRAIN_TILE_HEIGHT, Color.WHITE.cpy(), true);
 	        }
 	    }
-	}
-	
-	/**
-	 * Manually removes a physical at given tile location. Will do nothing if there is no physical there.
-	 * @param world the world the physical exists in.
-	 * @param x the tile x coordinate of the physical.
-	 * @param y the tile y coordinate of the physical.
-	 */
-	public static void removePhysicalAt(TWorld world, int x, int y) {
-		long hash = (((long)x) << 32) | (y & 0xffffffffL);
-		if(TILE_PHYSICALS.containsKey(hash)) {
-			// Don't need to do this because the entity handler handles it.
-			// world.removeObject(TILE_PHYSICALS.get(hash));
-			TILE_PHYSICALS.remove(hash);
-		}
-	}
-
-	/**
-	 * Cleans up dynamically allocated memory during runtime. Usually called when switching between worlds or states.
-	 */
-	public static void gc() {
-		TILE_PHYSICALS.clear();
 	}
 }

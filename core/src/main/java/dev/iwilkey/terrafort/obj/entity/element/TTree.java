@@ -1,7 +1,5 @@
 package dev.iwilkey.terrafort.obj.entity.element;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
@@ -27,11 +25,11 @@ public final class TTree extends TNaturalElement {
 		      TTerrainRenderer.TERRAIN_TILE_WIDTH * 4, 
 		      TTerrainRenderer.TERRAIN_TILE_HEIGHT * 4, 
 		      TTerrainRenderer.TERRAIN_TILE_WIDTH / 2f, 
-		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 2f,
-		      8, 
-		      ThreadLocalRandom.current().nextInt(0, 2),
-			  1, 
-			  1, 
+		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 3f,
+		      3, 
+		      (int)TMath.equalPick(3.0f, 5.0f),
+			  2, 
+			  2, 
 			  Color.WHITE.cpy(), 
 			  MAX_HP);
 		setGraphicsColliderOffset(0, TTerrainRenderer.TERRAIN_TILE_HEIGHT * 1.5f);

@@ -11,7 +11,6 @@ import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.gfx.TRenderableSprite;
 import dev.iwilkey.terrafort.math.TCollisionManifold;
-import dev.iwilkey.terrafort.obj.world.TChunk;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -244,13 +243,12 @@ public class TObject implements TRenderableSprite {
 		return enabled;
 	}
 	
-	/**
-	 * Returns the {@link TChunk} hash that this {@link TObject} currently belongs to.
-	 */
-	public final long chunkHash() {
-		int chunkX = (int)(x / TChunk.CHUNK_SIZE);
-		int chunkY = (int)(y / TChunk.CHUNK_SIZE);
-		return (((long)chunkX) << 32) | (chunkY & 0xffffffffL);
+	public final float getActualX() {
+		return x;
+	}
+	
+	public final float getActualY() {
+		return y;
 	}
 
 	@Override

@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Vector2;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.gfx.anim.TLifeformAnimationArray;
+import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
@@ -72,6 +73,7 @@ public abstract class TLifeform extends TEntity {
 		lastNonZeroDirection   = TLifeformAnimationArray.LABELS[ThreadLocalRandom.current().nextInt(0, 8)].replace("move_", "idle_");
 		attackCooldownAmt      = 0.25f;
 		attackTimer            = attackCooldownAmt;
+		getPhysicalFixture().getFilterData().categoryBits = TCollisionManifold.IGNORE_GROUP;
 	}
 
 	@Override
@@ -168,8 +170,8 @@ public abstract class TLifeform extends TEntity {
 		for(final TObject o : getCollisionManifold()) {
 			final float ox = o.getRenderX();
 			final float oy = o.getRenderY();
-			final int dx = Math.round(ox - x) / (TTerrainRenderer.TERRAIN_TILE_WIDTH / 2);
-			final int dy = Math.round(oy - y) / (TTerrainRenderer.TERRAIN_TILE_HEIGHT / 2);
+			final int dx = (int)(ox - x / (TTerrainRenderer.TERRAIN_TILE_WIDTH / 2));
+			final int dy = (int)(oy - y / (TTerrainRenderer.TERRAIN_TILE_HEIGHT / 2));
 			switch(directionFace) {
 				case TMath.SOUTH:
 					if(dx == 0 && dy == -1)
