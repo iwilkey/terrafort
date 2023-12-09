@@ -9,7 +9,7 @@ import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.anim.TLifeformAnimationArray;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
-import dev.iwilkey.terrafort.obj.world.TWorld;
+import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
 /**
  * The player of Terrafort; entity controlled by the user.
@@ -23,7 +23,7 @@ public final class TPlayer extends TLifeform {
 	public static final float PLAYER_WIDTH      = 16.0f;
 	public static final float PLAYER_HEIGHT     = 32.0f;
 	
-	public TPlayer(TWorld world) {
+	public TPlayer(TSinglePlayerWorld world) {
 		super(world,
 			  true,
 			  0.0f,

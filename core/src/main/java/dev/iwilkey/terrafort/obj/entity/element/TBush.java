@@ -6,7 +6,7 @@ import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
 import dev.iwilkey.terrafort.obj.particle.TParticle;
-import dev.iwilkey.terrafort.obj.world.TWorld;
+import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
 /**
  * A bush. Found in grasslands.
@@ -16,7 +16,7 @@ public final class TBush extends TNaturalElement {
 	
 	public static final int MAX_HP = 1;
 	
-	public TBush(TWorld world, int tileX, int tileY) {
+	public TBush(TSinglePlayerWorld world, int tileX, int tileY) {
 		super(world, 
 		      false,
 		      tileX * TTerrainRenderer.TERRAIN_TILE_WIDTH, 

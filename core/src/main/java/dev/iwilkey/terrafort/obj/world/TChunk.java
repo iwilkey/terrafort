@@ -22,7 +22,7 @@ import dev.iwilkey.terrafort.obj.particle.TParticle;
 
 /**
  * Spatial partition of the infinite world of Terrafort. Caches known tile heights and hashes terraform requests for a chunk of a given
- * {@link TWorld}. Manages objects within its bounds.
+ * {@link TSinglePlayerWorld}. Manages objects within its bounds.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TChunk {
@@ -39,7 +39,7 @@ public final class TChunk {
 	public static final int   BOULDER_ELEMENT   = 3;
 	
 	private final Random                         random;
-	private final TWorld                         world;
+	private final TSinglePlayerWorld                         world;
 	private final HashMap<Long, Integer>         terrainData;
 	private final Array<TObject>                 objData;
 	private final Array<TObject>                 objDataGarbageCollector;
@@ -51,7 +51,7 @@ public final class TChunk {
 	/**
 	 * Create a new chunk with no previous data; a "clean" chunk.
 	 */
-	public TChunk(TWorld world, int chunkX, int chunkY) {
+	public TChunk(TSinglePlayerWorld world, int chunkX, int chunkY) {
 		this.world              = world;
 		this.chunkX             = chunkX;
 		this.chunkY             = chunkY;
@@ -122,7 +122,7 @@ public final class TChunk {
 	}
 	
 	/**
-	 * Removes a {@link TObject} from the {@link TChunk}, and thus, the {@link TWorld}.
+	 * Removes a {@link TObject} from the {@link TChunk}, and thus, the {@link TSinglePlayerWorld}.
 	 */
 	public void remove(final TObject obj) {
 		objDataGarbageCollector.add(obj);
@@ -226,9 +226,9 @@ public final class TChunk {
 		// it is, so we either return the hash or generate it.
 		long hash = (((long)x) << 32) | (y & 0xffffffffL);
 		if(!terrainData.containsKey(hash)) {
-			double layer0     = TNoise.get(this.world.getSeed(), x * 0.001f, y * 0.001f);
+			double layer0     = TNoise.get(this.world.getSeed(), x * 0.01f, y * 0.01f);
 			layer0            = (layer0 + 1) / 2;
-			double layer0Norm = 0.000001f + (0.01f - 0.000001f) * layer0;
+			double layer0Norm = 0.0000001f + (0.001f - 0.0000001f) * layer0;
 			double layer1     = TNoise.get(this.world.getSeed(), x * layer0Norm, y * layer0Norm);
 			layer1            = (layer1 + 1) / 2;
 			int tile          = TMath.segment(layer1, 
@@ -254,7 +254,7 @@ public final class TChunk {
 								register(new TTree(world, x, y));
 							break;
 						case BUSH_ELEMENT:
-							if(random.nextFloat() < 0.30f)
+							if(random.nextFloat() < 0.70f)
 								register(new TBush(world, x, y));
 							break;
 						case FLOWER_ELEMENT:

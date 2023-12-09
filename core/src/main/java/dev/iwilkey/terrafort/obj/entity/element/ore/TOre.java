@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.obj.entity.element.TNaturalElement;
-import dev.iwilkey.terrafort.obj.world.TWorld;
+import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
 /**
  * A natural element that bares valuable metals and minerals used to make or fuel important in-game
@@ -13,7 +13,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public abstract class TOre extends TNaturalElement {
 
-	public TOre(TWorld world, 
+	public TOre(TSinglePlayerWorld world, 
 				int tileX, 
 				int tileY,  
 				int dataOffsetX, 

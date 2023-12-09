@@ -27,12 +27,13 @@ import com.crashinvaders.vfx.effects.RadialDistortionEffect;
 import com.crashinvaders.vfx.effects.WaterDistortionEffect;
 import com.crashinvaders.vfx.effects.util.MixEffect;
 
-import dev.iwilkey.terrafort.TClock;
+import dev.iwilkey.terrafort.TEngine;
 import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.math.TInterpolator;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
-import dev.iwilkey.terrafort.obj.entity.tile.TStoneTile;
+import dev.iwilkey.terrafort.obj.entity.tile.TTile;
+import dev.iwilkey.terrafort.ui.TUserInterface;
 
 /**
  * The TGraphics class is the central rendering module for the Terrafort game engine. This module follows a static API design, 
@@ -115,7 +116,7 @@ public final class TGraphics implements Disposable {
 		if(renderable instanceof TObject)
 			if(!((TObject)renderable).shouldDraw)
 				return;
-		if(renderable instanceof TStoneTile) {
+		if(renderable instanceof TTile) {
 			TILE_RENDERABLES.add(renderable);
 		} else OBJECT_RENDERABLES.add(renderable);
 	}
@@ -280,6 +281,7 @@ public final class TGraphics implements Disposable {
 					TILE_BATCH_POOL.add(new SpriteBatch(MAX_RENDERABLES));
 			}
 		}
+		TEngine.mTileBatches = neededBatches;
 	}
 	
 	/**
@@ -343,17 +345,10 @@ public final class TGraphics implements Disposable {
         if(blend) Gdx.gl.glDisable(GL20.GL_BLEND);
 	}
 	
-	float t = 0.0f;
-	
 	/**
 	 * Render process of the TGraphics module.
 	 */
-	public void render() {
-		t += TClock.dt();
-		if(t > 1.0f) {
-			System.out.println("fps: " + (1 / TClock.dt()));
-			t = 0;
-		}
+	public void render(TUserInterface ui) {
 		calculateFadeAndZoom();
 		calculateTileBatchPool();
 		calculatePerspective();
@@ -379,10 +374,12 @@ public final class TGraphics implements Disposable {
 	        }
 	        TILE_BATCH_POOL.get(batch).end();
 		}
+		TEngine.mTileDrawCount = TILE_RENDERABLES.size;
 		if(TL_GEO_RENDERABLES.size >= 1) {
 			useShapeRenderer(TL_GEO_RENDERABLES, false, true);
 			useShapeRenderer(TL_GEO_RENDERABLES, true, false);
 		}
+		TEngine.mTileLevelGeometryDrawCount = TL_GEO_RENDERABLES.size;
 		if(OBJECT_RENDERABLES.size >= 1) {
 			OBJECT_BATCH.setProjectionMatrix(CAMERA.combined);
 	        OBJECT_BATCH.begin();
@@ -390,9 +387,11 @@ public final class TGraphics implements Disposable {
 	        	r.render(CAMERA, OBJECT_BATCH);
 	        OBJECT_BATCH.end();
 		}
+		TEngine.mObjectDrawCount = OBJECT_RENDERABLES.size;
         OL_GEO_RENDERABLES.add(fadeRect);
         useShapeRenderer(OL_GEO_RENDERABLES, false, true);
         useShapeRenderer(OL_GEO_RENDERABLES, true, false);
+        TEngine.mObjectLevelGeometryDrawCount = OL_GEO_RENDERABLES.size;
         POST_PROCESSING.endInputCapture();
         POST_PROCESSING.applyEffects();
         POST_PROCESSING.renderToScreen();
@@ -410,6 +409,8 @@ public final class TGraphics implements Disposable {
 		POST_PROCESSING.resize(newWidth, newHeight);
 		GEOMETRIC_RENDERER.getProjectionMatrix().setToOrtho2D(0f, 0f, newWidth, newHeight);
 		GEOMETRIC_RENDERER.updateMatrices();
+		TEngine.mScreenWidth = newWidth;
+		TEngine.mScreenHeight = newHeight;
     }
 	
 	/**

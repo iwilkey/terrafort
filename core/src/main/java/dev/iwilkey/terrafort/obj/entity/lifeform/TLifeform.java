@@ -12,7 +12,7 @@ import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
-import dev.iwilkey.terrafort.obj.world.TWorld;
+import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
 /**
  * A more specific, yet still abstract {@link TEntity}. Has special properties and functions that all Terrafort 
@@ -33,7 +33,7 @@ public abstract class TLifeform extends TEntity {
 	private float                           attackTimer;
 	protected int                           directionFace;
 	
-	public TLifeform(TWorld  world, 
+	public TLifeform(TSinglePlayerWorld  world, 
 			       boolean                         isDynamic, 
 			       float                           x, 
 			       float                           y, 

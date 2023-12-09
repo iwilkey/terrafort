@@ -1,0 +1,166 @@
+package dev.iwilkey.terrafort.ui;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
+
+import com.kotcrab.vis.ui.VisUI;
+
+import dev.iwilkey.terrafort.ui.containers.TContainer;
+
+/**
+ * Manages the primary user interface layer in the Terrafort engine, providing methods for rendering 
+ * the UI and responding to changes such as screen resizes. This class serves as a central point 
+ * for UI interaction, managing a Stage which handles the layout and input events for the 
+ * actors within it.
+ * 
+ * @author Ian Wilkey (iwilkey)
+ */
+public final class TUserInterface implements Disposable {
+	
+	private static final Array<TContainer> CONTAINERS = new Array<>();
+	
+	private static BitmapFont gameFont;
+	private static Stage      systemd; // terrible name, but IYKYK
+	
+	/**
+	 * Initializes the Terrafort engine's UI capability.
+	 */
+	public TUserInterface() {
+		VisUI.load();
+		systemd    = new Stage(new ScreenViewport());
+		final FreeTypeFontGenerator                       generator  = new FreeTypeFontGenerator(Gdx.files.internal("font.ttf"));
+		final FreeTypeFontGenerator.FreeTypeFontParameter parameters = new FreeTypeFontGenerator.FreeTypeFontParameter();
+		parameters.size = 72;
+		gameFont        = generator.generateFont(parameters);
+		generator.dispose();
+		Gdx.input.setInputProcessor(systemd);
+	}
+		
+	/////////////////////////////////////////////////////////
+	// BEGIN TUSERINTERFACE API
+	/////////////////////////////////////////////////////////
+	
+	/**
+	 * Adds a UI container to the Terrafort user interface and returns the added container.
+	 *
+	 * @param container the {@code TContainer} instance to be added to the UI system.
+	 * @return the {@code TContainer} instance that has been added.
+	 */
+	public static TContainer addContainer(final TContainer container) {
+		container.reset();
+		CONTAINERS.add(container);
+		systemd.addActor(container.get());
+		return container;
+	}
+	
+	/**
+	 * Removes a specified UI container from the Terrafort user interface.
+	 *
+	 * @param container the {@code TContainer} instance to be removed from the UI.
+	 * @return {@code true} if the container was successfully found and removed; 
+	 *         {@code false} otherwise.
+	 */
+	public static boolean removeContainer(final TContainer container) {
+		final boolean in = CONTAINERS.removeValue(container, false);
+		if(in)
+			container.get().remove();
+		return in;
+	}
+	
+	/**
+	 * Removes and disposes of a specified UI container from the Terrafort user interface.
+	 *
+	 * @param container the {@code TContainer} instance to be removed from the UI system.
+	 * @return {@code true} if the container was found and successfully removed; {@code false} otherwise.
+	 */
+	public static boolean disposeContainer(final TContainer container) {
+		final boolean in = CONTAINERS.removeValue(container, false);
+		if(in) {
+			container.get().remove();
+			container.dispose();
+		}
+		return in;
+	}
+	
+	/**
+	 * Checks if the specified container is currently active within the internal list of containers.
+	 *
+	 * @param container The {@code TContainer} object to be checked for presence in the list.
+	 *                  This is the target container whose active status is being queried.
+	 * @return {@code true} if the container is found in the list; {@code false} otherwise.
+	 * @see TContainer
+	 */
+	public static boolean contains(final TContainer container) {
+		return CONTAINERS.contains(container, false);
+	}
+	
+	/**
+	 * Returns the global game font for UI widgets.
+	 */
+	public static BitmapFont getGameFont() {
+		return gameFont;
+	}
+	
+	/////////////////////////////////////////////////////////
+	// END TUSERINTERFACE API
+	/////////////////////////////////////////////////////////
+	
+	/**
+	 * Updates and renders the UI elements within the stage. This method should be called 
+	 * each frame to ensure the UI is consistently updated and drawn to the screen.
+	 */
+	public void render() {
+		for(final TContainer c : CONTAINERS) {
+			c.update();
+			c.anchor();
+			c.get().pack();
+		}
+		systemd.act();
+		systemd.draw();
+	}
+	
+	/**
+	 * Adjusts the UI elements within the stage to accommodate a new screen size. This method 
+	 * should be called in response to screen size changes to ensure the UI layout and 
+	 * elements are adjusted and scaled appropriately.
+	 *
+	 * @param nw The new width that the screen has been resized to.
+	 * @param nh The new height that the screen has been resized to.
+	 */
+	public void resize(final int nw, final int nh) {
+		/*
+		final float _orig_width = TGraphics.getOriginalWidth();
+	    final float _orig_height = TGraphics.getOriginalHeight();
+	    final float _sw = nw / _orig_width;
+	    final float _sh = nh / _orig_height;
+	    final float _s = Math.min(_sw, _sh);
+	    */
+	    // setGlobalScale(_s);
+	    // _background.setSize(nw, nh);
+	    systemd.getViewport().update(nw, nh, true);
+	}
+	
+	/**
+	 * Releases all resources held by this {@code TUserInterface} instance. This includes the 
+	 * stage and the UI toolkit, and should be called when the UI is no longer needed to avoid 
+	 * memory leaks. Failing to do so might result in unexpected behavior or performance issues.
+	 */
+	@Override
+	public void dispose() {
+		for(final TContainer c : CONTAINERS) {
+			c.get().remove();
+			c.dispose();
+		}
+		//_background.clear();
+		CONTAINERS.clear();
+		systemd.dispose();
+		gameFont.dispose();
+		VisUI.dispose();
+	}
+	
+}

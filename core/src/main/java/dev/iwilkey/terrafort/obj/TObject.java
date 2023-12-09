@@ -11,7 +11,7 @@ import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.gfx.TRenderableSprite;
 import dev.iwilkey.terrafort.math.TCollisionManifold;
-import dev.iwilkey.terrafort.obj.world.TWorld;
+import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
 /**
  * A {@link TRenderableSprite} with a physical presence; reacts with and (if desired) blocks light, 
@@ -22,7 +22,7 @@ public class TObject implements TRenderableSprite {
 
 	public boolean                 shouldDraw = true;
 	
-	protected final TWorld         world;
+	protected final TSinglePlayerWorld         world;
 	protected final Array<TObject> collisionManifold;
 	
 	protected Body                 body;
@@ -45,7 +45,7 @@ public class TObject implements TRenderableSprite {
 	private   boolean              isDynamic;
 	private   boolean              enabled;
 	
-	public TObject(TWorld   world, 
+	public TObject(TSinglePlayerWorld   world, 
 				   boolean isDynamic, 
 				   float   x,
 				   float   y, 
@@ -105,8 +105,10 @@ public class TObject implements TRenderableSprite {
 	public final void minimize() {
 		shouldDraw = false;
 		enabled    = false;
-		world.getPhysicalWorld().destroyBody(body);
-		body       = null;
+		if(body != null) {
+			world.getPhysicalWorld().destroyBody(body);
+			body = null;
+		}
 		collisionManifold.clear();
 	}
 	

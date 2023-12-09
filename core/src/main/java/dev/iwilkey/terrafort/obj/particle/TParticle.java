@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Vector2;
 
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
-import dev.iwilkey.terrafort.obj.world.TWorld;
+import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
 /**
  * Debris, dust; a small physical object that is simulated with realistic physics until it dies, shortly after it's created.
@@ -23,7 +23,7 @@ public final class TParticle extends TObject {
 	private float   aliveTime;
 	private float   lifetime;
 	
-	public TParticle(TWorld world, float x, float y, Color baseColor) {
+	public TParticle(TSinglePlayerWorld world, float x, float y, Color baseColor) {
 		super(world, 
 			  true, 
 			  x, 

@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.state.TSinglePlayer;
+import dev.iwilkey.terrafort.ui.TUserInterface;
 
 /**
  * The TEngine class serves as the central entry point and controller for Terrafort.
@@ -19,11 +20,29 @@ import dev.iwilkey.terrafort.state.TSinglePlayer;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TEngine extends ApplicationAdapter {
+	
+	public static final String VERSION = "pre-3";
+	
+	// engine metrics (updated internally, even though they are public!) do NOT manually change them!
+	
+	public static float mFrameProcessTime             = 0.0f;
+	public static float mDeltaTime                    = 0.0f;
+	public static int   mScreenWidth                  = 0;
+	public static int   mScreenHeight                 = 0;
+	public static int   mTileBatches                  = 0;
+	public static int   mTileDrawCount                = 0;
+	public static int   mTileLevelGeometryDrawCount   = 0;
+	public static int   mObjectDrawCount              = 0;
+	public static int   mObjectLevelGeometryDrawCount = 0;
+	public static int   mChunksInMemory               = 0;
+	public static int   mChunksDormant                = 0;
+	public static int   mPhysicalBodies               = 0;
 
-	private static TState        state    = null;
-	private static TInput 		 input    = null;
-	private static TClock        clock    = null;
-	private static TGraphics     renderer = null;
+	private static TState         state    = null;
+	private static TInput 		  input    = null;
+	private static TClock         clock    = null;
+	private static TGraphics      renderer = null;
+	private static TUserInterface ui       = null;
 	
 	/**
      * Sets the current state of the game, managing the transition between different states.
@@ -47,6 +66,7 @@ public final class TEngine extends ApplicationAdapter {
     	clock    = new TClock();
     	input    = new TInput();
     	renderer = new TGraphics();
+    	ui       = new TUserInterface();
     	Gdx.input.setInputProcessor(input);
     	setState(new TSinglePlayer());
     }
@@ -54,20 +74,27 @@ public final class TEngine extends ApplicationAdapter {
     @Override
     public void render() {
     	clock.tick();
-    	renderer.render();
+    	renderer.render(ui);
     	if(state != null)
     		state.render();
     	input.tick();
     	clock.tock();
+    	ui.render();
+    	
+    	mFrameProcessTime = (float)TClock.pt();
+    	mDeltaTime = (float)TClock.dt();
+    	
     }
     
     @Override
     public void resize(int newWidth, int newHeight) {
     	renderer.resize(newWidth, newHeight);
+    	ui.resize(newWidth, newHeight);
     }
 
     @Override
     public void dispose() {
+    	ui.dispose();
     	setState(null);
     	renderer.dispose();
     }

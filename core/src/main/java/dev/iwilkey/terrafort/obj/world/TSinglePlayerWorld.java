@@ -1,6 +1,8 @@
 package dev.iwilkey.terrafort.obj.world;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
@@ -13,7 +15,7 @@ import com.badlogic.gdx.utils.Disposable;
 
 import box2dLight.PointLight;
 import box2dLight.RayHandler;
-
+import dev.iwilkey.terrafort.TEngine;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TCollisionManifold;
@@ -22,13 +24,15 @@ import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
 
 /**
- * A physical space that manages {@link TObjects}, global and local forces, and dynamic lighting.
+ * A physical space that efficiently manages {@link TChunk}s, global and local forces, and dynamic lighting all active 
+ * within a Single-player game of Terrafort.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TWorld implements Disposable {
+public final class TSinglePlayerWorld implements Disposable {
 
 	public static final short           LIGHTING_RAYS           = 16;
-	public static final short           CHUNK_DORMANT_THRESHOLD = 4;
+	public static final short           CHUNK_CULLING_THRESHOLD = 4;
+	public static final float           CHUNK_DORMANT_WATCHDOG  = 1.0f;
 	public static final float           DAY_NIGHT_CYCLE_PERIOD  = Float.MAX_VALUE;
 	public static final Filter          LIGHTING_COLLISION_MASK = new Filter();
 	
@@ -39,7 +43,8 @@ public final class TWorld implements Disposable {
 	private final World              	world;
 	private final long                  seed;
 	
-	private final HashMap<Long, TChunk> loadedChunks;
+	private final HashMap<Long, TChunk> chunkMemory;
+	private final Set<Long>             loadedChunks;
 	
 	private final Box2DDebugRenderer    debugRenderer;
 	private final RayHandler            lightRenderer;
@@ -47,24 +52,29 @@ public final class TWorld implements Disposable {
 	private TPlayer                     clientPlayer;
 	private boolean                     debug;
 	private float                       worldTime;
+	private float                       chunkWatchdog;
 	private boolean                     day;
 	private boolean                     dusk;
 	private boolean                     night;
 	private boolean                     dawn;
+	private int                         dormantChunks;
 	
-	public TWorld(long seed) {
+	public TSinglePlayerWorld(long seed) {
 		this.seed                       = seed;
 		world                           = new World(new Vector2(0, 0), false);
-		loadedChunks                    = new HashMap<>();
+		chunkMemory                     = new HashMap<>();
+		loadedChunks                    = new HashSet<>();
 		lightRenderer                   = new RayHandler(world);
 		debugRenderer                   = new Box2DDebugRenderer();
 		debug                           = false;
 		clientPlayer                    = null;
 		worldTime                       = DAY_NIGHT_CYCLE_PERIOD;
+		chunkWatchdog                   = CHUNK_DORMANT_WATCHDOG;
 		day                             = true;
 		dusk                            = false;
 		night                           = false;
 		dawn                            = false;
+		dormantChunks                   = 0;
 		lightRenderer.setAmbientLight(0.1f, 0.1f, 0.1f, 0.5f);
 		world.setContactListener(new TCollisionManifold());
 	}
@@ -111,7 +121,6 @@ public final class TWorld implements Disposable {
 		chunk.remove(obj);
 	}
 	
-	int dormantChunks = 0;
 	float time = 0.0f;
 	
 	/**
@@ -119,26 +128,40 @@ public final class TWorld implements Disposable {
 	 * @param dt the change in time since the last tick.
 	 */
 	public void update(float dt) {
-		time += dt;
-		if(time > 1.0f) {
-			System.out.println("Concerned metrics: \n"
-					+ "Loaded chunks: " + loadedChunks.size() + "\n"
-					+ "Dormant chunks: " + dormantChunks + "\n"
-					+ "Physical bodies: " + world.getBodyCount() + "\n");
-			time = 0.0f;
-		}
-		dormantChunks = 0;
 		world.step(dt, 6, 2);
 		updateDayNightCycle(dt);
-		for(final TChunk o : loadedChunks.values()) {
-			if(o.tileDistTo(clientPlayer) > (CHUNK_DORMANT_THRESHOLD * TChunk.CHUNK_SIZE)) o.sleep();
-			else o.wake();
-			if(o.isDormant()) {
-				dormantChunks++;
-				continue;
+		// Optimization: since the chunks are hashed by position, I don't need to search through the entire list of loaded chunks
+		// to find what chunks are closest to the player...
+		loadedChunks.clear();
+		final int pcx = clientPlayer.getCurrentTileX() / TChunk.CHUNK_SIZE;
+		final int pcy = clientPlayer.getCurrentTileY() / TChunk.CHUNK_SIZE;
+		for(int cx = pcx - CHUNK_CULLING_THRESHOLD; cx < pcx + CHUNK_CULLING_THRESHOLD; cx++) {
+			for(int cy = pcy - CHUNK_CULLING_THRESHOLD; cy < pcy + CHUNK_CULLING_THRESHOLD; cy++) {
+				long hash = (((long)cx) << 32) | (cy & 0xffffffffL);
+				final TChunk currentChunk = chunkMemory.get(hash);
+				if(currentChunk == null)
+					continue;
+				loadedChunks.add(hash);
+				if(currentChunk.isDormant())
+					currentChunk.wake();
+				currentChunk.tick(dt);
 			}
-			o.tick(dt);
 		}
+		// the chunk dormant watchdog basically facilitates chunk sleeping if it isn't currently loaded.
+		chunkWatchdog += dt;
+		if(chunkWatchdog >= CHUNK_DORMANT_WATCHDOG) {
+			for(final long chunkHash : chunkMemory.keySet()) {
+				if(loadedChunks.contains(chunkHash))
+					continue;
+				TChunk toDormant = chunkMemory.get(chunkHash);
+				if(toDormant.isDormant())
+					continue;
+				chunkMemory.get(chunkHash).sleep();
+			}	
+			chunkWatchdog = 0.0f;
+		}
+		dormantChunks = chunkMemory.size() - loadedChunks.size();	
+		collectEngineMetrics();
 	}
 	
 	/**
@@ -146,11 +169,8 @@ public final class TWorld implements Disposable {
 	 */
 	public void render() {
 		TTerrainRenderer.render(this, clientPlayer);
-		for(final TChunk o : loadedChunks.values()) {
-			if(o.isDormant())
-				continue;
-			o.render();
-		}
+		for(long hash : loadedChunks)
+			chunkMemory.get(hash).render();
 		if(debug) debugRenderer.render(world, TGraphics.CAMERA.combined);
 		lightRenderer.setCombinedMatrix(TGraphics.CAMERA);
 		lightRenderer.updateAndRender();
@@ -192,7 +212,7 @@ public final class TWorld implements Disposable {
 	}
 	
 	public HashMap<Long, TChunk> getChunkCache() {
-		return loadedChunks;
+		return chunkMemory;
 	}
 	
 	public boolean isDay() {
@@ -229,11 +249,11 @@ public final class TWorld implements Disposable {
 		int chunkX = (x / TChunk.CHUNK_SIZE);
 		int chunkY = (y / TChunk.CHUNK_SIZE);
 		long hash  = (((long)chunkX) << 32) | (chunkY & 0xffffffffL);
-		if(!loadedChunks.containsKey(hash)) {
+		if(!chunkMemory.containsKey(hash)) {
 			final TChunk newChunk = new TChunk(this, chunkX, chunkY);
-			loadedChunks.put(hash, newChunk);
+			chunkMemory.put(hash, newChunk);
 		}
-		return loadedChunks.get(hash);
+		return chunkMemory.get(hash);
 	}
 	
 	/**
@@ -257,7 +277,7 @@ public final class TWorld implements Disposable {
 	 * Destroys all bodies and objects current active in the world.
 	 */
 	public void clearAllActiveObjectsAndBodies() {
-		for(final TChunk o : loadedChunks.values())
+		for(final TChunk o : chunkMemory.values())
 			o.destroy();
 		 final Array<Body> others = new Array<>();
 		 world.getBodies(others);
@@ -268,11 +288,21 @@ public final class TWorld implements Disposable {
 	@Override
 	public void dispose() {
 		clearAllActiveObjectsAndBodies();
-		loadedChunks.clear();
+		chunkMemory.clear();
 		lightRenderer.removeAll();
 		lightRenderer.dispose();
+		collectEngineMetrics();
 		world.dispose();
 		debugRenderer.dispose();
+	}
+	
+	/**
+	 * Updates the metrics in the {@link TEngine}.
+	 */
+	private void collectEngineMetrics() {
+		TEngine.mChunksInMemory = chunkMemory.size();
+		TEngine.mChunksDormant = dormantChunks;
+		TEngine.mPhysicalBodies = world.getBodyCount();
 	}
 
 }
