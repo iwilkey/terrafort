@@ -19,12 +19,15 @@ public final class TInput implements InputProcessor {
 	public static boolean down          = false;
 	public static boolean right         = false;
 	public static boolean left          = false;
+	public static boolean upArrow       = false;
+	public static boolean downArrow     = false;
+	public static boolean leftArrow     = false;
+	public static boolean rightArrow    = false;
 	public static boolean run           = false;
 	public static boolean slide         = false;
 	public static boolean attack        = false;
 	public static boolean zoomIn        = false;
 	public static boolean zoomOut       = false;
-	public static boolean engineMonitor = false;
 	
 	public static final class TController implements ControllerListener {
 		
@@ -42,20 +45,32 @@ public final class TInput implements InputProcessor {
 		public boolean buttonDown(Controller controller, int buttonCode) {
 			System.out.println("Button down: " + buttonCode);
 			switch(buttonCode) {
-				case 0: // pressing 'A'...
+				case 0: // A
 					attack = true;
 					break;
-				case 4: // left menu button
-					engineMonitor = true;
+				case 2: // X
+					slide = true;
 					break;
-				case 7: // pressing left stick...
+				case 7: // LS
 					run = true;
 					break;
-				case 9:  // pressing LB...
+				case 9:  // LB
 					zoomOut = true;
 					break;
-				case 10: // pressing RB...
+				case 10: // RB
 					zoomIn = true;
+					break;
+				case 11: // DPAD UP
+					upArrow = true;
+					break;
+				case 12: // DPAD DOWN
+					downArrow = true;
+					break;
+				case 13: // DPAD LEFT
+					leftArrow = true;
+					break;
+				case 14: // DPAD RIGHT
+					rightArrow = true;
 					break;
 			}
 			return false; 
@@ -64,20 +79,32 @@ public final class TInput implements InputProcessor {
 		@Override
 		public boolean buttonUp(Controller controller, int buttonCode) {
 			switch(buttonCode) {
-				case 0: // releasing 'A'...
+				case 0:
 					attack = false;
 					break;
-				case 4: // left menu button
-					engineMonitor = false;
+				case 2:
+					slide = false;
 					break;
-				case 7: // releasing left stick...
+				case 7:
 					run = false;
 					break;
-				case 9: // releasing LB...
+				case 9:
 					zoomOut = false;
 					break;
-				case 10: // releasing RB...
+				case 10:
 					zoomIn = false;
+					break;
+				case 11:
+					upArrow = false;
+					break;
+				case 12:
+					downArrow = false;
+					break;
+				case 13:
+					leftArrow = false;
+					break;
+				case 14:
+					rightArrow = false;
 					break;
 			}
 			return false;
@@ -131,8 +158,17 @@ public final class TInput implements InputProcessor {
 			case Keys.ENTER:
 				attack = true;
 				break;
-			case Keys.F1:
-				engineMonitor = true;
+			case Keys.UP:
+				upArrow = true;
+				break;
+			case Keys.DOWN:
+				downArrow = true;
+				break;
+			case Keys.LEFT:
+				leftArrow = true;
+				break;
+			case Keys.RIGHT:
+				rightArrow = true;
 				break;
 		}
 		return false;
@@ -168,8 +204,17 @@ public final class TInput implements InputProcessor {
 			case Keys.ENTER:
 				attack = false;
 				break;
-			case Keys.F1:
-				engineMonitor = false;
+			case Keys.UP:
+				upArrow = false;
+				break;
+			case Keys.DOWN:
+				downArrow = false;
+				break;
+			case Keys.LEFT:
+				leftArrow = false;
+				break;
+			case Keys.RIGHT:
+				rightArrow = false;
 				break;
 		}
 		return false;

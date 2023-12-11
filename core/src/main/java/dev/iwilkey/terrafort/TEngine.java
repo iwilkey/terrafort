@@ -2,6 +2,7 @@ package dev.iwilkey.terrafort;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.state.TSinglePlayer;
@@ -38,11 +39,12 @@ public final class TEngine extends ApplicationAdapter {
 	public static int   mChunksDormant                = 0;
 	public static int   mPhysicalBodies               = 0;
 
-	private static TState         state    = null;
-	private static TInput 		  input    = null;
-	private static TClock         clock    = null;
-	private static TGraphics      renderer = null;
-	private static TUserInterface ui       = null;
+	private static TState           state       = null;
+	private static InputMultiplexer multiplexer = null;
+	private static TInput 		    input       = null;
+	private static TClock           clock       = null;
+	private static TGraphics        renderer    = null;
+	private static TUserInterface   ui          = null;
 	
 	/**
      * Sets the current state of the game, managing the transition between different states.
@@ -67,7 +69,10 @@ public final class TEngine extends ApplicationAdapter {
     	input    = new TInput();
     	renderer = new TGraphics();
     	ui       = new TUserInterface();
-    	Gdx.input.setInputProcessor(input);
+    	multiplexer = new InputMultiplexer();
+    	multiplexer.addProcessor(TUserInterface.getParent());
+    	multiplexer.addProcessor(input);
+    	Gdx.input.setInputProcessor(multiplexer);
     	setState(new TSinglePlayer());
     }
 

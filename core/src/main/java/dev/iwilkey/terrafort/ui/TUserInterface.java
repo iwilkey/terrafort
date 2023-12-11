@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -24,23 +25,25 @@ public final class TUserInterface implements Disposable {
 	
 	private static final Array<TContainer> CONTAINERS = new Array<>();
 	
-	private static BitmapFont gameFont;
-	private static Stage      systemd; // terrible name, but IYKYK
+	private static BitmapFont  gameFont;
+	private static Stage       mom; // terrible name, but IYKYK
+	private static DragAndDrop dad;
 	
 	/**
 	 * Initializes the Terrafort engine's UI capability.
 	 */
 	public TUserInterface() {
 		VisUI.load();
-		systemd    = new Stage(new ScreenViewport());
+		mom                                                          = new Stage(new ScreenViewport());
+		dad                                                          = new DragAndDrop();
 		final FreeTypeFontGenerator                       generator  = new FreeTypeFontGenerator(Gdx.files.internal("font.ttf"));
 		final FreeTypeFontGenerator.FreeTypeFontParameter parameters = new FreeTypeFontGenerator.FreeTypeFontParameter();
-		parameters.size = 72;
-		gameFont        = generator.generateFont(parameters);
+		parameters.size                                              = 72;
+		gameFont                                                     = generator.generateFont(parameters);
 		generator.dispose();
-		Gdx.input.setInputProcessor(systemd);
+		dad.setDragTime(0);
 	}
-		
+	
 	/////////////////////////////////////////////////////////
 	// BEGIN TUSERINTERFACE API
 	/////////////////////////////////////////////////////////
@@ -54,7 +57,7 @@ public final class TUserInterface implements Disposable {
 	public static TContainer addContainer(final TContainer container) {
 		container.reset();
 		CONTAINERS.add(container);
-		systemd.addActor(container.get());
+		mom.addActor(container.get());
 		return container;
 	}
 	
@@ -106,6 +109,14 @@ public final class TUserInterface implements Disposable {
 		return gameFont;
 	}
 	
+	public static Stage getParent() {
+		return mom;
+	}
+	
+	public static DragAndDrop getDad() {
+		return dad;
+	}
+	
 	/////////////////////////////////////////////////////////
 	// END TUSERINTERFACE API
 	/////////////////////////////////////////////////////////
@@ -120,8 +131,8 @@ public final class TUserInterface implements Disposable {
 			c.anchor();
 			c.get().pack();
 		}
-		systemd.act();
-		systemd.draw();
+		mom.act();
+		mom.draw();
 	}
 	
 	/**
@@ -142,7 +153,7 @@ public final class TUserInterface implements Disposable {
 	    */
 	    // setGlobalScale(_s);
 	    // _background.setSize(nw, nh);
-	    systemd.getViewport().update(nw, nh, true);
+	    mom.getViewport().update(nw, nh, true);
 	}
 	
 	/**
@@ -158,7 +169,7 @@ public final class TUserInterface implements Disposable {
 		}
 		//_background.clear();
 		CONTAINERS.clear();
-		systemd.dispose();
+		mom.dispose();
 		gameFont.dispose();
 		VisUI.dispose();
 	}

@@ -35,9 +35,15 @@ public abstract class TContainer implements Disposable {
 		window.getTitleLabel().remove();
 		window.getTitleTable().remove();
 		setInternalPadding(4, 4, 8, 8);
+		anchor();
+	}
+	
+	/**
+	 * Must be called to pack for the first time.
+	 */
+	public void init() {
 		pack(window);
 		window.pack();
-		anchor();
 	}
 	
 	/**

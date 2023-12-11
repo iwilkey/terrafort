@@ -61,8 +61,7 @@ public final class TGraphics implements Disposable {
 	private static final Array<SpriteBatch>        TILE_BATCH_POOL       = new Array<>();
 	private static final ShapeRenderer             GEOMETRIC_RENDERER    = new ShapeRenderer();
 	
-	private static final VfxManager                POST_PROCESSING       = new VfxManager(Pixmap.Format.RGBA8888);
-	
+	public static final  VfxManager                POST_PROCESSING       = new VfxManager(Pixmap.Format.RGBA8888);
 	public static final  FxaaEffect                POST_FXAA             = new FxaaEffect();
 	public static final  BloomEffect               POST_BLOOM            = new BloomEffect();
 	public static final  GaussianBlurEffect        POST_GAUSSIAN_BLUR    = new GaussianBlurEffect();

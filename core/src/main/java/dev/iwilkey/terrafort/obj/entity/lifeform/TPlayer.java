@@ -7,9 +7,13 @@ import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.anim.TLifeformAnimationArray;
+import dev.iwilkey.terrafort.item.TItem;
+import dev.iwilkey.terrafort.item.TItemStackCollection;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
 import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.ui.TUserInterface;
+import dev.iwilkey.terrafort.ui.containers.TInventoryInterface;
 
 /**
  * The player of Terrafort; entity controlled by the user.
@@ -22,6 +26,9 @@ public final class TPlayer extends TLifeform {
 	public static final float PLAYER_RUN_SPEED  = 96.0f;
 	public static final float PLAYER_WIDTH      = 16.0f;
 	public static final float PLAYER_HEIGHT     = 32.0f;
+	
+	private TItemStackCollection inventory;
+	private TInventoryInterface  inventoryInterface;
 	
 	public TPlayer(TSinglePlayerWorld world) {
 		super(world,
@@ -44,10 +51,19 @@ public final class TPlayer extends TLifeform {
 		setMoveSpeed(PLAYER_WALK_SPEED);
 		setAttackCooldownTime(0.16f);
 	}
+	
+	public TItemStackCollection getInventory() {
+		return inventory;
+	}
 
 	@Override
 	public void spawn() {
-
+		inventory = new TItemStackCollection(8);
+		for(int i = 0; i < (256 * 2) + 2; i++)
+			inventory.addItem(TItem.TEST_ITEM);
+		inventoryInterface = new TInventoryInterface(this);
+		inventoryInterface.init();
+		TUserInterface.addContainer(inventoryInterface);
 	}
 
 	@Override
@@ -106,7 +122,7 @@ public final class TPlayer extends TLifeform {
 
 	@Override
 	public void die() {
-
+		TUserInterface.removeContainer(inventoryInterface);
 	}
 
 }
