@@ -129,7 +129,7 @@ public final class TGraphics implements Disposable {
 	 * @param width the world width.
 	 * @param height the world height.
 	 */
-	public static void draw(final TFrame frame, int x, int y, int z, int width, int height, Color tint, boolean tile) {
+	public static void draw(final TFrame frame, int x, int y, int ax, int ay, int z, int width, int height, Color tint, boolean tile) {
 		Array<TRenderableSprite> to = tile ? TILE_RENDERABLES : OBJECT_RENDERABLES;
 		to.add(new TRenderableSprite() {
 			@Override
@@ -154,6 +154,10 @@ public final class TGraphics implements Disposable {
 			public int   getDataSelectionSquareHeight() { return frame.getDataSelectionHeight(); }
 			@Override
 			public Color getRenderTint() 				{ return tint;                           }
+			@Override
+			public float getActualX() 					{ return ax; 							 }
+			@Override
+			public float getActualY() 					{ return ay; 							 }
 		});
 	}
 	
@@ -320,7 +324,7 @@ public final class TGraphics implements Disposable {
 	 */
 	private void sortObjectRenderables() {
 		TILE_RENDERABLES.sort((r1, r2) -> Integer.compare(r2.getDepth(), r1.getDepth()));
-		OBJECT_RENDERABLES.sort((r1, r2) -> Float.compare(r2.getRenderY(), r1.getRenderY()));
+		OBJECT_RENDERABLES.sort((r1, r2) -> Float.compare(r2.getActualY(), r1.getActualY()));
 		OBJECT_RENDERABLES.sort((r1, r2) -> Integer.compare(r2.getDepth(), r1.getDepth()));
 	}
 	

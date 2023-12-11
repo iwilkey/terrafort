@@ -3,6 +3,7 @@ package dev.iwilkey.terrafort.gfx;
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.shape.TRect;
+import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
 import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
@@ -17,57 +18,43 @@ public final class TTerrainRenderer {
 	public static final int    TERRAIN_TILE_HEIGHT              = 8;
 	public static final int    HALF_TERRAIN_TILE_WIDTH          = TERRAIN_TILE_WIDTH / 2;
 	public static final int    HALF_TERRAIN_TILE_HEIGHT         = TERRAIN_TILE_HEIGHT / 2;
-	public static final int    TERRAIN_LEVELS                   = 5;
-	public static final int    TRANSITION_THICKNESS_FACTOR      = 4; // higher value = thinner transition borders.
+	public static final int    TERRAIN_LEVELS                   = 7;
+	public static final int    TRANSITION_THICKNESS_FACTOR      = 8; // higher value = thinner transition borders.
 	public static final int    TERRAIN_VIEWPORT_CULLING_PADDING = 4;
 	
-	public static final int    STONE_TILE                       = 0;
-	public static final int    ASPHALT_TILE                     = 1;
-	public static final int    GRASS_TILE                       = 2;
-	public static final int    SAND_TILE                        = 3;
-	public static final int    WATER_TILE                       = 4;
+	public static final int    STONE_HIGH_TILE                  = 0;
+	public static final int    STONE_MEDIUM_TILE                = 1;
+	public static final int    STONE_LOW_TILE                   = 2;
+	public static final int    ASPHALT_TILE                     = 3;
+	public static final int    GRASS_TILE                       = 4;
+	public static final int    SAND_TILE                        = 5;
+	public static final int    WATER_TILE                       = 6;
 	
-	public static final TFrame STONE                            = new TFrame(3, 0, 1, 1);
-	public static final TFrame ASPHALT                          = new TFrame(4, 1, 1, 1);
-	public static final TFrame GRASS                            = new TFrame(4, 0, 1, 1);
-	public static final TFrame SAND                             = new TFrame(5, 0, 1, 1);
-	public static final TFrame WATER                            = new TFrame(6, 0, 1, 1);
-	
-	public static final byte   DX[]          					= new byte[9];
-	public static final byte   DY[]          					= new byte[9];
+	public static final TFrame STONE_HIGH                       = new TFrame(6, 0, 1, 1);
+	public static final TFrame STONE_MEDIUM                     = new TFrame(5, 0, 1, 1);
+	public static final TFrame STONE_LOW                        = new TFrame(4, 0, 1, 1);
+	public static final TFrame ASPHALT                          = new TFrame(3, 0, 1, 1);
+	public static final TFrame GRASS                            = new TFrame(4, 1, 1, 1);
+	public static final TFrame SAND                             = new TFrame(5, 1, 1, 1);
+	public static final TFrame WATER                            = new TFrame(6, 1, 1, 1);
 	
 	public static final TFrame LEVELS[]                         = new TFrame[TERRAIN_LEVELS];
-	
 	public static final Color  TRANSITION_COLORS[]              = new Color[TERRAIN_LEVELS - 1];
 	
 	static {
-		LEVELS[0]                                               = TTerrainRenderer.STONE;
-		TRANSITION_COLORS[0]                                    = new Color().set(0x868689FF);
-		LEVELS[1]                                               = TTerrainRenderer.ASPHALT;
-		TRANSITION_COLORS[1]                                    = new Color().set(0x3E3E3FFF);
-		LEVELS[2] 					                            = TTerrainRenderer.GRASS;
-		TRANSITION_COLORS[2]                                    = new Color().set(0x3D823DFF);
-		LEVELS[3]           									= TTerrainRenderer.SAND;
-		TRANSITION_COLORS[3]                                    = new Color().set(0xA38F4EFF);
-		LEVELS[4] 												= TTerrainRenderer.WATER;
-		DX[0] 													= 0;
-		DX[1] 													= -1;
-		DX[2]													= -1;
-		DX[3] 													= 0;
-		DX[4] 													= 1;
-		DX[5] 													= 1;
-		DX[6] 													= 1;
-		DX[7] 													= 0;
-		DX[8] 													= -1;
-		DY[0] 													= 0;
-		DY[1] 													= 0;
-		DY[2] 													= -1;
-		DY[3] 													= -1;
-		DY[4] 													= -1;
-		DY[5] 													= 0;
-		DY[6] 													= 1;
-		DY[7] 													= 1;
-		DY[8] 													= 1;
+		LEVELS[STONE_HIGH_TILE]                                 = STONE_HIGH;
+		LEVELS[STONE_MEDIUM_TILE]                               = STONE_MEDIUM;
+		LEVELS[STONE_LOW_TILE]                                  = STONE_LOW;
+		LEVELS[ASPHALT_TILE]                                    = ASPHALT;
+		LEVELS[GRASS_TILE]                                      = GRASS;
+		LEVELS[SAND_TILE]                                       = SAND;
+		LEVELS[WATER_TILE]                                      = WATER;
+		TRANSITION_COLORS[0]                                    = new Color().set(0xB5ABA6ff);
+		TRANSITION_COLORS[1]                                    = new Color().set(0x968C87ff);
+		TRANSITION_COLORS[2]                                    = new Color().set(0x7A706Bff);
+		TRANSITION_COLORS[3]                                    = new Color().set(0x605650ff);
+		TRANSITION_COLORS[4]                                    = new Color().set(0x3D823Dff);
+		TRANSITION_COLORS[5]                                    = new Color().set(0x998649ff);
 	}
 	
 	/**
@@ -77,8 +64,8 @@ public final class TTerrainRenderer {
 	 * @param player the player.
 	 */
 	public static void render(final TSinglePlayerWorld world, final TPlayer player) {
-		if(player == null) return;
-	    
+		if(player == null) 
+			return;
 		final float camWidthWorldUnits  = TGraphics.CAMERA.viewportWidth * TGraphics.CAMERA.zoom;
 	    final float camHeightWorldUnits = TGraphics.CAMERA.viewportHeight * TGraphics.CAMERA.zoom;
 	    final int tilesInViewWidth      = Math.round(camWidthWorldUnits / TERRAIN_TILE_WIDTH) / 2;
@@ -89,13 +76,12 @@ public final class TTerrainRenderer {
 	    final int xe                    = playerTileX + (tilesInViewWidth + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    final int ys                    = playerTileY - (tilesInViewHeight + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    final int ye                    = playerTileY + (tilesInViewHeight + TERRAIN_VIEWPORT_CULLING_PADDING);
-	    
 	    for (int i = xs; i <= xe; i++) {
 	        for (int j = ys; j <= ye; j++) {
                 final int vq = world.getTileHeightAt(i, j);
 	        	for(int d = 1; d < 9; d++) {
-	        		final int dx  = DX[d];
-	        		final int dy  = DY[d];
+	        		final int dx  = TMath.DX[d];
+	        		final int dy  = TMath.DY[d];
 	        		final int xx  = i + dx;
 	        		final int yy  = j - dy;
 	                final int vvq = world.getTileHeightAt(xx, yy);
@@ -140,7 +126,9 @@ public final class TTerrainRenderer {
 	                    TGraphics.draw(border, false);
 	                }
 	        	}
-	        	TGraphics.draw(LEVELS[vq], i * TERRAIN_TILE_WIDTH, j * TERRAIN_TILE_HEIGHT, vq, TERRAIN_TILE_WIDTH, TERRAIN_TILE_HEIGHT, Color.WHITE.cpy(), true);
+	        	final int xx = i * TERRAIN_TILE_WIDTH;
+	        	final int yy = j * TERRAIN_TILE_HEIGHT;
+	        	TGraphics.draw(LEVELS[vq], xx, yy, xx, yy, vq, TERRAIN_TILE_WIDTH, TERRAIN_TILE_HEIGHT, Color.WHITE.cpy(), true);
 	        }
 	    }
 	}

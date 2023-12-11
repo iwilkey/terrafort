@@ -19,6 +19,7 @@ import dev.iwilkey.terrafort.ui.containers.TEngineMonitor;
 public class TSinglePlayer implements TState {
 	
 	TSinglePlayerWorld world;
+	boolean            engineMonitor;
 	TEngineMonitor     monitor;
 	
 	@Override
@@ -28,9 +29,9 @@ public class TSinglePlayer implements TState {
 		world = new TSinglePlayerWorld(ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE - 1));
 		world.addObject(new TPlayer(world));
 		monitor = new TEngineMonitor();
-		monitor.setAnchor(TAnchor.TOP_LEFT);
-		monitor.setExternalPadding(4, 0, 0, 4);
-		TUserInterface.addContainer(monitor);
+		monitor.setAnchor(TAnchor.TOP_RIGHT);
+		monitor.setExternalPadding(8, 0, 8, 0);
+		engineMonitor = false;
 	}
 
 	@Override
@@ -44,6 +45,16 @@ public class TSinglePlayer implements TState {
 		if(TInput.zoomIn) {
 			TGraphics.requestCameraZoomChange(true);
 			TInput.zoomIn = false;
+		}
+		if(TInput.engineMonitor) {
+			if(!engineMonitor) {
+				TUserInterface.addContainer(monitor);
+				engineMonitor = true;
+			} else {
+				TUserInterface.removeContainer(monitor);
+				engineMonitor = false;
+			}
+			TInput.engineMonitor = false;
 		}
 	}
 

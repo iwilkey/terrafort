@@ -14,15 +14,17 @@ import com.badlogic.gdx.controllers.Controllers;
 public final class TInput implements InputProcessor {
 
 	public static float   scroll  = 0.0f;
-	public static boolean up      = false;
-	public static boolean down    = false;
-	public static boolean right   = false;
-	public static boolean left    = false;
-	public static boolean run     = false;
-	public static boolean slide   = false;
-	public static boolean attack  = false;
-	public static boolean zoomIn  = false;
-	public static boolean zoomOut = false;
+	
+	public static boolean up            = false;
+	public static boolean down          = false;
+	public static boolean right         = false;
+	public static boolean left          = false;
+	public static boolean run           = false;
+	public static boolean slide         = false;
+	public static boolean attack        = false;
+	public static boolean zoomIn        = false;
+	public static boolean zoomOut       = false;
+	public static boolean engineMonitor = false;
 	
 	public static final class TController implements ControllerListener {
 		
@@ -43,6 +45,9 @@ public final class TInput implements InputProcessor {
 				case 0: // pressing 'A'...
 					attack = true;
 					break;
+				case 4: // left menu button
+					engineMonitor = true;
+					break;
 				case 7: // pressing left stick...
 					run = true;
 					break;
@@ -61,6 +66,9 @@ public final class TInput implements InputProcessor {
 			switch(buttonCode) {
 				case 0: // releasing 'A'...
 					attack = false;
+					break;
+				case 4: // left menu button
+					engineMonitor = false;
 					break;
 				case 7: // releasing left stick...
 					run = false;
@@ -123,6 +131,9 @@ public final class TInput implements InputProcessor {
 			case Keys.ENTER:
 				attack = true;
 				break;
+			case Keys.F1:
+				engineMonitor = true;
+				break;
 		}
 		return false;
 	}
@@ -156,6 +167,9 @@ public final class TInput implements InputProcessor {
 				break;
 			case Keys.ENTER:
 				attack = false;
+				break;
+			case Keys.F1:
+				engineMonitor = false;
 				break;
 		}
 		return false;

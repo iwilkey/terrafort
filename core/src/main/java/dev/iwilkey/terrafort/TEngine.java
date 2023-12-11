@@ -21,7 +21,7 @@ import dev.iwilkey.terrafort.ui.TUserInterface;
  */
 public final class TEngine extends ApplicationAdapter {
 	
-	public static final String VERSION = "pre-3";
+	public static final String VERSION = "pre-4";
 	
 	// engine metrics (updated internally, even though they are public!) do NOT manually change them!
 	

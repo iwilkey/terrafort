@@ -66,7 +66,7 @@ public final class TSinglePlayerWorld implements Disposable {
 		loadedChunks                    = new HashSet<>();
 		lightRenderer                   = new RayHandler(world);
 		debugRenderer                   = new Box2DDebugRenderer();
-		debug                           = false;
+		debug                           = true;
 		clientPlayer                    = null;
 		worldTime                       = DAY_NIGHT_CYCLE_PERIOD;
 		chunkWatchdog                   = CHUNK_DORMANT_WATCHDOG;

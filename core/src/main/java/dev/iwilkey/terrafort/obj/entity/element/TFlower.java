@@ -38,8 +38,7 @@ public final class TFlower extends TNaturalElement {
 
 	@Override
 	public void drops() {
-		for(int i = 0; i < 1; i++)
-			world.addObject(new TParticle(world, x, y, (Math.random() > 0.5f) ? Color.PINK : Color.YELLOW));
+		world.addObject(new TParticle(world, x, y, (Math.random() > 0.5f) ? Color.PINK : Color.YELLOW));
 	}
 
 	@Override

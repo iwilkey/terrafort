@@ -25,14 +25,14 @@ public final class TTree extends TNaturalElement {
 		      TTerrainRenderer.TERRAIN_TILE_WIDTH * 4, 
 		      TTerrainRenderer.TERRAIN_TILE_HEIGHT * 4, 
 		      TTerrainRenderer.TERRAIN_TILE_WIDTH / 2f, 
-		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 3f,
+		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 3.5f,
 		      3, 
 		      (int)TMath.equalPick(3.0f, 5.0f),
 			  2, 
 			  2, 
 			  Color.WHITE.cpy(), 
 			  MAX_HP);
-		setGraphicsColliderOffset(0, TTerrainRenderer.TERRAIN_TILE_HEIGHT * 1.5f);
+		setGraphicsColliderOffset(0, TTerrainRenderer.TERRAIN_TILE_HEIGHT * 1.75f);
 	}
 
 	@Override

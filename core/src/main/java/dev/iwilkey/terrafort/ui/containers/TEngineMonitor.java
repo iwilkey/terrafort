@@ -17,6 +17,7 @@ public final class TEngineMonitor extends TContainer {
 	
 	@Override
 	public void pack(VisWindow window) {
+		setInternalPadding(16, 16, 16, 16);
 		final VisTable metricsSection = new VisTable();
 		metrics = TWidgets.label();
 		metrics.setFontScale(0.25f);

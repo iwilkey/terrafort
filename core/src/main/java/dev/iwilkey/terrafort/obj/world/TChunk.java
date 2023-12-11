@@ -11,9 +11,9 @@ import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.math.TNoise;
 
 import dev.iwilkey.terrafort.obj.entity.element.TFlower;
+import dev.iwilkey.terrafort.obj.entity.element.TShell;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
-import dev.iwilkey.terrafort.obj.entity.element.TBoulder;
 import dev.iwilkey.terrafort.obj.entity.element.TBush;
 import dev.iwilkey.terrafort.obj.entity.element.TTree;
 import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
@@ -29,14 +29,9 @@ public final class TChunk {
 	
 	public static final int   CHUNK_SIZE        = 16;
 	
-	public static final float STONE_REGION      = 0.40f;
-	public static final float ASPHALT_REGION    = 0.45f;
-	public static final float GRASS_REGION      = 0.70f;
-	public static final float SAND_REGION       = 0.75f;
 	public static final int   TREE_ELEMENT      = 0;
 	public static final int   FLOWER_ELEMENT    = 1;
 	public static final int   BUSH_ELEMENT      = 2;
-	public static final int   BOULDER_ELEMENT   = 3;
 	
 	private final Random                         random;
 	private final TSinglePlayerWorld                         world;
@@ -226,50 +221,56 @@ public final class TChunk {
 		// it is, so we either return the hash or generate it.
 		long hash = (((long)x) << 32) | (y & 0xffffffffL);
 		if(!terrainData.containsKey(hash)) {
-			double layer0     = TNoise.get(this.world.getSeed(), x * 0.01f, y * 0.01f);
+			double layer0     = TNoise.get(this.world.getSeed(), x * 0.001f, y * 0.001f);
 			layer0            = (layer0 + 1) / 2;
-			double layer0Norm = 0.0000001f + (0.001f - 0.0000001f) * layer0;
+			double layer0Norm = 0.0000001f + (0.005f - 0.0000001f) * layer0;
 			double layer1     = TNoise.get(this.world.getSeed(), x * layer0Norm, y * layer0Norm);
 			layer1            = (layer1 + 1) / 2;
 			int tile          = TMath.segment(layer1, 
-											  TTerrainRenderer.TERRAIN_LEVELS,
-											  STONE_REGION,
-											  ASPHALT_REGION,
-											  GRASS_REGION,
-											  SAND_REGION
-											 );
+											TTerrainRenderer.TERRAIN_LEVELS,
+											0.10f,
+											0.20f,
+											0.30f,
+											0.40f,
+											0.75f,
+											0.80f);
 			terrainData.put(hash, tile);
-			double layer0Norm2 =  0.01f + (0.1f - 0.01f) * layer0;
-			int    element     = -1;
-			if(random.nextFloat() < 0.75f) {
-				double layer3 = TNoise.get(this.world.getSeed() - 1, x * layer0Norm2, y * layer0Norm2);
-				layer3        = (layer3 + 1) / 2;
-				element       = TMath.segment(layer3, 4, 0.40f, 0.50f, 0.60f);
-			}
+			
 			switch(tile) {
+				case TTerrainRenderer.SAND_TILE:
+					if(random.nextFloat() < 0.05f)
+						register(new TShell(world, x, y));
+					
+					
+					
+					break;
 				case TTerrainRenderer.GRASS_TILE:
+					final double layer0Norm2 =  0.01f + (0.1f - 0.01f) * layer0;
+					int          element     = -1;
+					double layer3            = TNoise.get(this.world.getSeed() - 1, x * layer0Norm2, y * layer0Norm2);
+					layer3                   = (layer3 + 1) / 2;
+					element                  = TMath.segment(layer3, 4, 0.40f, 0.41f, 0.42f);
+					double layer4            = TNoise.get(this.world.getSeed() - 1, x * layer0Norm2, y * layer0Norm2);
+					layer4                   = (layer4 + 1) / 2; // [0, 1].
 					switch(element) {
 						case TREE_ELEMENT:
-							if(random.nextFloat() < 0.80f)
+							if(random.nextFloat() < layer4)
 								register(new TTree(world, x, y));
 							break;
 						case BUSH_ELEMENT:
-							if(random.nextFloat() < 0.70f)
+							if(random.nextFloat() < (layer4 / 8f))
 								register(new TBush(world, x, y));
 							break;
 						case FLOWER_ELEMENT:
-							if(random.nextFloat() < 0.60f)
-								register(new TFlower(world, x, y));
+							register(new TFlower(world, x, y));
 							break;
 					}
 					break;
 				case TTerrainRenderer.ASPHALT_TILE:
-				case TTerrainRenderer.STONE_TILE:
-					switch(element) {
-						case BOULDER_ELEMENT:
-							register(new TBoulder(world, x, y));
-							break;
-					}
+				case TTerrainRenderer.STONE_LOW_TILE:
+				case TTerrainRenderer.STONE_MEDIUM_TILE:
+				case TTerrainRenderer.STONE_HIGH_TILE:
+					
 					break;
 			}
 		}

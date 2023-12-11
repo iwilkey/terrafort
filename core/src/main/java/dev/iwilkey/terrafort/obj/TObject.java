@@ -43,6 +43,7 @@ public class TObject implements TRenderableSprite {
 	protected Color                renderTint;
 	
 	private   boolean              isDynamic;
+	private   boolean              isSensor;
 	private   boolean              enabled;
 	
 	public TObject(TSinglePlayerWorld   world, 
@@ -60,6 +61,7 @@ public class TObject implements TRenderableSprite {
 				   int     dataSelectionSquareHeight,
 				   Color   renderTint) {
 		enabled                        = true;
+		isSensor                       = false;
 		collisionManifold              = new Array<>();
 		this.world                     = world;
 		this.x                         = x;
@@ -97,6 +99,7 @@ public class TObject implements TRenderableSprite {
 		shape.setAsBox(colliderWidth, colliderHeight);
 		body.createFixture(fixtureDef);
 		shape.dispose();
+		getPhysicalFixture().setSensor(isSensor);
 	}
 	
 	/**
@@ -209,6 +212,7 @@ public class TObject implements TRenderableSprite {
 	public final void setAsSensor() {
 		if(!enabled)
 			return;
+		isSensor = true;
 		getPhysicalFixture().setSensor(true);
 	}
 	
@@ -220,6 +224,7 @@ public class TObject implements TRenderableSprite {
 	public final void setAsPhysical() {
 		if(!enabled)
 			return;
+		isSensor = false;
 		getPhysicalFixture().setSensor(false);
 	}
 	
@@ -245,10 +250,12 @@ public class TObject implements TRenderableSprite {
 		return enabled;
 	}
 	
+	@Override
 	public final float getActualX() {
 		return x;
 	}
 	
+	@Override
 	public final float getActualY() {
 		return y;
 	}

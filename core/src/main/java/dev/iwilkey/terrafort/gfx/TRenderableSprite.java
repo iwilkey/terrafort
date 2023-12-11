@@ -13,6 +13,8 @@ public interface TRenderableSprite {
 	
 	float getRenderX();
     float getRenderY();
+    float getActualX();
+    float getActualY();
     float getRenderWidth();
     float getRenderHeight();
     float getRotationInRadians();
