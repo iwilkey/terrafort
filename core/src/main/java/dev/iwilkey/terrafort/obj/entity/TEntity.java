@@ -6,7 +6,7 @@ import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.gfx.anim.TAnimationController;
 import dev.iwilkey.terrafort.obj.TObject;
-import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
+import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
 /**
@@ -17,12 +17,13 @@ public abstract class TEntity extends TObject {
 	
 	public static final float      HURT_HEAL_ANIMATION_TIMER = 0.1f;
 	
+	protected TAnimationController animationController;
+	
 	private boolean                alive;
 	private int                    maxHP;
 	private int                    currentHP;
 	private float                  hurtTimer;
 	private float                  healTimer;
-	protected TAnimationController animationController;
 	
 	public TEntity(TSinglePlayerWorld   world, 
 			       boolean isDynamic, 
@@ -79,10 +80,10 @@ public abstract class TEntity extends TObject {
 	public abstract void task(float dt);
 	
 	/**
-	 * Called when a {@link TLifeform} chooses to interact with this {@link TEntity}.
-	 * @param interactee the {@link TLifeform} interacting.
+	 * Called when a {@link TMob} chooses to interact with this {@link TEntity}.
+	 * @param interactee the {@link TMob} interacting.
 	 */
-	public abstract void onInteraction(TLifeform interactee);
+	public abstract void onInteraction(TMob interactee);
 	
 	/**
 	 * Called right as the entity dies.

@@ -13,7 +13,7 @@ import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TMath {
-	
+
 	public static final byte SOUTH      = 0;
 	public static final byte SOUTH_EAST = 1;
 	public static final byte EAST       = 2;
@@ -22,28 +22,29 @@ public final class TMath {
 	public static final byte NORTH_WEST = 5;
 	public static final byte WEST       = 6;
 	public static final byte SOUTH_WEST = 7;
+	public static final byte CENTER     = 8;
 	public static final byte DX[]       = new byte[9];
 	public static final byte DY[]       = new byte[9];
 	
 	static {
-		DX[0] 													= 0;
-		DX[1] 													= -1;
-		DX[2]													= -1;
-		DX[3] 													= 0;
-		DX[4] 													= 1;
-		DX[5] 													= 1;
-		DX[6] 													= 1;
-		DX[7] 													= 0;
-		DX[8] 													= -1;
-		DY[0] 													= 0;
-		DY[1] 													= 0;
-		DY[2] 													= -1;
-		DY[3] 													= -1;
-		DY[4] 													= -1;
-		DY[5] 													= 0;
-		DY[6] 													= 1;
-		DY[7] 													= 1;
-		DY[8] 													= 1;
+		DX[CENTER] 						= 0;
+		DY[CENTER] 						= 0;
+		DX[SOUTH] 						= 0;
+		DY[SOUTH] 						= 1;
+		DX[SOUTH_EAST]					= 1;
+		DY[SOUTH_EAST] 					= 1;
+		DX[EAST] 						= 1;
+		DY[EAST] 						= 0;
+		DX[NORTH_EAST] 					= 1;
+		DY[NORTH_EAST] 					= -1;
+		DX[NORTH] 						= 0;
+		DY[NORTH] 						= -1;
+		DX[NORTH_WEST] 					= -1;
+		DY[NORTH_WEST] 					= -1;
+		DX[WEST] 						= -1;
+		DY[WEST] 						= 0;
+		DX[SOUTH_WEST] 					= -1;
+		DY[SOUTH_WEST] 					= 1;
 	}
 	
 	/**

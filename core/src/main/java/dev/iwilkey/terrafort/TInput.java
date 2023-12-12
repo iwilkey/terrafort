@@ -2,6 +2,7 @@ package dev.iwilkey.terrafort;
 
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.controllers.Controller;
 import com.badlogic.gdx.controllers.ControllerListener;
@@ -12,9 +13,11 @@ import com.badlogic.gdx.controllers.Controllers;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TInput implements InputProcessor {
-
-	public static float   scroll  = 0.0f;
 	
+	public static boolean controller    = false;
+	public static float   scroll        = 0.0f;
+	public static float   cursorX       = 0.0f;
+	public static float   cursorY       = 0.0f;
 	public static boolean up            = false;
 	public static boolean down          = false;
 	public static boolean right         = false;
@@ -26,6 +29,7 @@ public final class TInput implements InputProcessor {
 	public static boolean run           = false;
 	public static boolean slide         = false;
 	public static boolean attack        = false;
+	public static boolean drop          = false;
 	public static boolean zoomIn        = false;
 	public static boolean zoomOut       = false;
 	
@@ -125,11 +129,14 @@ public final class TInput implements InputProcessor {
 	}
 	
 	public TInput() {
-		Controllers.addListener(new TController());
+		if(controller)
+			Controllers.addListener(new TController());
 	}
 	
 	@Override
 	public boolean keyDown(int keycode) {
+		if(controller)
+			return true;
 		switch(keycode) {
 			case Keys.W:
 				up = true;
@@ -176,6 +183,8 @@ public final class TInput implements InputProcessor {
 
 	@Override
 	public boolean keyUp(int keycode) {
+		if(controller)
+			return true;
 		switch(keycode) {
 			case Keys.W:
 				up = false;
@@ -222,14 +231,21 @@ public final class TInput implements InputProcessor {
 
 	@Override
 	public boolean keyTyped(char character) {
+		if(controller)
+			return true;
 		return false;
 	}
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+		if(controller)
+			return true;
 		switch(button) {
 			case Buttons.LEFT:
 				attack = true;
+				break;
+			case Buttons.RIGHT:
+				drop = true;
 				break;
 		}
 		return false;
@@ -237,9 +253,14 @@ public final class TInput implements InputProcessor {
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+		if(controller)
+			return true;
 		switch(button) {
 			case Buttons.LEFT:
 				attack = false;
+				break;
+			case Buttons.RIGHT:
+				drop = false;
 				break;
 		}
 		return false;
@@ -247,22 +268,30 @@ public final class TInput implements InputProcessor {
 
 	@Override
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
+		if(controller)
+			return true;
 		return false;
 	}
 
 	@Override
 	public boolean mouseMoved(int screenX, int screenY) {
+		if(controller)
+			return true;
 		return false;
 	}
 
 	@Override
 	public boolean scrolled(float amountX, float amountY) {
+		if(controller)
+			return true;
 		scroll = amountY;
 		return false;
 	}
 	
 	public void tick() {
 		scroll = 0;
+		cursorX = Gdx.input.getX();
+		cursorY = Gdx.input.getY();
 	}
 
 }

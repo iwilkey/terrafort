@@ -3,9 +3,11 @@ package dev.iwilkey.terrafort.obj.entity.element;
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
+import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.math.TMath;
-import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
-import dev.iwilkey.terrafort.obj.particle.TParticle;
+import dev.iwilkey.terrafort.obj.entity.mob.TMob;
+import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
+import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
 /**
@@ -39,6 +41,8 @@ public final class TBush extends TNaturalElement {
 	public void drops() {
 		for(int i = 0; i < 4; i++)
 			world.addObject(new TParticle(world, x, y + TMath.nextFloat(0.0f, height), Color.BROWN));
+		for(int i = 0; i < 4; i++)
+			world.addObject(new TItemDrop(world, x, y, TItem.TEST_ITEM));
 	}
 
 	@Override
@@ -52,7 +56,7 @@ public final class TBush extends TNaturalElement {
 	}
 
 	@Override
-	public void onInteraction(TLifeform interactee) {
+	public void onInteraction(TMob interactee) {
 		hurt(1);
 		world.addObject(new TParticle(world, x, y, Color.BROWN));
 	}

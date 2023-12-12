@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.obj.entity.lifeform;
+package dev.iwilkey.terrafort.obj.entity.mob;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -19,7 +19,7 @@ import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
  * intelligent beings share. Ignores lighting.
  * @author Ian Wilkey (iwilkey)
  */
-public abstract class TLifeform extends TEntity {
+public abstract class TMob extends TEntity {
 	
 	private TLifeformAnimationArray         movementAnimationArray;
 	private Vector2 		                movementVector;
@@ -33,7 +33,7 @@ public abstract class TLifeform extends TEntity {
 	private float                           attackTimer;
 	protected int                           directionFace;
 	
-	public TLifeform(TSinglePlayerWorld  world, 
+	public TMob(TSinglePlayerWorld  world, 
 			       boolean                         isDynamic, 
 			       float                           x, 
 			       float                           y, 
@@ -106,18 +106,18 @@ public abstract class TLifeform extends TEntity {
 	}
 	
 	/**
-	 * Method that returns true when a {@link TLifeform} wants to attack. Might be ignored based on internal 
+	 * Method that returns true when a {@link TMob} wants to attack. Might be ignored based on internal 
 	 * attack timer.
 	 */
 	public abstract boolean requestAttack();
 	
 	/**
-	 * Function called when a {@link TLifeform}'s attack request has been accepted and will attack this frame.
+	 * Function called when a {@link TMob}'s attack request has been accepted and will attack this frame.
 	 */
 	public abstract void attackProcedure();
 	
 	/**
-	 * Function called to calculate the movement of a {@link TLifeform}.
+	 * Function called to calculate the movement of a {@link TMob}.
 	 * 
 	 * <p>
 	 * The idea is that this function will only contain calls to the following functions based
@@ -154,14 +154,14 @@ public abstract class TLifeform extends TEntity {
 	}
 	
 	/**
-	 * Sets the {@link TLifeform} attack cooldown time.
+	 * Sets the {@link TMob} attack cooldown time.
 	 */
 	public final void setAttackCooldownTime(float time) {
 		attackCooldownAmt = time;
 	}
 	
 	/**
-	 * Return the object from the collision manifold that is most likely to match the {@link TLifeform}s expectations.
+	 * Return the object from the collision manifold that is most likely to match the {@link TMob}s expectations.
 	 */
 	public final TObject getNextCollisionFromManifold() {
 		if(getCollisionManifold().size == 0)
@@ -211,7 +211,7 @@ public abstract class TLifeform extends TEntity {
 	}
 	
 	/**
-	 * Calculates what animation should play based on {@link TLifeform} state.
+	 * Calculates what animation should play based on {@link TMob} state.
 	 */
 	private final void calculateGraphics(float dt) {
 		
@@ -265,7 +265,7 @@ public abstract class TLifeform extends TEntity {
 	}
 	
 	/**
-	 * Updates {@link TLifeform}'s direction to look toward the direction in which they are moving.
+	 * Updates {@link TMob}'s direction to look toward the direction in which they are moving.
 	 */
 	protected void calculateFacingDirection() {
         if (movementVector.x > 0)
@@ -278,6 +278,13 @@ public abstract class TLifeform extends TEntity {
             else directionFace = TMath.WEST;
         else if (movementVector.y > 0) directionFace = TMath.NORTH;
         else if (movementVector.y < 0) directionFace = TMath.SOUTH;
+	}
+	
+	/**
+	 * Returns the direction that the {@link TMob} is currently facing. The enumeration is found in the {@link TMath} module.
+	 */
+	public final int getFacingDirection() {
+		return directionFace;
 	}
 
 	/**

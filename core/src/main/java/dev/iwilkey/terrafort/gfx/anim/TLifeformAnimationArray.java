@@ -5,7 +5,7 @@ import dev.iwilkey.terrafort.math.TMath;
 
 /**
  * A special grouping of {@link TAnimation} that encapsulate and label all movement animation frames
- * for a {@link TLifeform}, following specific rules in the sprite sheet.
+ * for a {@link TMob}, following specific rules in the sprite sheet.
  * 
  * <p>
  * The rules are as follows:<br><br>

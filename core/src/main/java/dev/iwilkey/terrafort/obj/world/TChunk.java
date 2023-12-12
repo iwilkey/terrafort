@@ -16,9 +16,9 @@ import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
 import dev.iwilkey.terrafort.obj.entity.element.TBush;
 import dev.iwilkey.terrafort.obj.entity.element.TTree;
-import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
-import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
-import dev.iwilkey.terrafort.obj.particle.TParticle;
+import dev.iwilkey.terrafort.obj.entity.mob.TMob;
+import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
+import dev.iwilkey.terrafort.obj.particulate.TParticulate;
 
 /**
  * Spatial partition of the infinite world of Terrafort. Caches known tile heights and hashes terraform requests for a chunk of a given
@@ -131,7 +131,7 @@ public final class TChunk {
 			if(!obj.isEnabled())
 				continue;
 			obj.sync();
-			if(obj instanceof TLifeform) {
+			if(obj instanceof TMob) {
             	// Lifeforms need to be treated differently because
             	// they have the power to move out of the chunk.
             	final int ltx = Math.round(obj.getActualX() / TTerrainRenderer.TERRAIN_TILE_WIDTH);
@@ -152,13 +152,13 @@ public final class TChunk {
             		continue;
             	}
             	e.tick(dt);
-            } else if(obj instanceof TParticle) {
-            	TParticle p = (TParticle)obj;
+            } else if(obj instanceof TParticulate) {
+            	TParticulate p = (TParticulate)obj;
             	if(p.isDone()) {
             		objDataGarbageCollector.add(p);
             		continue;
             	}
-            	p.tick(dt);
+            	p.age(dt);
             }
 		}
 		if(objDataGarbageCollector.size != 0) {

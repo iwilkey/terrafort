@@ -3,8 +3,8 @@ package dev.iwilkey.terrafort.obj.entity.element.ore;
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.math.TMath;
-import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
-import dev.iwilkey.terrafort.obj.particle.TParticle;
+import dev.iwilkey.terrafort.obj.entity.mob.TMob;
+import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
 public final class TCopper extends TOre {
@@ -39,7 +39,7 @@ public final class TCopper extends TOre {
 	}
 
 	@Override
-	public void onInteraction(TLifeform interactee) {
+	public void onInteraction(TMob interactee) {
 		hurt(1);
 		world.addObject(new TParticle(world, x, y + TMath.nextFloat(0.0f, height), Color.ORANGE));
 	}

@@ -4,8 +4,8 @@ import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
-import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
-import dev.iwilkey.terrafort.obj.particle.TParticle;
+import dev.iwilkey.terrafort.obj.entity.mob.TMob;
+import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
 /**
@@ -52,7 +52,7 @@ public final class TBoulder extends TNaturalElement {
 	}
 
 	@Override
-	public void onInteraction(TLifeform interactee) {
+	public void onInteraction(TMob interactee) {
 		hurt(1);
 		for(int i = 0; i < 2; i++)
 			world.addObject(new TParticle(world, x, y, Color.GRAY));

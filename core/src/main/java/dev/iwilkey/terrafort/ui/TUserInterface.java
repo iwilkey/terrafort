@@ -11,7 +11,9 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import com.kotcrab.vis.ui.VisUI;
 
+import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.ui.containers.TContainer;
+import dev.iwilkey.terrafort.ui.containers.TPopup;
 
 /**
  * Manages the primary user interface layer in the Terrafort engine, providing methods for rendering 
@@ -22,9 +24,10 @@ import dev.iwilkey.terrafort.ui.containers.TContainer;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TUserInterface implements Disposable {
+
+	private static final Array<TContainer> CURRENT_CONTAINERS = new Array<>();
 	
-	private static final Array<TContainer> CONTAINERS = new Array<>();
-	
+	private static TPopup      currentPopup;
 	private static BitmapFont  gameFont;
 	private static Stage       mom; // terrible name, but IYKYK
 	private static DragAndDrop dad;
@@ -36,10 +39,12 @@ public final class TUserInterface implements Disposable {
 		VisUI.load();
 		mom                                                          = new Stage(new ScreenViewport());
 		dad                                                          = new DragAndDrop();
+		currentPopup                                                 = null;
 		final FreeTypeFontGenerator                       generator  = new FreeTypeFontGenerator(Gdx.files.internal("font.ttf"));
 		final FreeTypeFontGenerator.FreeTypeFontParameter parameters = new FreeTypeFontGenerator.FreeTypeFontParameter();
 		parameters.size                                              = 72;
 		gameFont                                                     = generator.generateFont(parameters);
+		gameFont.getData().markupEnabled = true;
 		generator.dispose();
 		dad.setDragTime(0);
 	}
@@ -47,6 +52,23 @@ public final class TUserInterface implements Disposable {
 	/////////////////////////////////////////////////////////
 	// BEGIN TUSERINTERFACE API
 	/////////////////////////////////////////////////////////
+	
+	public static void beginPopup(String text) {
+		if(currentPopup != null)
+			endPopup();
+		currentPopup = new TPopup(text, "test");
+		mom.addActor(currentPopup.get());
+	}
+	
+	public static void endPopup() {
+		if(currentPopup == null)
+			return;
+		if(currentPopup.get() != null) {
+			currentPopup.get().remove();
+			currentPopup.dispose();
+		}
+		currentPopup = null;
+	}
 	
 	/**
 	 * Adds a UI container to the Terrafort user interface and returns the added container.
@@ -56,7 +78,7 @@ public final class TUserInterface implements Disposable {
 	 */
 	public static TContainer addContainer(final TContainer container) {
 		container.reset();
-		CONTAINERS.add(container);
+		CURRENT_CONTAINERS.add(container);
 		mom.addActor(container.get());
 		return container;
 	}
@@ -69,7 +91,7 @@ public final class TUserInterface implements Disposable {
 	 *         {@code false} otherwise.
 	 */
 	public static boolean removeContainer(final TContainer container) {
-		final boolean in = CONTAINERS.removeValue(container, false);
+		final boolean in = CURRENT_CONTAINERS.removeValue(container, false);
 		if(in)
 			container.get().remove();
 		return in;
@@ -82,7 +104,7 @@ public final class TUserInterface implements Disposable {
 	 * @return {@code true} if the container was found and successfully removed; {@code false} otherwise.
 	 */
 	public static boolean disposeContainer(final TContainer container) {
-		final boolean in = CONTAINERS.removeValue(container, false);
+		final boolean in = CURRENT_CONTAINERS.removeValue(container, false);
 		if(in) {
 			container.get().remove();
 			container.dispose();
@@ -99,7 +121,7 @@ public final class TUserInterface implements Disposable {
 	 * @see TContainer
 	 */
 	public static boolean contains(final TContainer container) {
-		return CONTAINERS.contains(container, false);
+		return CURRENT_CONTAINERS.contains(container, false);
 	}
 	
 	/**
@@ -126,12 +148,14 @@ public final class TUserInterface implements Disposable {
 	 * each frame to ensure the UI is consistently updated and drawn to the screen.
 	 */
 	public void render() {
-		for(final TContainer c : CONTAINERS) {
+		if(currentPopup != null)
+			currentPopup.update((float)TClock.dt());
+		for(final TContainer c : CURRENT_CONTAINERS) {
 			c.update();
 			c.anchor();
 			c.get().pack();
 		}
-		mom.act();
+		mom.act((float)TClock.dt());
 		mom.draw();
 	}
 	
@@ -163,12 +187,12 @@ public final class TUserInterface implements Disposable {
 	 */
 	@Override
 	public void dispose() {
-		for(final TContainer c : CONTAINERS) {
+		for(final TContainer c : CURRENT_CONTAINERS) {
 			c.get().remove();
 			c.dispose();
 		}
 		//_background.clear();
-		CONTAINERS.clear();
+		CURRENT_CONTAINERS.clear();
 		mom.dispose();
 		gameFont.dispose();
 		VisUI.dispose();

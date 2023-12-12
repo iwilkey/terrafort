@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.math.TMath;
-import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
+import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
 /**

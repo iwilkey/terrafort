@@ -6,7 +6,7 @@ import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.TState;
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
+import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
 /**

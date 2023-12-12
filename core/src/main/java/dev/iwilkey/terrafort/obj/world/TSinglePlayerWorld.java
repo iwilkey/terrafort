@@ -21,7 +21,7 @@ import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
-import dev.iwilkey.terrafort.obj.entity.lifeform.TPlayer;
+import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 
 /**
  * A physical space that efficiently manages {@link TChunk}s, global and local forces, and dynamic lighting all active 

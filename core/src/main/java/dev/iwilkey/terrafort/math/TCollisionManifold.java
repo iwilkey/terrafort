@@ -7,7 +7,9 @@ import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Manifold;
 
 import dev.iwilkey.terrafort.obj.TObject;
-import dev.iwilkey.terrafort.obj.particle.TParticle;
+import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
+import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
+import dev.iwilkey.terrafort.obj.particulate.TParticulate;
 
 /**
  * Efficiently facilitates the the Terrafort physical collision filtering and notification system.
@@ -23,8 +25,19 @@ public final class TCollisionManifold implements ContactListener {
 		final Body bodyB = contact.getFixtureB().getBody();
 		final TObject objA = (TObject)(bodyA.getUserData());
 		final TObject objB = (TObject)(bodyB.getUserData());
-		if(objA instanceof TParticle || objB instanceof TParticle)
+		
+		// collisions between a player and item drop trigger the transferTo() event.
+		if(objA instanceof TPlayer && objB instanceof TItemDrop) {
+			final TItemDrop drop   = (TItemDrop)objB;
+			final TPlayer   player = (TPlayer)objA;
+			drop.transferTo(player);
 			return;
+		}
+		
+		// otherwise, particles are insignificant and shouldn't go through the manifold.
+		if(objA instanceof TParticulate || objB instanceof TParticulate) 
+			return;
+		
 		objA.addToCollisionManifold(objB);
 		objB.addToCollisionManifold(objA);
 	}
@@ -35,8 +48,6 @@ public final class TCollisionManifold implements ContactListener {
 		final Body bodyB = contact.getFixtureB().getBody();
 		final TObject objA = (TObject)(bodyA.getUserData());
 		final TObject objB = (TObject)(bodyB.getUserData());
-		if(objA instanceof TParticle || objB instanceof TParticle)
-			return;
 		objA.removeFromCollisionManifold(objB);
 		objB.removeFromCollisionManifold(objA);
 	}

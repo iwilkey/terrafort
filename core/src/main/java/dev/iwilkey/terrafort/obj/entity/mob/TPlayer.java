@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.obj.entity.lifeform;
+package dev.iwilkey.terrafort.obj.entity.mob;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.Array;
@@ -19,7 +19,7 @@ import dev.iwilkey.terrafort.ui.containers.TInventoryInterface;
  * The player of Terrafort; entity controlled by the user.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TPlayer extends TLifeform {
+public final class TPlayer extends TMob {
 	
 	public static final int   PLAYER_MAX_HP     = 10;
 	public static final float PLAYER_WALK_SPEED = 48.0f;
@@ -55,12 +55,19 @@ public final class TPlayer extends TLifeform {
 	public TItemStackCollection getInventory() {
 		return inventory;
 	}
+	
+	/**
+	 * Attempts to place a {@link TItem} in the players inventory, returns false if the action cannot be completed.
+	 */
+	public boolean giveItem(TItem item) {
+		return inventory.addItem(item);
+	}
 
 	@Override
 	public void spawn() {
-		inventory = new TItemStackCollection(8);
-		for(int i = 0; i < (256 * 2) + 2; i++)
-			inventory.addItem(TItem.TEST_ITEM);
+		// the abstract inventory.
+		inventory = new TItemStackCollection(12);
+		// A way to see and interact with the inventory.
 		inventoryInterface = new TInventoryInterface(this);
 		inventoryInterface.init();
 		TUserInterface.addContainer(inventoryInterface);
@@ -101,7 +108,7 @@ public final class TPlayer extends TLifeform {
 	}
 	
 	@Override
-	public void onInteraction(TLifeform interactee) {
+	public void onInteraction(TMob interactee) {
 		
 	}
 	

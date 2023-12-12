@@ -5,9 +5,11 @@ import java.util.concurrent.ThreadLocalRandom;
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
+import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.math.TMath;
-import dev.iwilkey.terrafort.obj.entity.lifeform.TLifeform;
-import dev.iwilkey.terrafort.obj.particle.TParticle;
+import dev.iwilkey.terrafort.obj.entity.mob.TMob;
+import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
+import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
 
 /**
@@ -43,6 +45,7 @@ public final class TShell extends TNaturalElement {
 	@Override
 	public void drops() {
 		world.addObject(new TParticle(world, x, y, Color.YELLOW));
+		world.addObject(new TItemDrop(world, x, y, TItem.SHELL));
 	}
 
 	@Override
@@ -56,7 +59,7 @@ public final class TShell extends TNaturalElement {
 	}
 
 	@Override
-	public void onInteraction(TLifeform interactee) {
+	public void onInteraction(TMob interactee) {
 		hurt(1);
 	}
 	

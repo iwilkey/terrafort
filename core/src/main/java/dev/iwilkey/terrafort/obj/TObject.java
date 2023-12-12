@@ -18,33 +18,33 @@ import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
  * interacts with physical force and collisions.
  * @author Ian Wilkey (iwilkey)
  */
-public class TObject implements TRenderableSprite {
+public abstract class TObject implements TRenderableSprite {
 
-	public boolean                 shouldDraw = true;
+	public boolean                     shouldDraw = true;
+
+	protected final TSinglePlayerWorld world;
+	protected final Array<TObject>     collisionManifold;
 	
-	protected final TSinglePlayerWorld         world;
-	protected final Array<TObject> collisionManifold;
+	protected Body                     body;
+	protected float                    x;
+	protected float                    y;
+	protected float                    colliderOffX;
+	protected float                    colliderOffY;
+	protected int                      z; // z buffer render order.
+	protected float                    width;
+	protected float                    height;
+	protected float                    colliderWidth;
+	protected float                    colliderHeight;
+	protected float                    rotationInRadians;
+	protected int                      dataOffsetX;
+	protected int                      dataOffsetY;
+	protected int                      dataSelectionSquareWidth;
+	protected int                      dataSelectionSquareHeight;
+	protected Color                    renderTint;
 	
-	protected Body                 body;
-	protected float                x;
-	protected float                y;
-	protected float                colliderOffX;
-	protected float                colliderOffY;
-	protected int                  z; // z buffer render order.
-	protected float                width;
-	protected float                height;
-	protected float                colliderWidth;
-	protected float                colliderHeight;
-	protected float                rotationInRadians;
-	protected int                  dataOffsetX;
-	protected int                  dataOffsetY;
-	protected int                  dataSelectionSquareWidth;
-	protected int                  dataSelectionSquareHeight;
-	protected Color                renderTint;
-	
-	private   boolean              isDynamic;
-	private   boolean              isSensor;
-	private   boolean              enabled;
+	private   boolean                  isDynamic;
+	private   boolean                  isSensor;
+	private   boolean                  enabled;
 	
 	public TObject(TSinglePlayerWorld   world, 
 				   boolean isDynamic, 
@@ -82,7 +82,7 @@ public class TObject implements TRenderableSprite {
 		colliderOffY                   = 0.0f;
 		construct();
 	}
-	
+
 	/**
 	 * Constructs the physical portion of the {@link TObject}.
 	 */
@@ -248,6 +248,10 @@ public class TObject implements TRenderableSprite {
 	
 	public final boolean isEnabled() {
 		return enabled;
+	}
+	
+	public final TSinglePlayerWorld getWorld() {
+		return world;
 	}
 	
 	@Override
