@@ -10,7 +10,7 @@ import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
-import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * A shell. Found in dunes.
@@ -21,7 +21,7 @@ public final class TShell extends TNaturalElement {
 	
 	public static final int MAX_HP = 1;
 	
-	public TShell(TSinglePlayerWorld world, int tileX, int tileY) {
+	public TShell(TWorld world, int tileX, int tileY) {
 		super(world, 
 		      false,
 		      tileX * TTerrainRenderer.TERRAIN_TILE_WIDTH, 

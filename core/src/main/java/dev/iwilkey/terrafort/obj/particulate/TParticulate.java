@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Vector2;
 
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
-import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * A light, interactive and dynamic physical object that manages it's own life. Fades overtime until it dies.
@@ -24,7 +24,7 @@ public abstract class TParticulate extends TObject {
 	 * Creates a new {@link TParticulate} at (x, y) [world-space!] with given life-span, in seconds. Note that life-span
 	 * is final and cannot be changed after construction.
 	 */
-	public TParticulate(TSinglePlayerWorld world, float x, float y, float width, float height, float lifespan) {
+	public TParticulate(TWorld world, float x, float y, float width, float height, float lifespan) {
 			super(world, 
 				  true, 
 				  x, 

@@ -22,7 +22,7 @@ import dev.iwilkey.terrafort.obj.particulate.TParticulate;
 
 /**
  * Spatial partition of the infinite world of Terrafort. Caches known tile heights and hashes terraform requests for a chunk of a given
- * {@link TSinglePlayerWorld}. Manages objects within its bounds.
+ * {@link TWorld}. Manages objects within its bounds.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TChunk {
@@ -34,7 +34,7 @@ public final class TChunk {
 	public static final int   BUSH_ELEMENT      = 2;
 	
 	private final Random                         random;
-	private final TSinglePlayerWorld                         world;
+	private final TWorld                         world;
 	private final HashMap<Long, Integer>         terrainData;
 	private final Array<TObject>                 objData;
 	private final Array<TObject>                 objDataGarbageCollector;
@@ -46,7 +46,7 @@ public final class TChunk {
 	/**
 	 * Create a new chunk with no previous data; a "clean" chunk.
 	 */
-	public TChunk(TSinglePlayerWorld world, int chunkX, int chunkY) {
+	public TChunk(TWorld world, int chunkX, int chunkY) {
 		this.world              = world;
 		this.chunkX             = chunkX;
 		this.chunkY             = chunkY;
@@ -117,7 +117,7 @@ public final class TChunk {
 	}
 	
 	/**
-	 * Removes a {@link TObject} from the {@link TChunk}, and thus, the {@link TSinglePlayerWorld}.
+	 * Removes a {@link TObject} from the {@link TChunk}, and thus, the {@link TWorld}.
 	 */
 	public void remove(final TObject obj) {
 		objDataGarbageCollector.add(obj);

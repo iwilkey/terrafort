@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.ui.containers;
+package dev.iwilkey.terrafort.ui.containers.interfaces;
 
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisWindow;
@@ -9,6 +9,7 @@ import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
 import dev.iwilkey.terrafort.ui.TAnchor;
 import dev.iwilkey.terrafort.ui.TDroppable;
+import dev.iwilkey.terrafort.ui.containers.TContainer;
 import dev.iwilkey.terrafort.ui.widgets.TItemStackSlot;
 
 /**

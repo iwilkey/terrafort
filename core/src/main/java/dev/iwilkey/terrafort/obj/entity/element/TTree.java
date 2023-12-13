@@ -6,7 +6,7 @@ import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
-import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * A tree. Found in grasslands.
@@ -16,7 +16,7 @@ public final class TTree extends TNaturalElement {
 	
 	public static final int MAX_HP = 4;
 
-	public TTree(TSinglePlayerWorld world, int tileX, int tileY) {
+	public TTree(TWorld world, int tileX, int tileY) {
 		super(world, 
 		      false, 
 		      tileX * TTerrainRenderer.TERRAIN_TILE_WIDTH, 

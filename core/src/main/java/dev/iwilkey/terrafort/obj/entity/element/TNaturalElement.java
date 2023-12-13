@@ -3,7 +3,7 @@ package dev.iwilkey.terrafort.obj.entity.element;
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.obj.entity.TEntity;
-import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * A plant, tree, rock; any object found in nature that can be harvested.
@@ -11,7 +11,7 @@ import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
  */
 public abstract class TNaturalElement extends TEntity {
 
-	public TNaturalElement(TSinglePlayerWorld  world, 
+	public TNaturalElement(TWorld  world, 
 			           boolean isDynamic, 
 			           float   x, 
 			           float   y, 

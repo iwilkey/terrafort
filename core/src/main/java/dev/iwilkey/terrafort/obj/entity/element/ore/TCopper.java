@@ -5,13 +5,13 @@ import com.badlogic.gdx.graphics.Color;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
-import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 public final class TCopper extends TOre {
 	
 	public static final int MAX_HP = 1000;
 
-	public TCopper(TSinglePlayerWorld world, int tileX, int tileY) {
+	public TCopper(TWorld world, int tileX, int tileY) {
 		super(world, 
 			  tileX, 
 			  tileY, 

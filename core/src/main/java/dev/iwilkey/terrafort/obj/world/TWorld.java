@@ -28,7 +28,7 @@ import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
  * within a Single-player game of Terrafort.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TSinglePlayerWorld implements Disposable {
+public final class TWorld implements Disposable {
 
 	public static final short           LIGHTING_RAYS           = 16;
 	public static final short           CHUNK_CULLING_THRESHOLD = 4;
@@ -59,7 +59,7 @@ public final class TSinglePlayerWorld implements Disposable {
 	private boolean                     dawn;
 	private int                         dormantChunks;
 	
-	public TSinglePlayerWorld(long seed) {
+	public TWorld(long seed) {
 		this.seed                       = seed;
 		world                           = new World(new Vector2(0, 0), false);
 		chunkMemory                     = new HashMap<>();

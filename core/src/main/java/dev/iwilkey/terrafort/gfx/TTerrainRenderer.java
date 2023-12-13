@@ -5,11 +5,11 @@ import com.badlogic.gdx.graphics.Color;
 import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
-import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * A utility class that facilitates the efficient rendering of an infinite set of tiles,
- * representing {@link TSinglePlayerWorld} terrain that provides the seed for layered OpenSimplex noise.
+ * representing {@link TWorld} terrain that provides the seed for layered OpenSimplex noise.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TTerrainRenderer {
@@ -63,7 +63,7 @@ public final class TTerrainRenderer {
 	 * @param world the world the terrain belongs to.
 	 * @param player the player.
 	 */
-	public static void render(final TSinglePlayerWorld world, final TPlayer player) {
+	public static void render(final TWorld world, final TPlayer player) {
 		if(player == null) 
 			return;
 		final float camWidthWorldUnits  = TGraphics.CAMERA.viewportWidth * TGraphics.CAMERA.zoom;

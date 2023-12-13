@@ -1,8 +1,6 @@
 package dev.iwilkey.terrafort.ui.containers;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Colors;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Disposable;
@@ -13,45 +11,50 @@ import com.kotcrab.vis.ui.widget.VisWindow;
 import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.ui.TUserInterface;
 
+/**
+ * A simple UI window that follows the cursor while it is active. Renders a header and body text.
+ * @author Ian Wilkey (iwilkey)
+ */
 public final class TPopup implements Disposable {
 	
 	private final VisWindow window;
 	
-	public TPopup(String name, String description) {
-		
+	/**
+	 * Creates a new {@link TPopup} instance, with given header and body data. 
+	 * 
+	 * <p>
+	 * NOTE: This data is static and cannot be changed; you'll have to call {@link TUserInterface}.beginPopup(new data).
+	 * </p>
+	 */
+	public TPopup(String header, String body) {
 		window = new VisWindow(Integer.toString(hashCode()), false);
 		window.setMovable(false);
 		window.setResizable(false);
 		window.getTitleLabel().remove();
 		window.getTitleTable().remove();
-		
 		setInternalPadding(4, 4, 8, 8);
-		
 		final VisTable table = new VisTable();
-		
-		final VisLabel label = new VisLabel(name);
+		final VisLabel label = new VisLabel(header);
 		label.setAlignment(Align.center);
 		label.getStyle().font = TUserInterface.getGameFont();
 		label.setFontScale(0.16f);
 		table.add(label).expand().fill();
 		table.row();
-		
 		table.addSeparator();
-		Colors.put("RED", Color.RED);
-		final VisLabel desc = new VisLabel("This is a [RED]popup[] description");
-		desc.setColor(Color.GRAY);
+		final VisLabel desc = new VisLabel(body);
 		desc.setAlignment(Align.left);
 		desc.getStyle().font = TUserInterface.getGameFont();
 		desc.setFontScale(0.16f);
 		table.add(desc).expand().fill();
-		
-		
 		window.add(table).expand().fill();
 		window.pack();
 		window.setTouchable(Touchable.disabled);
 		window.setVisible(false);
 	}
 	
+	/**
+	 * Called internally while a {@link TPopup} is active. Instructs the popup how to follow the mouse position.
+	 */
 	public void update(float dt) {
 		if(window == null)
 			return;
@@ -62,6 +65,10 @@ public final class TPopup implements Disposable {
 	    window.setVisible(true);
 	}
 	
+	/**
+	 * Returns the {@link VisWindow} that encapsulates the popup header and body data.
+	 * @return
+	 */
 	public VisWindow get() {
 		return window;
 	}

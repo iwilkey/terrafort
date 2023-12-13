@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
-import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * A tile-sized physical object without life that can be placed or broken.
@@ -15,7 +15,7 @@ public abstract class TTile extends TEntity {
 	private int tx;
 	private int ty;
 	
-	public TTile(TSinglePlayerWorld world, 
+	public TTile(TWorld world, 
 				 int tileX, 
 				 int tileY, 
 				 int dataOffsetX, 

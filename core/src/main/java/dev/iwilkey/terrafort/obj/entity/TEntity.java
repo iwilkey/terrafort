@@ -7,7 +7,7 @@ import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.gfx.anim.TAnimationController;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
-import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * An abstract {@link TObject} with animations and monitored health, tasks, and death functionality.
@@ -25,7 +25,7 @@ public abstract class TEntity extends TObject {
 	private float                  hurtTimer;
 	private float                  healTimer;
 	
-	public TEntity(TSinglePlayerWorld   world, 
+	public TEntity(TWorld   world, 
 			       boolean isDynamic, 
 			       float   x, 
 			       float   y, 

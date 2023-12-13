@@ -12,7 +12,7 @@ import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
-import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * A more specific, yet still abstract {@link TEntity}. Has special properties and functions that all Terrafort 
@@ -33,7 +33,7 @@ public abstract class TMob extends TEntity {
 	private float                           attackTimer;
 	protected int                           directionFace;
 	
-	public TMob(TSinglePlayerWorld  world, 
+	public TMob(TWorld  world, 
 			       boolean                         isDynamic, 
 			       float                           x, 
 			       float                           y, 

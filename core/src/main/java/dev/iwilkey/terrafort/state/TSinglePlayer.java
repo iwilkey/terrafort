@@ -7,7 +7,7 @@ import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.TState;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
-import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * A single-player game of Terrafort.
@@ -15,14 +15,15 @@ import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
  */
 public class TSinglePlayer implements TState {
 	
-	TSinglePlayerWorld world;
+	TPlayer           player;
+	TWorld            world;
 
 	@Override
 	public void start() {
 		TGraphics.setGlLineWidth(1.0f);
 		TGraphics.setCameraSpeedToTarget(4.0f);
-		world = new TSinglePlayerWorld(ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE - 1));
-		world.addObject(new TPlayer(world));
+		world = new TWorld(ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE - 1));
+		player = (TPlayer)world.addObject(new TPlayer(world));
 	}
 
 	@Override

@@ -6,7 +6,7 @@ import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
-import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * A physical representation of a {@link TItem}. Can be collected by {@link TPlayer}s.
@@ -26,7 +26,7 @@ public final class TItemDrop extends TParticulate {
 	/**
 	 * Spawns a {@link TItemDrop} at specified location with random impulse direction.
 	 */
-	public TItemDrop(TSinglePlayerWorld world, float x, float y, TItem item) {
+	public TItemDrop(TWorld world, float x, float y, TItem item) {
 		super(world, x, y, WORLD_SIZE, WORLD_SIZE, TMath.nextFloat(PICKUP_TIME_WORST_CASE, PICKUP_TIME_BEST_CASE));
 		this.item          = item;
 		bulgeTimeMultipler = TMath.nextFloat(1.5f, 3.0f);
@@ -38,7 +38,7 @@ public final class TItemDrop extends TParticulate {
 	/**
 	 * Spawns a {@link TItemDrop} at specified location with specific impulse direction. Likely used for throwing.
 	 */
-	public TItemDrop(TSinglePlayerWorld world, float x, float y, float throwDirX, float throwDirY, TItem item) {
+	public TItemDrop(TWorld world, float x, float y, float throwDirX, float throwDirY, TItem item) {
 		super(world, x, y, WORLD_SIZE, WORLD_SIZE, TMath.nextFloat(PICKUP_TIME_WORST_CASE, PICKUP_TIME_BEST_CASE));
 		this.item          = item;
 		bulgeTimeMultipler = TMath.nextFloat(1.5f, 3.0f);

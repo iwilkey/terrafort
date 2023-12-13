@@ -6,7 +6,7 @@ import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
-import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * A boulder. Found on asphalt and stone; near mountains.
@@ -16,7 +16,7 @@ public final class TBoulder extends TNaturalElement {
 	
 	public static final int MAX_HP = 8;
 
-	public TBoulder(TSinglePlayerWorld world, int tileX, int tileY) {
+	public TBoulder(TWorld world, int tileX, int tileY) {
 		super(world, 
 		      false,
 		      tileX * TTerrainRenderer.TERRAIN_TILE_WIDTH, 

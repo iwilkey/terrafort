@@ -3,7 +3,7 @@ package dev.iwilkey.terrafort.obj.particulate;
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.math.TMath;
-import dev.iwilkey.terrafort.obj.world.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
  * Debris, dust; an insignificant {@link TParticulate} added for visual effect.
@@ -17,7 +17,7 @@ public final class TParticle extends TParticulate {
 	public static final float IMPULSE_MAGNITUDE_UNPREDICTABILITY = 64.0f; // [0, 128.0]
 	public static final float LINEAR_DAMPING_UNPREDICABILITY     = 16.0f; // [0, any];
 
-	public TParticle(TSinglePlayerWorld world, float x, float y, Color baseColor) {
+	public TParticle(TWorld world, float x, float y, Color baseColor) {
 		super(world, x, y, 0.5f, 0.5f, TMath.nextFloat(1.0f, 1.0f + LIFETIME_UNPREDICTABILITY));
 		renderTint   = baseColor.cpy();
 		renderTint.a = TMath.nextFloat(0.5f, 0.8f);

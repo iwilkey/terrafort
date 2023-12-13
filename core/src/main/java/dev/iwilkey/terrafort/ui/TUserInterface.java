@@ -53,13 +53,24 @@ public final class TUserInterface implements Disposable {
 	// BEGIN TUSERINTERFACE API
 	/////////////////////////////////////////////////////////
 	
-	public static void beginPopup(String text) {
+	/**
+	 * Begins and renders a new {@link TPopup} until {@link TUserInterface}.endPopup() is called. 
+	 * 
+	 * <p>
+	 * NOTE: This function forces any current rendering {@link TPopup} to be disposed of.
+	 * </p>
+	 * @param text
+	 */
+	public static void beginPopup(String header, String body) {
 		if(currentPopup != null)
 			endPopup();
-		currentPopup = new TPopup(text, "test");
+		currentPopup = new TPopup(header, body);
 		mom.addActor(currentPopup.get());
 	}
 	
+	/**
+	 * Ends the current {@link TPopup}, if applicable. Nothing happens if there is no active {@link TPopup}.
+	 */
 	public static void endPopup() {
 		if(currentPopup == null)
 			return;

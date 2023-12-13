@@ -53,11 +53,14 @@ public final class TItemStackSlot extends VisTable {
 		slot.row();
 		slot.add(amtLabel).center().align(Align.center);
 		
+		/**
+		 * Implementation of the {@link TPopup} system to trigger when the cursor enters and exits a {@link TItemStackSlot}.
+		 */
 		slot.addListener(new InputListener() {
 			@Override
 		    public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
 				if(itemStack != null)
-					TUserInterface.beginPopup(itemStack.getItem().name());
+					TUserInterface.beginPopup(itemStack.getItem().name(), "This is a [YELLOW]test[] of the [YELLOW]TPopup[] system.");
 		    }
 
 		    @Override
