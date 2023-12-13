@@ -193,6 +193,16 @@ public final class TWorld implements Disposable {
 		return requestChunkThatContains(x, y).getTileHeightAt(x, y);
 	}
 	
+	
+	public int checkTileHeightAt(int tileX, int tileY) {
+		final int chunkX = tileX / TChunk.CHUNK_SIZE;
+		final int chunkY = tileY / TChunk.CHUNK_SIZE;
+		final long chunkHash = (((long)chunkX) << 32) | (chunkY & 0xffffffffL);
+		if(chunkMemory.containsKey(chunkHash))
+			return requestChunkThatContains(tileX, tileY).getTileHeightAt(tileX, tileY);
+		else return -1;
+	}
+
 	/**
 	 * Updates the world terrain data at given tile coordinates to a given height.
 	 * 

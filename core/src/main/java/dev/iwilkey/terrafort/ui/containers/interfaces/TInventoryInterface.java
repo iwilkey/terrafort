@@ -8,6 +8,7 @@ import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
 import dev.iwilkey.terrafort.ui.TAnchor;
+import dev.iwilkey.terrafort.ui.TDrawable;
 import dev.iwilkey.terrafort.ui.TDroppable;
 import dev.iwilkey.terrafort.ui.containers.TContainer;
 import dev.iwilkey.terrafort.ui.widgets.TItemStackSlot;
@@ -28,15 +29,15 @@ public final class TInventoryInterface extends TContainer {
 	private       TItemStackSlot slots[];
 	
 	public TInventoryInterface(TPlayer owner) {
+		super();
+		setInternalPadding(8, 8, 8, 8);
+		setExternalPadding(0, 8, 0, 8);
+		setAnchor(TAnchor.BOTTOM_LEFT);
 		this.owner = owner;
 	}
 	
 	@Override
 	public void pack(VisWindow window) {
-		setInternalPadding(8, 8, 8, 8);
-		setExternalPadding(0, 8, 0, 8);
-		setAnchor(TAnchor.BOTTOM_LEFT);
-		
 		// equip slot.
 		final VisTable etable = new VisTable();
 		equipped = new TItemStackSlot(new TDroppable() {
@@ -47,7 +48,6 @@ public final class TInventoryInterface extends TContainer {
 		});
 		etable.add(equipped).padBottom(PADDING).padTop(PADDING).padRight(PADDING * 2);
 		etable.row();
-
 		trash = new TItemStackSlot(new TDroppable() {
 			@Override
 			public void dropcall() {
@@ -55,9 +55,7 @@ public final class TInventoryInterface extends TContainer {
 			}
 		});
 		etable.add(trash).padBottom(PADDING).padTop(PADDING).padRight(PADDING * 2);
-		
 		window.add(etable).expand();
-		
 		// other inventory slots.
 		final VisTable stable = new VisTable();
 		final TItemStackCollection collection = owner.getInventory();
@@ -76,6 +74,8 @@ public final class TInventoryInterface extends TContainer {
 			slots[i].setItemStack(collection.getCollection()[i]);
 		}
 		window.add(stable).expand();
+		style.background = TDrawable.solidWithShadow(0x444444ff, 0x000000cc, (int)window.getWidth(), (int)window.getHeight(), 6, 6);
+		window.setStyle(style);
 	}
 
 	@Override

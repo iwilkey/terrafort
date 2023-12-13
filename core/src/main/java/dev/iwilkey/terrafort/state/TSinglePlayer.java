@@ -15,8 +15,8 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public class TSinglePlayer implements TState {
 	
-	TPlayer           player;
-	TWorld            world;
+	TPlayer player;
+	TWorld  world;
 
 	@Override
 	public void start() {

@@ -1,5 +1,8 @@
 package dev.iwilkey.terrafort.ui.containers.interfaces;
 
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar.ProgressBarStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.kotcrab.vis.ui.widget.VisLabel;
@@ -10,6 +13,7 @@ import com.kotcrab.vis.ui.widget.VisWindow;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.ui.TAnchor;
 import dev.iwilkey.terrafort.ui.TDrawable;
+import dev.iwilkey.terrafort.ui.TUserInterface;
 import dev.iwilkey.terrafort.ui.containers.TContainer;
 
 /**
@@ -30,8 +34,6 @@ public final class TPlayerStatisticsInterface extends TContainer {
 	private final VisLabel       healthLabel;
 	private final VisProgressBar hunger;
 	private final VisLabel       hungerLabel;
-	private final VisProgressBar thirst;
-	private final VisLabel       thirstLabel;
 	private final VisProgressBar energy;
 	private final VisLabel       energyLabel;
 	
@@ -40,7 +42,7 @@ public final class TPlayerStatisticsInterface extends TContainer {
 		setAnchor(TAnchor.BOTTOM_RIGHT);
 		setInternalPadding(8, 8, 8, 8);
 		setExternalPadding(0, 8, 8, 0);
-		final Drawable back = TDrawable.solid(0x333333ff, 1, THICKNESS_PX);
+		final Drawable back = TDrawable.solid(BACK_COLOR, 1, THICKNESS_PX / 2);
 		final ProgressBarStyle healthStyle = new ProgressBarStyle();
 		healthStyle.background             = back;
 		healthStyle.knob                   = TDrawable.solid(HEALTH_COLOR, 1, THICKNESS_PX / 2);
@@ -49,24 +51,55 @@ public final class TPlayerStatisticsInterface extends TContainer {
 		hungerStyle.background             = back;
 		hungerStyle.knob                   = TDrawable.solid(HUNGER_COLOR, 1, THICKNESS_PX / 2);
 		hungerStyle.knobBefore             = TDrawable.solid(HUNGER_COLOR, 1, THICKNESS_PX / 4);
-		final ProgressBarStyle thirstStyle = new ProgressBarStyle();
-		thirstStyle.background             = back;
-		thirstStyle.knob                   = TDrawable.solid(THIRST_COLOR, 1, THICKNESS_PX / 2);
-		thirstStyle.knobBefore             = TDrawable.solid(THIRST_COLOR, 1, THICKNESS_PX / 4);
 		final ProgressBarStyle energyStyle = new ProgressBarStyle();
 		energyStyle.background             = back;
 		energyStyle.knob                   = TDrawable.solid(ENERGY_COLOR, 1, THICKNESS_PX / 2);
 		energyStyle.knobBefore             = TDrawable.solid(ENERGY_COLOR, 1, THICKNESS_PX / 4);
 		health = new VisProgressBar(0, TPlayer.PLAYER_MAX_HP, 1 / (float)TPlayer.PLAYER_MAX_HP,     false, healthStyle);
+		health.addListener(new InputListener() {
+			@Override
+		    public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+				TUserInterface.beginPopup("[RED]Health[]", "This bar represents your player's \ncurrent [RED]health[].\n\n"
+						+ 				  "If it reaches zero, your player will\ndie and this game of [YELLOW]Terrafort[]\nwill end.");
+		    }
+		    @Override
+		    public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+		    	TUserInterface.endPopup();
+		    }
+		});
+		
 		hunger = new VisProgressBar(0, TPlayer.PLAYER_MAX_HUNGER, 1 / (float)TPlayer.PLAYER_MAX_HUNGER, false, hungerStyle);
-		thirst = new VisProgressBar(0, TPlayer.PLAYER_MAX_THIRST, 1 / (float)TPlayer.PLAYER_MAX_THIRST, false, thirstStyle);
+		hunger.addListener(new InputListener() {
+			@Override
+		    public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+				TUserInterface.beginPopup("[ORANGE]Nutrition[]", "This bar represents your player's \ncurrent [ORANGE]nutrition[].\n\n"
+										+ "The more [ORANGE]nutrition[] you have,\nthe faster your [YELLOW]energy[] replenishes.\n\n"
+										+ "If your [ORANGE]nutrition[] drops to zero, you\nwill begin to periodically lose [RED]health[]\nuntil you eat.");
+		    }
+		    @Override
+		    public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+		    	TUserInterface.endPopup();
+		    }
+		});
+		
 		energy = new VisProgressBar(0, TPlayer.PLAYER_MAX_ENERGY, 1 / (float)TPlayer.PLAYER_MAX_ENERGY, false, energyStyle);
+		energy.addListener(new InputListener() {
+			@Override
+		    public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
+				TUserInterface.beginPopup("[YELLOW]Energy[]", "This bar represents your player's\ncurrent [YELLOW]energy[].\n\n"
+										+ "[YELLOW]Energy[] allows your player to complete\ntasks, run, and fight.\n\n"
+										+ "[YELLOW]Energy[] naturally replenishes as you\nrest.");
+		    }
+		    @Override
+		    public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
+		    	TUserInterface.endPopup();
+		    }
+		});
+		
 		healthLabel = new VisLabel();
 		healthLabel.setFontScale(0.16f);
 		hungerLabel = new VisLabel();
 		hungerLabel.setFontScale(0.16f);
-		thirstLabel = new VisLabel();
-		thirstLabel.setFontScale(0.16f);
 		energyLabel = new VisLabel();
 		energyLabel.setFontScale(0.16f);
 	}
@@ -80,12 +113,11 @@ public final class TPlayerStatisticsInterface extends TContainer {
 		internal.add(hunger).fill().expand();
 		internal.add(hungerLabel).padLeft(8);
 		internal.row();
-		internal.add(thirst).fill().expand();
-		internal.add(thirstLabel).padLeft(8);
-		internal.row();
 		internal.add(energy).fill().expand();
 		internal.add(energyLabel).padLeft(8);
 		window.add(internal).prefSize(256, 64).expand().fill();
+		style.background = TDrawable.solidWithShadow(0x444444ff, 0x000000cc, 256, 64, 4, 4);
+		window.setStyle(style);
 	}
 
 	@Override
@@ -94,8 +126,6 @@ public final class TPlayerStatisticsInterface extends TContainer {
 		healthLabel.setText(String.format("%d / %d", player.getCurrentHP(), TPlayer.PLAYER_MAX_HP));
 		hunger.setValue(player.getHungerPoints());
 		hungerLabel.setText(String.format("%d / %d", player.getHungerPoints(), TPlayer.PLAYER_MAX_HUNGER));
-		thirst.setValue(player.getThirstPoints());
-		thirstLabel.setText(String.format("%d / %d", player.getThirstPoints(), TPlayer.PLAYER_MAX_THIRST));
 		energy.setValue(player.getEnergyPoints());
 		energyLabel.setText(String.format("%d / %d", player.getEnergyPoints(), TPlayer.PLAYER_MAX_ENERGY));
 	}

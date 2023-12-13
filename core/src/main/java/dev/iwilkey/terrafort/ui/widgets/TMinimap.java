@@ -17,11 +17,12 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public final class TMinimap extends VisTable {
 	
-	public static final Color LOW_COLOR   = new Color().set(0x000000ff);
+	public static final Color LOW_COLOR   = new Color().set(0x555555ff);
 	public static final Color HIGH_COLOR  = new Color().set(0xffffffff);
-	public static final Color CROSS_COLOR = new Color().set(0xffffffff);
-	public static final byte  WIDTH_PX    = 32;
-	public static final byte  HEIGHT_PX   = 32;
+	public static final Color UNDEF_COLOR = new Color().set(0x000000ff);
+	public static final Color CROSS_COLOR = new Color().set(0xf2ce30ff);
+	public static final byte  WIDTH_PX    = 64;
+	public static final byte  HEIGHT_PX   = 64;
 	public static final byte  HALF_WIDTH  = WIDTH_PX / 2;
 	public static final byte  HALF_HEIGHT = HEIGHT_PX / 2;
 	public static final byte  CROSS_SIZE  = 1;
@@ -59,9 +60,11 @@ public final class TMinimap extends VisTable {
 	        for (int y = 0; y < HEIGHT_PX; y++) {
 	            int tileX         = startX + x * tilesPerPixel;
 	            int tileY         = startY + y * tilesPerPixel;
-	            int tileHeight    = world.getTileHeightAt(tileX, tileY);
-	            final Color color = getGradientColor(tileHeight, TTerrainRenderer.TERRAIN_LEVELS - 1);
-	            pixels.drawPixel(x, HEIGHT_PX - y - 1, Color.rgba8888(color));
+	            int tileHeight    = world.checkTileHeightAt(tileX, tileY);
+	            final Color col;
+	            if(tileHeight == -1) col = UNDEF_COLOR;
+	            else col = getGradientColor(tileHeight, TTerrainRenderer.TERRAIN_LEVELS - 1);
+	            pixels.drawPixel(x, HEIGHT_PX - y - 1, Color.rgba8888(col));
 	        }
 	    }
 	    for(int i = -CROSS_SIZE; i <= CROSS_SIZE; i++) {

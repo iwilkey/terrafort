@@ -1,5 +1,7 @@
 package dev.iwilkey.terrafort.obj.entity.mob;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.Array;
 
@@ -27,7 +29,6 @@ public final class TPlayer extends TMob {
 	
 	public static final int   PLAYER_MAX_HP     = 128;
 	public static final int   PLAYER_MAX_HUNGER = 128;
-	public static final int   PLAYER_MAX_THIRST = 128;
 	public static final int   PLAYER_MAX_ENERGY = 128;
 	public static final float PLAYER_WALK_SPEED = 48.0f;
 	public static final float PLAYER_RUN_SPEED  = 96.0f;
@@ -35,7 +36,6 @@ public final class TPlayer extends TMob {
 	public static final float PLAYER_HEIGHT     = 32.0f;
 	
 	private int                        hunger;
-	private int                        thirst;
 	private int                        energy;
 	
 	private TItemStackCollection       inventory;
@@ -64,16 +64,11 @@ public final class TPlayer extends TMob {
 		setMoveSpeed(PLAYER_WALK_SPEED);
 		setAttackCooldownTime(0.16f);
 		hunger = PLAYER_MAX_HUNGER;
-		thirst = PLAYER_MAX_THIRST;
 		energy = PLAYER_MAX_ENERGY;
 	}
 	
 	public int getHungerPoints() {
 		return hunger;
-	}
-	
-	public int getThirstPoints() {
-		return thirst;
 	}
 	
 	public int getEnergyPoints() {
@@ -96,24 +91,6 @@ public final class TPlayer extends TMob {
 	public void takeHungerPoints(int hunger) {
 		this.hunger -= hunger;
 		this.hunger = (int)TMath.clamp(this.hunger, 0.0f, PLAYER_MAX_HUNGER);
-	}
-	
-	/**
-	 * Gives the player a given amount of thirst points. Resulting thirst will be clamped between
-	 * [0, PLAYER_MAX_THRIST].
-	 */
-	public void giveThristPoints(int thirst) {
-		this.thirst += thirst;
-		this.thirst = (int)TMath.clamp(this.thirst, 0.0f, PLAYER_MAX_THIRST);
-	}
-	
-	/**
-	 * Takes from the player a given amount of thirst points. Resulting thirst will be clamped between
-	 * [0, PLAYER_MAX_THRIST].
-	 */
-	public void takeThirstPoints(int thirst) {
-		this.thirst -= thirst;
-		this.thirst = (int)TMath.clamp(this.thirst, 0.0f, PLAYER_MAX_THIRST);
 	}
 	
 	/**
@@ -176,7 +153,6 @@ public final class TPlayer extends TMob {
 	
 	@Override
 	public void movementProcedure() {
-		
 		boolean actuallyMoving = false;
 		if(TInput.left) {
 			actuallyMoving = true;
@@ -194,13 +170,15 @@ public final class TPlayer extends TMob {
 			actuallyMoving = true;
 			moveDown();
 		}
-
 		energyTime += TClock.dt();
 		energyTime %= 1.0f;
 		if(TInput.run && energy > 0) {
 			setMoveSpeed((TInput.slide) ? (PLAYER_RUN_SPEED / 2f) : PLAYER_RUN_SPEED);
 			if(energyTime > 0.5f && actuallyMoving) {
-				takeEnergyPoints(4);
+				takeEnergyPoints(3);
+				energyTime = 0.0f;
+			} else if(energyTime > 0.5f && !actuallyMoving) {
+				giveEnergyPoints(ThreadLocalRandom.current().nextInt(2, 4));
 				energyTime = 0.0f;
 			}
 			return;
@@ -208,7 +186,7 @@ public final class TPlayer extends TMob {
 		
 		setMoveSpeed((TInput.slide) ? (PLAYER_WALK_SPEED / 2f) : PLAYER_WALK_SPEED);
 		if(energyTime > 0.5f) {
-			giveEnergyPoints(1);
+			giveEnergyPoints(2);
 			energyTime = 0.0f;
 		}
 		
@@ -216,8 +194,9 @@ public final class TPlayer extends TMob {
 	
 	@Override
 	public boolean requestAttack() {
-		if(TInput.attack) {
+		if(TInput.attack && energy > 2) {
 			TInput.attack = false;
+			takeEnergyPoints(2);			
 			return true;
 		}
 		return false;

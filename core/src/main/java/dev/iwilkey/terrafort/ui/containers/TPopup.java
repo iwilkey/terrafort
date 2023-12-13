@@ -2,6 +2,7 @@ package dev.iwilkey.terrafort.ui.containers;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
+import com.badlogic.gdx.scenes.scene2d.ui.Window.WindowStyle;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Disposable;
 import com.kotcrab.vis.ui.widget.VisLabel;
@@ -9,6 +10,7 @@ import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisWindow;
 
 import dev.iwilkey.terrafort.TInput;
+import dev.iwilkey.terrafort.ui.TDrawable;
 import dev.iwilkey.terrafort.ui.TUserInterface;
 
 /**
@@ -50,6 +52,10 @@ public final class TPopup implements Disposable {
 		window.pack();
 		window.setTouchable(Touchable.disabled);
 		window.setVisible(false);
+		final WindowStyle style = new WindowStyle();
+		style.titleFont = TUserInterface.getGameFont();
+		style.background = TDrawable.solidWithShadow(0x444444ff, 0x000000cc, (int)window.getWidth(), (int)window.getHeight(), 2, 2);
+		window.setStyle(style);
 	}
 	
 	/**

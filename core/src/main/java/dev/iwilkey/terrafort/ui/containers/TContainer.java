@@ -1,11 +1,13 @@
 package dev.iwilkey.terrafort.ui.containers;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.scenes.scene2d.ui.Window.WindowStyle;
 import com.badlogic.gdx.utils.Disposable;
 
 import com.kotcrab.vis.ui.widget.VisWindow;
 
 import dev.iwilkey.terrafort.ui.TAnchor;
+import dev.iwilkey.terrafort.ui.TUserInterface;
 
 /**
  * Represents a specialized UI container that provides a static, anchored space for holding various widgets.
@@ -21,16 +23,22 @@ import dev.iwilkey.terrafort.ui.TAnchor;
  * @author Ian Wilkey (iwilkey)
  */
 public abstract class TContainer implements Disposable {
-
-	private VisWindow window            = null;
-	private TAnchor   anchor            = TAnchor.CENTER_CENTER;
-	private int       externalPadTop    = 0;
-	private int       externalPadBottom = 0;
-	private int       externalPadRight  = 0;
-	private int       externalPadLeft   = 0;
+	
+	protected WindowStyle style           = null;
+	
+	private   VisWindow window            = null;
+	private   TAnchor   anchor            = TAnchor.CENTER_CENTER;
+	private   int       externalPadTop    = 0;
+	private   int       externalPadBottom = 0;
+	private   int       externalPadRight  = 0;
+	private   int       externalPadLeft   = 0;
 	
 	public TContainer() {
-		window = new VisWindow(Integer.toString(hashCode()), false);
+		style = new WindowStyle();
+		// style.background = TDrawable.solidWithShadow(0xffffffff, 0x000000ff, 32, 32, 1, 1);
+		style.background = null;
+		style.titleFont = TUserInterface.getGameFont();
+		window = new VisWindow(Integer.toString(hashCode()), style);
 		window.setMovable(false);
 		window.getTitleLabel().remove();
 		window.getTitleTable().remove();

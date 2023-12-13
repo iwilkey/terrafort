@@ -24,7 +24,7 @@ public class Terrafort {
 
     private static Lwjgl3ApplicationConfiguration getDefaultConfiguration(final boolean fullscreen) {
         Lwjgl3ApplicationConfiguration configuration = new Lwjgl3ApplicationConfiguration();
-        configuration.setTitle("Terrafort");
+        configuration.setTitle("Terrafort " + TEngine.VERSION);
         configuration.setForegroundFPS(60);
         configuration.useVsync(true);
 		final DisplayMode display = Lwjgl3ApplicationConfiguration.getDisplayMode();
