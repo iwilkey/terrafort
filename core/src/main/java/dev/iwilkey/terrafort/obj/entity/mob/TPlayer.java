@@ -1,7 +1,7 @@
 package dev.iwilkey.terrafort.obj.entity.mob;
 
-import java.util.concurrent.ThreadLocalRandom;
-
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.Array;
 
@@ -30,13 +30,17 @@ public final class TPlayer extends TMob {
 	public static final int   PLAYER_MAX_HP     = 128;
 	public static final int   PLAYER_MAX_HUNGER = 128;
 	public static final int   PLAYER_MAX_ENERGY = 128;
-	public static final float PLAYER_WALK_SPEED = 48.0f;
-	public static final float PLAYER_RUN_SPEED  = 96.0f;
+	public static final float REST_HUNGER_DEPL  = 10.0f; // at rest, how long does it take for hunger points to deplete?
+	public static final float BASE_ENERGY_REPL  = 1.0f;  // without any effect from nutrition, how long does it take to get an energy point?
+	public static final float PLAYER_WALK_SPEED = 32.0f;
+	public static final float PLAYER_RUN_SPEED  = 128.0f;
 	public static final float PLAYER_WIDTH      = 16.0f;
 	public static final float PLAYER_HEIGHT     = 32.0f;
 	
 	private int                        hunger;
 	private int                        energy;
+	private float                      energyRepletionTime;
+	private float                      hungerDepletionTime;
 	
 	private TItemStackCollection       inventory;
 	private TInventoryInterface        inventoryInterface;
@@ -63,8 +67,10 @@ public final class TPlayer extends TMob {
 		setGraphicsColliderOffset(-1, 8);
 		setMoveSpeed(PLAYER_WALK_SPEED);
 		setAttackCooldownTime(0.16f);
-		hunger = PLAYER_MAX_HUNGER;
-		energy = PLAYER_MAX_ENERGY;
+		hunger              = PLAYER_MAX_HUNGER;
+		energy              = PLAYER_MAX_ENERGY;
+		hungerDepletionTime = REST_HUNGER_DEPL;
+		energyRepletionTime = BASE_ENERGY_REPL;
 	}
 	
 	public int getHungerPoints() {
@@ -129,8 +135,10 @@ public final class TPlayer extends TMob {
 	public void spawn() {
 		// give the abstract inventory.
 		inventory = new TItemStackCollection(12);
+		for(int i = 0; i < 8; i++)
+			inventory.addItem(TItem.SHELL);
 		// give a way to see and interact with the inventory.
-		inventoryInterface = new TInventoryInterface(this);
+		inventoryInterface = new TInventoryInterface(this, true);
 		inventoryInterface.init();
 		TUserInterface.addContainer(inventoryInterface);
 		// give the minimap utility.
@@ -142,14 +150,38 @@ public final class TPlayer extends TMob {
 		statisticsInterface.init();
 		TUserInterface.addContainer(statisticsInterface);
 	}
+	
+	float hungerTime = 0.0f;
+	float energyTime = 0.0f;
+	boolean f = true;
 
 	@Override
 	public void task(float dt) {
 		super.task(dt);
 		focusCamera();
+		
+		if(Gdx.input.isKeyJustPressed(Keys.F)) {
+			TUserInterface.removeContainer(inventoryInterface);
+			f = !f;
+			inventoryInterface.dispose();
+			inventoryInterface = new TInventoryInterface(this, f);
+			inventoryInterface.init();
+			TUserInterface.addContainer(inventoryInterface);
+		}
+		
+		// get hungry =3.
+		hungerTime += dt;
+		if(hungerTime > hungerDepletionTime) {
+			takeHungerPoints(1);
+			if(hunger == 0) {
+				// EAT!
+				hurt(5);
+			}
+			hungerTime = 0.0f;
+		}
+		// at best (highest nutrition), you can replenish your hunger 100% faster than base.
+		energyRepletionTime = BASE_ENERGY_REPL - ((BASE_ENERGY_REPL / 1.25f) * ((float)hunger / PLAYER_MAX_HUNGER));
 	}
-	
-	float energyTime = 0.0f;
 	
 	@Override
 	public void movementProcedure() {
@@ -171,32 +203,38 @@ public final class TPlayer extends TMob {
 			moveDown();
 		}
 		energyTime += TClock.dt();
-		energyTime %= 1.0f;
-		if(TInput.run && energy > 0) {
-			setMoveSpeed((TInput.slide) ? (PLAYER_RUN_SPEED / 2f) : PLAYER_RUN_SPEED);
-			if(energyTime > 0.5f && actuallyMoving) {
-				takeEnergyPoints(3);
-				energyTime = 0.0f;
-			} else if(energyTime > 0.5f && !actuallyMoving) {
-				giveEnergyPoints(ThreadLocalRandom.current().nextInt(2, 4));
+		energyTime %= energyRepletionTime * 2;
+		if(!actuallyMoving) {
+			if(energyTime > energyRepletionTime) {
+				giveEnergyPoints(((float)hunger / PLAYER_MAX_HUNGER) > 0.25f ? 4 : 1);
 				energyTime = 0.0f;
 			}
-			return;
-		} 
-		
-		setMoveSpeed((TInput.slide) ? (PLAYER_WALK_SPEED / 2f) : PLAYER_WALK_SPEED);
-		if(energyTime > 0.5f) {
-			giveEnergyPoints(2);
-			energyTime = 0.0f;
+			hungerDepletionTime = REST_HUNGER_DEPL;
+		} else {
+			hungerDepletionTime = REST_HUNGER_DEPL / 2;
+			if(TInput.run && energy >= 3) {
+				hungerDepletionTime = REST_HUNGER_DEPL / 4;
+				setMoveSpeed((TInput.slide) ? (PLAYER_RUN_SPEED / 2f) : PLAYER_RUN_SPEED);
+				if(energyTime > 0.5f && actuallyMoving) {
+					takeEnergyPoints(3);
+					energyTime = 0.0f;
+				}
+			} else {
+				setMoveSpeed((TInput.slide) ? (PLAYER_WALK_SPEED / 2f) : PLAYER_WALK_SPEED);
+				if(energyTime > energyRepletionTime) {
+					giveEnergyPoints(1);
+					energyTime = 0.0f;
+				}
+			}
 		}
-		
+
 	}
 	
 	@Override
 	public boolean requestAttack() {
-		if(TInput.attack && energy > 2) {
+		if(TInput.attack && energy >= 1) {
 			TInput.attack = false;
-			takeEnergyPoints(2);			
+			takeEnergyPoints(1);			
 			return true;
 		}
 		return false;

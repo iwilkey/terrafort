@@ -16,6 +16,7 @@ import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 
 import dev.iwilkey.terrafort.TInput;
+import dev.iwilkey.terrafort.idea.TIdeaNode;
 import dev.iwilkey.terrafort.item.TItemStack;
 import dev.iwilkey.terrafort.ui.TDroppable;
 import dev.iwilkey.terrafort.ui.TUserInterface;
@@ -44,8 +45,8 @@ public final class TItemStackSlot extends VisTable {
 		slot                        = new VisImageButton((Drawable)null);
 		amtLabel                    = new VisLabel();
 		slot.getStyle().focusBorder = null;
-		amtLabel.getStyle().font    = TUserInterface.getGameFont();
-
+		
+		amtLabel.setStyle(TIdeaNode.LABEL_STYLE);
 		amtLabel.setFontScale(0.15f);
 		slot.getImage().setTouchable(Touchable.disabled);
 		amtLabel.setTouchable(Touchable.disabled);
@@ -60,7 +61,7 @@ public final class TItemStackSlot extends VisTable {
 			@Override
 		    public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
 				if(itemStack != null)
-					TUserInterface.beginPopup(itemStack.getItem().name(), "This is a [YELLOW]test[] of the [YELLOW]TPopup[] system.");
+					TUserInterface.beginPopup(itemStack.getItem().name(), itemStack.getItem().getDescription());
 		    }
 
 		    @Override
@@ -134,17 +135,18 @@ public final class TItemStackSlot extends VisTable {
 						if(alo != 0) {
 							trgStack.setAmount(alo);
 							return;
+						} else {
+							trgSlot.setItemStack(null);
 						}
-						else trgSlot.setItemStack(null);
 					}
 				}
 				// finally, do a swap. this encapsulates all behavior.
 				srcSlot.setItemStack(TItemStackSlot.this.itemStack);
 				TItemStackSlot.this.setItemStack((TItemStack)payload.getObject());
+				srcSlot.droppable.dropcall();
 				TItemStackSlot.this.droppable.dropcall();
 			}
 		});
-		
 	}
 	
 	public void setItemStack(TItemStack item) {
@@ -153,7 +155,6 @@ public final class TItemStackSlot extends VisTable {
 	}
 	
 	public void tick() {
-
 		// the all-powerful division drop feature ;)
 		if(slotHoveringAboveMe != null) {
 			final TItemStack hoverStack = slotHoveringAboveMe.getItemStack();
@@ -175,10 +176,14 @@ public final class TItemStackSlot extends VisTable {
 				}
 			}
 		}
-		
 		if(itemStack == null)
 			return;
-		
+		else {
+			if(itemStack.isEmpty()) {
+				setItemStack(null);
+				return;
+			}
+		}
 		amtLabel.setText(String.format("x%d", itemStack.getAmount()));
 	}
 	

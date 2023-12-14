@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
@@ -24,7 +25,14 @@ import dev.iwilkey.terrafort.ui.containers.TPopup;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TUserInterface implements Disposable {
-
+	
+	public static final LabelStyle LABEL_STYLE;
+	
+	static {
+		LABEL_STYLE = new LabelStyle();
+		LABEL_STYLE.font = TUserInterface.getGameFont();
+	}
+	
 	private static final Array<TContainer> CURRENT_CONTAINERS = new Array<>();
 	
 	private static TPopup      currentPopup;

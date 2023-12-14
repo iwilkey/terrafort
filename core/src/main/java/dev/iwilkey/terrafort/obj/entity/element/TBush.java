@@ -1,14 +1,10 @@
 package dev.iwilkey.terrafort.obj.entity.element;
 
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
-import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
-import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
@@ -43,8 +39,6 @@ public final class TBush extends TNaturalElement {
 	public void drops() {
 		for(int i = 0; i < 64; i++)
 			world.addObject(new TParticle(world, x, y + TMath.nextFloat(0.0f, height/ 2), Color.BROWN));
-		for(int i = 0; i < ThreadLocalRandom.current().nextInt(1, 4); i++)
-			world.addObject(new TItemDrop(world, x, y, TItem.TEST_ITEM));
 	}
 
 	@Override

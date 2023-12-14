@@ -88,7 +88,7 @@ public abstract class TMob extends TEntity {
 		isMoving  = (movementVector.x != 0 || movementVector.y != 0);
 		
 		// Water mechanics...
-		isInWater = world.getTileHeightAt(getCurrentTileX(), getCurrentTileY()) == TTerrainRenderer.TERRAIN_LEVELS - 1;
+		isInWater = world.getOrGenerateTileHeightAt(getCurrentTileX(), getCurrentTileY()) == TTerrainRenderer.TERRAIN_LEVELS - 1;
 		if(isInWater) {
 			actualMoveSpeed           = requestedMoveSpeed / 3f;
 			dataSelectionSquareHeight = 1;

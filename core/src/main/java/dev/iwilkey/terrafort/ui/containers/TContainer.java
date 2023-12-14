@@ -202,7 +202,7 @@ public abstract class TContainer implements Disposable {
 	}
 	
 	@Override
-	public final void dispose() {
+	public void dispose() {
 		window.clear();
 		window.remove();
 		window = null;

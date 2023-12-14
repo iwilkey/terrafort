@@ -78,13 +78,13 @@ public final class TTerrainRenderer {
 	    final int ye                    = playerTileY + (tilesInViewHeight + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    for (int i = xs; i <= xe; i++) {
 	        for (int j = ys; j <= ye; j++) {
-                final int vq = world.getTileHeightAt(i, j);
+                final int vq = world.getOrGenerateTileHeightAt(i, j);
 	        	for(int d = 1; d < 9; d++) {
 	        		final int dx  = TMath.DX[d];
 	        		final int dy  = TMath.DY[d];
 	        		final int xx  = i + dx;
 	        		final int yy  = j - dy;
-	                final int vvq = world.getTileHeightAt(xx, yy);
+	                final int vvq = world.getOrGenerateTileHeightAt(xx, yy);
 	                if(vvq != vq && vvq > vq) {
 	                	float borderCX               = (i + 0.5f) * TERRAIN_TILE_WIDTH;
 	                    float borderCY               = (j + 0.5f) * TERRAIN_TILE_HEIGHT;

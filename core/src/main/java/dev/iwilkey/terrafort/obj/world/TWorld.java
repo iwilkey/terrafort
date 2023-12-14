@@ -178,22 +178,28 @@ public final class TWorld implements Disposable {
 	
 	/**
 	 * Get the tile height at any given tile coordinates. Will always return a non-negative value, and
-	 * will load a chunk that contains (x, y) if not loaded.
+	 * will load a chunk that contains (x, y) if not loaded. Do not use this method frequently, if ever.
 	 * 
 	 * <p>
-	 * This function must be (and is) highly optimized. Please do not change the algorithm unless you know
+	 * This function must be (and is) highly optimized and should always be called internally. Please do not change the algorithm unless you know
 	 * exactly what you are doing.
 	 * </p>
 	 * 
-	 * @param x the tile x coordinate.
-	 * @param y the tile y coordinate.
+	 * @param tileX the tile x coordinate.
+	 * @param tileY the tile y coordinate.
 	 * @return the z value of the tile.
 	 */
-	public int getTileHeightAt(int x, int y) {
-		return requestChunkThatContains(x, y).getTileHeightAt(x, y);
+	public int getOrGenerateTileHeightAt(int tileX, int tileY) {
+		return requestChunkThatContains(tileX, tileY).getTileHeightAt(tileX, tileY);
 	}
 	
-	
+	/**
+	 * Checks for a tile height at a given tile coordinate. If the chunk that contains it isn't loaded yet, -1 is returned.
+	 * 
+	 * <p>
+	 * For simple terrain height queries, use this method: it's lightweight and quick.
+	 * </p>
+	 */
 	public int checkTileHeightAt(int tileX, int tileY) {
 		final int chunkX = tileX / TChunk.CHUNK_SIZE;
 		final int chunkY = tileY / TChunk.CHUNK_SIZE;
@@ -209,20 +215,42 @@ public final class TWorld implements Disposable {
 	 * <p>
 	 * Note: z value will be clamped to [0, TERRAIN_MAX_HEIGHT - 1].
 	 * </p>
-	 * @param x the tile x coordinate.
-	 * @param y the tile y coordinate.
+	 * @param tileX the tile x coordinate.
+	 * @param tileY the tile y coordinate.
 	 * @param z the height to set the tile.
 	 */
-	public void setTileHeightAt(int x, int y, int z) {
-		requestChunkThatContains(x, y).setTileHeightAt(x, y, z);
+	public void setTileHeightAt(int tileX, int tileY, int z) {
+		requestChunkThatContains(tileX, tileY).setTileHeightAt(tileX, tileY, z);
+	}
+	
+	/**
+	 * Requests and returns the {@link TChunk} that contains the given tile coordinates. If the chunk is not
+	 * loaded in the chunk cache, it will be loaded automatically.
+	 * @param x the tile x coordinate.
+	 * @param y the tile y coordinate.
+	 * @return the chunk that contains the given tile coordinates.
+	 */
+	public TChunk requestChunkThatContains(int x, int y) {
+		int chunkX = (x / TChunk.CHUNK_SIZE);
+		int chunkY = (y / TChunk.CHUNK_SIZE);
+		long hash  = (((long)chunkX) << 32) | (chunkY & 0xffffffffL);
+		if(!chunkMemory.containsKey(hash)) {
+			final TChunk newChunk = new TChunk(this, chunkX, chunkY);
+			chunkMemory.put(hash, newChunk);
+		}
+		return chunkMemory.get(hash);
 	}
 	
 	public long getSeed() {
 		return seed;
 	}
 	
-	public HashMap<Long, TChunk> getChunkCache() {
+	public HashMap<Long, TChunk> getChunkMemory() {
 		return chunkMemory;
+	}
+	
+	public Set<Long> getLoadedChunks() {
+		return loadedChunks;
 	}
 	
 	public boolean isDay() {
@@ -246,24 +274,6 @@ public final class TWorld implements Disposable {
 	 */
 	public void setDebug(boolean debug) {
 		this.debug = debug;
-	}
-	
-	/**
-	 * Requests and returns the {@link TChunk} that contains the given tile coordinates. If the chunk is not
-	 * loaded in the chunk cache, it will be loaded automatically.
-	 * @param x the tile x coordinate.
-	 * @param y the tile y coordinate.
-	 * @return the chunk that contains the given tile coordinates.
-	 */
-	public TChunk requestChunkThatContains(int x, int y) {
-		int chunkX = (x / TChunk.CHUNK_SIZE);
-		int chunkY = (y / TChunk.CHUNK_SIZE);
-		long hash  = (((long)chunkX) << 32) | (chunkY & 0xffffffffL);
-		if(!chunkMemory.containsKey(hash)) {
-			final TChunk newChunk = new TChunk(this, chunkX, chunkY);
-			chunkMemory.put(hash, newChunk);
-		}
-		return chunkMemory.get(hash);
 	}
 	
 	/**

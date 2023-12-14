@@ -64,9 +64,11 @@ public final class TPopup implements Disposable {
 	public void update(float dt) {
 		if(window == null)
 			return;
-		final float mouseX = TInput.cursorX + 4;
-	    final float mouseY = Gdx.graphics.getHeight() - TInput.cursorY + 4;
-	    window.setPosition((int)mouseX, (int)mouseY);
+		final float mouseX = TInput.cursorX;
+	    final float mouseY = Gdx.graphics.getHeight() - TInput.cursorY;
+	    final float posX = (mouseX - (window.getWidth() / 2));
+	    final float posY = (mouseY + 4);
+	    window.setPosition((int)posX, (int)posY);
 	    window.toFront();
 	    window.setVisible(true);
 	}
