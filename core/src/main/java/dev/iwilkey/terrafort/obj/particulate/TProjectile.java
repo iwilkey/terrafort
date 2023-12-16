@@ -1,5 +1,7 @@
 package dev.iwilkey.terrafort.obj.particulate;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import com.badlogic.gdx.math.Vector2;
 
 import dev.iwilkey.terrafort.item.TItem;
@@ -14,7 +16,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public final class TProjectile extends TParticulate {
 	
-	public static final int WORLD_SIZE = 3;
+	public static final int WORLD_SIZE = 4;
 	
 	private int collisionDamage;
 	
@@ -36,8 +38,8 @@ public final class TProjectile extends TParticulate {
 			           float density,
 			           int angleSpreadDegrees) {
 		super(world, 
-			  (int)originator.getActualX() + (TMath.DX[originator.getFacingDirection()] * (WORLD_SIZE * 3)), 
-		      (int)originator.getActualY() + (-TMath.DY[originator.getFacingDirection()] * (WORLD_SIZE * 3)), 
+			  (int)originator.getActualX() + (TMath.DX[originator.getFacingDirection()] * (WORLD_SIZE * 2.1f)), 
+		      (int)originator.getActualY() + (-TMath.DY[originator.getFacingDirection()] * (WORLD_SIZE * 2.1f)), 
 		      WORLD_SIZE, 
 		      WORLD_SIZE,
 		      10.0f);
@@ -53,6 +55,7 @@ public final class TProjectile extends TParticulate {
 								   angleSpreadDegrees);
 		getPhysicalFixture().setDensity(density);
 		getPhysicalBody().resetMassData();
+		getPhysicalBody().applyTorque(ThreadLocalRandom.current().nextInt(5000, 500000), false);
 		setAsSensor();
 	}
 

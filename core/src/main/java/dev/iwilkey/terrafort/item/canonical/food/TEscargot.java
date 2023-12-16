@@ -11,13 +11,13 @@ import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
  * A food that restores 1 nutrition.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TEscargotItem extends TItemDefinition {
+public final class TEscargot extends TItemDefinition {
 	
-	public TEscargotItem() {
+	public TEscargot() {
 		super("Escargot", 
 			  "A \"[ORANGE]food[]\".\n\n"
 			  + "[YELLOW][ACTION][]\n"
-			  + "Restores 1 [ORANGE]nutrition.[]", 
+			  + "Restores 1 [ORANGE]nutrition[].", 
 			  256,
 			  new TFrame(7, 6, 1, 1), 
 			  TItemFunction.FOOD,

@@ -63,7 +63,7 @@ public final class TInventoryAndForgerInterface extends TContainer {
 		eslot.add(new TInformationWidget("[YELLOW]Equipped Slot[]", "Items placed in this slot\n"
 				+ "[YELLOW]equip[] your player with the item's\n"
 				+ "functionality.\n\n"
-				+ "Every item has a specific [YELLOW]ACTION[]\nthat is performed "
+				+ "Every item has a specific [YELLOW][ACTION][]\nthat is performed "
 				+ "during an equipped\n"
 				+ "[PURPLE][ATTACK][] action.\n\n"
 				+ "Read about an item's action by\nhovering "
