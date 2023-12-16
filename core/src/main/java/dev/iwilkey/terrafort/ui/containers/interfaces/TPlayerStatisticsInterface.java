@@ -1,8 +1,5 @@
 package dev.iwilkey.terrafort.ui.containers.interfaces;
 
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.ProgressBar.ProgressBarStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.kotcrab.vis.ui.widget.VisLabel;
@@ -13,8 +10,8 @@ import com.kotcrab.vis.ui.widget.VisWindow;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.ui.TAnchor;
 import dev.iwilkey.terrafort.ui.TDrawable;
-import dev.iwilkey.terrafort.ui.TUserInterface;
 import dev.iwilkey.terrafort.ui.containers.TContainer;
+import dev.iwilkey.terrafort.ui.widgets.TInformationWidget;
 
 /**
  * Renders a given {@link TPlayer}s statistics during their lifetime. The statistics could include health, hunger, thirst, and energy.
@@ -56,46 +53,8 @@ public final class TPlayerStatisticsInterface extends TContainer {
 		energyStyle.knob                   = TDrawable.solid(ENERGY_COLOR, 1, THICKNESS_PX / 2);
 		energyStyle.knobBefore             = TDrawable.solid(ENERGY_COLOR, 1, THICKNESS_PX / 4);
 		health = new VisProgressBar(0, TPlayer.PLAYER_MAX_HP, 1 / (float)TPlayer.PLAYER_MAX_HP,     false, healthStyle);
-		health.addListener(new InputListener() {
-			@Override
-		    public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
-				TUserInterface.beginPopup("[RED]Health[]", "This bar represents your player's \ncurrent [RED]health[].\n\n"
-						+ 				  "If it reaches zero, your player will\ndie and this game of [YELLOW]Terrafort[]\nwill end.");
-		    }
-		    @Override
-		    public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
-		    	TUserInterface.endPopup();
-		    }
-		});
-		
 		hunger = new VisProgressBar(0, TPlayer.PLAYER_MAX_HUNGER, 1 / (float)TPlayer.PLAYER_MAX_HUNGER, false, hungerStyle);
-		hunger.addListener(new InputListener() {
-			@Override
-		    public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
-				TUserInterface.beginPopup("[ORANGE]Nutrition[]", "This bar represents your player's \ncurrent [ORANGE]nutrition[].\n\n"
-										+ "The more [ORANGE]nutrition[] you have,\nthe faster your [YELLOW]energy[] replenishes.\n\n"
-										+ "If your [ORANGE]nutrition[] drops to zero, you\nwill begin to periodically lose [RED]health[]\nuntil you eat.");
-		    }
-		    @Override
-		    public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
-		    	TUserInterface.endPopup();
-		    }
-		});
-		
 		energy = new VisProgressBar(0, TPlayer.PLAYER_MAX_ENERGY, 1 / (float)TPlayer.PLAYER_MAX_ENERGY, false, energyStyle);
-		energy.addListener(new InputListener() {
-			@Override
-		    public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
-				TUserInterface.beginPopup("[YELLOW]Energy[]", "This bar represents your player's\ncurrent [YELLOW]energy[].\n\n"
-										+ "[YELLOW]Energy[] allows your player to complete\ntasks, run, and fight.\n\n"
-										+ "[YELLOW]Energy[] naturally replenishes as you\nrest.");
-		    }
-		    @Override
-		    public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
-		    	TUserInterface.endPopup();
-		    }
-		});
-		
 		healthLabel = new VisLabel();
 		healthLabel.setFontScale(0.16f);
 		hungerLabel = new VisLabel();
@@ -107,14 +66,31 @@ public final class TPlayerStatisticsInterface extends TContainer {
 	@Override
 	public void pack(VisWindow window) {
 		final VisTable internal = new VisTable();
-		internal.add(health).fill().expand();
-		internal.add(healthLabel).padLeft(8);
+		final VisTable healthTable = new VisTable();
+		healthTable.add(new TInformationWidget("[RED]Health[]", 
+				"This bar represents your player's \ncurrent [RED]health[].\n\n"
+				+ "If it reaches zero, your player will\ndie and this game of [YELLOW]Terrafort[]\nwill end.")).padRight(8);
+		healthTable.add(health).fill().expand();
+		healthTable.add(healthLabel).padLeft(8);
+		internal.add(healthTable);
 		internal.row();
-		internal.add(hunger).fill().expand();
-		internal.add(hungerLabel).padLeft(8);
+		final VisTable hungerTable = new VisTable();
+		hungerTable.add(new TInformationWidget("[ORANGE]Nutrition[]", 
+				"This bar represents your player's \ncurrent [ORANGE]nutrition[].\n\n"
+				+ "The more [ORANGE]nutrition[] you have,\nthe faster your [YELLOW]energy[] replenishes.\n\n"
+				+ "If your [ORANGE]nutrition[] drops to zero, you\nwill begin to periodically lose [RED]health[]\nuntil you eat.")).padRight(8);
+		hungerTable.add(hunger).fill().expand();
+		hungerTable.add(hungerLabel).padLeft(8);
+		internal.add(hungerTable);
 		internal.row();
-		internal.add(energy).fill().expand();
-		internal.add(energyLabel).padLeft(8);
+		final VisTable energyTable = new VisTable();
+		energyTable.add(new TInformationWidget("[YELLOW]Energy[]", 
+				"This bar represents your player's\ncurrent [YELLOW]energy[].\n\n"
+				+ "[YELLOW]Energy[] allows your player to complete\ntasks, run, and fight.\n\n"
+				+ "[YELLOW]Energy[] naturally replenishes as you\nrest.")).padRight(8);
+		energyTable.add(energy).fill().expand();
+		energyTable.add(energyLabel).padLeft(8);
+		internal.add(energyTable);
 		window.add(internal).prefSize(256, 64).expand().fill();
 		style.background = TDrawable.solidWithShadow(0x444444ff, 0x000000cc, 256, 64, 4, 4);
 		window.setStyle(style);

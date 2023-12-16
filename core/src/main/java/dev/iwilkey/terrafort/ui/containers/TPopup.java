@@ -48,13 +48,13 @@ public final class TPopup implements Disposable {
 		desc.getStyle().font = TUserInterface.getGameFont();
 		desc.setFontScale(0.16f);
 		table.add(desc).expand().fill();
-		window.add(table).expand().fill();
+		window.add(table).expand().fill().pad(8);
 		window.pack();
 		window.setTouchable(Touchable.disabled);
 		window.setVisible(false);
 		final WindowStyle style = new WindowStyle();
 		style.titleFont = TUserInterface.getGameFont();
-		style.background = TDrawable.solidWithShadow(0x444444ff, 0x000000cc, (int)window.getWidth(), (int)window.getHeight(), 2, 2);
+		style.background = TDrawable.solidWithShadow(0x444444ff, 0x000000cc, (int)window.getWidth(), (int)window.getHeight(), 3, 3);
 		window.setStyle(style);
 	}
 	

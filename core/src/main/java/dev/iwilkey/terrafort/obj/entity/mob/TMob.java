@@ -281,6 +281,13 @@ public abstract class TMob extends TEntity {
 	}
 	
 	/**
+	 * Force the attack timer to set, causing the next couple of frames to be the attack animation.
+	 */
+	protected void requestAttackAnimation() {
+		attackTimer = 0.0f;
+	}
+	
+	/**
 	 * Returns the direction that the {@link TMob} is currently facing. The enumeration is found in the {@link TMath} module.
 	 */
 	public final int getFacingDirection() {

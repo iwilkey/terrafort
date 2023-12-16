@@ -14,6 +14,12 @@ public enum TItemFunction {
 	/**
 	 * This item can be consumed for nutrition.
 	 */
-	FOOD;
+	FOOD,
+	
+	STRUCTURE,
+	
+	WEAPON,
+	
+	TURRET;
 	
 }

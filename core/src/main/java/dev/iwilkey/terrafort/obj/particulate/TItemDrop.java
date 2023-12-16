@@ -48,10 +48,10 @@ public final class TItemDrop extends TParticulate {
 	}
 	
 	private void init() {
-		this.dataOffsetX               = item.getIcon().getDataOffsetX();
-		this.dataOffsetY               = item.getIcon().getDataOffsetY();
-		this.dataSelectionSquareWidth  = item.getIcon().getDataSelectionWidth();
-		this.dataSelectionSquareHeight = item.getIcon().getDataSelectionHeight();
+		this.dataOffsetX               = item.is().getIcon().getDataOffsetX();
+		this.dataOffsetY               = item.is().getIcon().getDataOffsetY();
+		this.dataSelectionSquareWidth  = item.is().getIcon().getDataSelectionWidth();
+		this.dataSelectionSquareHeight = item.is().getIcon().getDataSelectionHeight();
 		shouldFade                     = false;
 	}
 

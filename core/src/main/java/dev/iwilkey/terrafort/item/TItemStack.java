@@ -22,10 +22,10 @@ public final class TItemStack {
 		amt       = 1;
 		this.item = item;
 		this.icon = new TextureRegion(TGraphics.DATA, 
-									  item.getIcon().getDataOffsetX() * TGraphics.DATA_WIDTH,
-									  item.getIcon().getDataOffsetY() * TGraphics.DATA_HEIGHT, 
-									  item.getIcon().getDataSelectionWidth() * TGraphics.DATA_WIDTH,
-									  item.getIcon().getDataSelectionHeight() * TGraphics.DATA_HEIGHT
+									  item.is().getIcon().getDataOffsetX() * TGraphics.DATA_WIDTH,
+									  item.is().getIcon().getDataOffsetY() * TGraphics.DATA_HEIGHT, 
+									  item.is().getIcon().getDataSelectionWidth() * TGraphics.DATA_WIDTH,
+									  item.is().getIcon().getDataSelectionHeight() * TGraphics.DATA_HEIGHT
 									 );
 	}
 	
@@ -36,7 +36,7 @@ public final class TItemStack {
 	 */
 	public int setAmount(int amt) {
 		amt      = Math.max(0, amt); // [0, ...]
-		int max  = item.getStackSize();
+		int max  = item.is().getStackSize();
 		int diff = max - amt;
 		if(diff < 0) {
 			this.amt = max;
@@ -50,7 +50,7 @@ public final class TItemStack {
 	 * Attempts to increment the stack amount. Nothing happens and returns false if the request would exceed the maximum item stack size.
 	 */
 	public boolean inc() {
-		if(amt + 1 > item.getStackSize())
+		if(amt + 1 > item.is().getStackSize())
 			return false;
 		amt++;
 		return true;

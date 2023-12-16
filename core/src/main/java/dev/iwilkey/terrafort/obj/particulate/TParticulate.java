@@ -43,7 +43,7 @@ public abstract class TParticulate extends TObject {
 			aliveTime     = 0.0f;
 			done          = false;
 			shouldFade    = true;
-			// all {@link TParticulates}s shall be very light...
+			// all {@link TParticulates}s shall be very light, unless overriden.
 		    getPhysicalFixture().setDensity(0.01f);
 			getPhysicalBody().resetMassData();
 	}

@@ -13,10 +13,11 @@ import dev.iwilkey.terrafort.ui.TAnchor;
 import dev.iwilkey.terrafort.ui.TDrawable;
 import dev.iwilkey.terrafort.ui.TUserInterface;
 import dev.iwilkey.terrafort.ui.containers.TContainer;
-import dev.iwilkey.terrafort.ui.widgets.TMinimap;
+import dev.iwilkey.terrafort.ui.widgets.TInformationWidget;
+import dev.iwilkey.terrafort.ui.widgets.TMinimapWidget;
 
 /**
- * An interface to render a {@link TMinimap} widget.
+ * An interface to render a {@link TMinimapWidget} widget.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TMinimapInterface extends TContainer {
@@ -26,14 +27,14 @@ public final class TMinimapInterface extends TContainer {
 	public static final int   MAX_SCALE   = 16;
 	
 	private TPlayer  player;
-	private TMinimap minimap;
+	private TMinimapWidget minimap;
 	private VisLabel scaleLabel;
 	private int      scale;
 	private float    time;
 	
 	public TMinimapInterface(TPlayer player) {
 		this.player = player;
-		minimap     = new TMinimap(player.getWorld());
+		minimap     = new TMinimapWidget(player.getWorld());
 		time        = 0.0f;
 		scale       = 4;
 		minimap.update(0, 0, 4);
@@ -65,6 +66,12 @@ public final class TMinimapInterface extends TContainer {
 		plus.getStyle().font = TUserInterface.getGameFont();
 		plus.setFocusBorderEnabled(false);
 		plus.getLabel().setFontScale(0.16f);
+		controls.add(new TInformationWidget("[TEAL]Minimap[]", 
+				"This tool represents your player's \ncurrent [TEAL]location[].\n\n"
+				+ "As you explore the world, your\n[TEAL]minimap[] records it topographically.\n\n"
+				+ "  - WHITE: Highest point\n"
+				+ "  - [GRAY]DARK GRAY[]: Lowest point\n\n"
+				+ "Use the '+' and '-' buttons to zoom.")).pad(8);
 		controls.add(plus).prefSize(16).pad(2);
 		final VisTextButton minus = new VisTextButton("-");
 		minus.addListener(new ClickListener() {

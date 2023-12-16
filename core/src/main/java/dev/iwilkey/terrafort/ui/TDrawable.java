@@ -17,18 +17,21 @@ public final class TDrawable {
 	 * Utility method to translate a given {@link Pixmap} into a {@link Drawable}.
 	 */
 	public static Drawable pixmapToDrawable(Pixmap pixels) {
-		Texture texture = new Texture(pixels);
-		return new TextureRegionDrawable(new TextureRegion(texture));
+		final Texture texture = new Texture(pixels);
+		final Drawable ret = new TextureRegionDrawable(new TextureRegion(texture));
+		return ret;
 	}
 	
 	/**
 	 * Utility method that translates a color (given in 0xrrggbbaa format) to a {@link Drawable}. 
 	 */
 	public static Drawable solid(int color, int width, int height) {
-		Pixmap pixel = new Pixmap(width, height, Pixmap.Format.RGBA8888);
+		final Pixmap pixel = new Pixmap(width, height, Pixmap.Format.RGBA8888);
 		pixel.setColor(new Color().set(color));
 		pixel.fill();
-		return pixmapToDrawable(pixel);
+		final Drawable ret = pixmapToDrawable(pixel);
+		pixel.dispose();
+		return ret;
 	}
 	
 	public static Drawable solidWithShadow(int color, int shadowColor, int width, int height, int offsetX, int offsetY) {
@@ -37,7 +40,9 @@ public final class TDrawable {
 	    pixmap.fillRectangle(offsetX, offsetY, width, height);
 	    pixmap.setColor(new Color().set(color));
 	    pixmap.fillRectangle(0, 0, width, height);
-	    return pixmapToDrawable(pixmap);
+	    final Drawable ret = pixmapToDrawable(pixmap);
+	    pixmap.dispose();
+	    return ret;
 	}
 	
 }

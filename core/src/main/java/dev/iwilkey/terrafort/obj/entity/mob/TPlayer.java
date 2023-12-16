@@ -11,13 +11,15 @@ import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.anim.TLifeformAnimationArray;
 import dev.iwilkey.terrafort.item.TItem;
+import dev.iwilkey.terrafort.item.TItemSpec;
+import dev.iwilkey.terrafort.item.TItemStack;
 import dev.iwilkey.terrafort.item.TItemStackCollection;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 import dev.iwilkey.terrafort.ui.TUserInterface;
-import dev.iwilkey.terrafort.ui.containers.interfaces.TInventoryInterface;
+import dev.iwilkey.terrafort.ui.containers.interfaces.TInventoryAndForgerInterface;
 import dev.iwilkey.terrafort.ui.containers.interfaces.TMinimapInterface;
 import dev.iwilkey.terrafort.ui.containers.interfaces.TPlayerStatisticsInterface;
 
@@ -37,15 +39,17 @@ public final class TPlayer extends TMob {
 	public static final float PLAYER_WIDTH      = 16.0f;
 	public static final float PLAYER_HEIGHT     = 32.0f;
 	
-	private int                        hunger;
-	private int                        energy;
-	private float                      energyRepletionTime;
-	private float                      hungerDepletionTime;
+	private int                          hunger;
+	private int                          energy;
+	private float                        energyRepletionTime;
+	private float                        hungerDepletionTime;
 	
-	private TItemStackCollection       inventory;
-	private TInventoryInterface        inventoryInterface;
-	private TMinimapInterface          minimapInterface;
-	private TPlayerStatisticsInterface statisticsInterface;
+	private TItemStackCollection         inventory;
+	private TItemStack                   equipped;
+	
+	private TInventoryAndForgerInterface inventoryInterface;
+	private TMinimapInterface            minimapInterface;
+	private TPlayerStatisticsInterface   statisticsInterface;
 	
 	public TPlayer(TWorld world) {
 		super(world,
@@ -125,20 +129,110 @@ public final class TPlayer extends TMob {
 	}
 	
 	/**
+	 * Get the players currently equipped {@link TItemStack}. Could be null.
+	 */
+	public TItemStack getEquipped() {
+		return equipped;
+	}
+	
+	/**
+	 * Sets the players current equipped {@link TItemStack}. Could be null.
+	 */
+	public void setEquipped(TItemStack stack) {
+		equipped = stack;
+	}
+	
+	/**
 	 * Attempts to place a {@link TItem} in the players inventory, returns false if the action cannot be completed.
 	 */
 	public boolean giveItem(TItem item) {
-		return inventory.addItem(item);
+		boolean ret = inventory.addItem(item);
+		inventoryInterface.forgerShouldSync();
+		return ret;
 	}
-
+	
+	/**
+	 * Returns whether or not the player can forge a given item based on the current items in their inventory.
+	 */
+	public boolean canForgeItem(TItem item) {
+		if(item == null)
+			return false;
+		if(item.is().getRecipe().length == 0)
+			return true;
+		for(TItemSpec i : item.is().getRecipe())
+			if(!has(i))
+				return false;
+		return true;
+	}
+	
+	/**
+	 * Takes {@link TItemSpec}s needed to create the given item. This calls the canForgeItem() once more as a safeguard to make sure that the player indeed can forge the given
+	 * {@link TItem}.
+	 */
+	public void forge(TItem item) {
+		if(!canForgeItem(item))
+			return;
+		for(TItemSpec i : item.is().getRecipe())
+			take(i);
+		giveItem(item);
+	}
+	
+	/**
+	 * Returns whether or not the player's inventory currently contains enough items to satisfy a given {@link TItemSpec}.
+	 */
+	public boolean has(TItemSpec itemSpec) {
+		int needs = itemSpec.amount;
+		for(int i = 0; i < getInventory().getItemStackCapacity(); i++) {
+			final TItemStack stack = getInventory().getCollection()[i];
+			if(stack != null) {
+				if(stack.getItem() == itemSpec.item) {
+					needs -= stack.getAmount();
+					if(needs <= 0) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Called internally whilst forging an item. Only called when it is factually known that the player contains the proper items in their inventory to satisfy a given {@link TItemSpec}.
+	 */
+	private boolean take(TItemSpec itemSpec) {
+		int needs = itemSpec.amount;
+		for(int i = 0; i < getInventory().getItemStackCapacity(); i++) {
+			final TItemStack stack = getInventory().getCollection()[i];
+			if(stack != null) {
+				if(stack.getItem() == itemSpec.item) {
+					int has = stack.getAmount();
+					int diff = has - needs;
+					if(diff <= 0) {
+						needs -= has;
+						stack.setAmount(0);
+						if(diff == 0)
+							return true;
+					} else {
+						stack.setAmount(stack.getAmount() - needs);
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
 	@Override
 	public void spawn() {
 		// give the abstract inventory.
 		inventory = new TItemStackCollection(12);
-		for(int i = 0; i < 8; i++)
+		
+		// What items does the player have at spawn?
+		for(int i = 0; i < 256; i++)
 			inventory.addItem(TItem.SHELL);
+		
 		// give a way to see and interact with the inventory.
-		inventoryInterface = new TInventoryInterface(this, true);
+		inventoryInterface = new TInventoryAndForgerInterface(this, true);
 		inventoryInterface.init();
 		TUserInterface.addContainer(inventoryInterface);
 		// give the minimap utility.
@@ -160,11 +254,12 @@ public final class TPlayer extends TMob {
 		super.task(dt);
 		focusCamera();
 		
-		if(Gdx.input.isKeyJustPressed(Keys.F)) {
+		// you cannot open or close the Forger while a drag is going on because that can cause an item dupe glitch.
+		if(Gdx.input.isKeyJustPressed(Keys.F) && !TInventoryAndForgerInterface.dragMutex()) {
 			TUserInterface.removeContainer(inventoryInterface);
 			f = !f;
 			inventoryInterface.dispose();
-			inventoryInterface = new TInventoryInterface(this, f);
+			inventoryInterface = new TInventoryAndForgerInterface(this, f);
 			inventoryInterface.init();
 			TUserInterface.addContainer(inventoryInterface);
 		}
@@ -179,7 +274,6 @@ public final class TPlayer extends TMob {
 			}
 			hungerTime = 0.0f;
 		}
-		// at best (highest nutrition), you can replenish your hunger 100% faster than base.
 		energyRepletionTime = BASE_ENERGY_REPL - ((BASE_ENERGY_REPL / 1.25f) * ((float)hunger / PLAYER_MAX_HUNGER));
 	}
 	
@@ -232,7 +326,22 @@ public final class TPlayer extends TMob {
 	
 	@Override
 	public boolean requestAttack() {
-		if(TInput.attack && energy >= 1) {
+		// You cannot to request an attack or task if you have no energy.
+		if(energy < 1)
+			return false;
+		if(equipped != null) {
+			if(TInput.attack) {
+				if(equipped.getItem().is().use(this)) {
+					requestAttackAnimation();
+					equipped.dec();
+					if(equipped.isEmpty())
+						equipped = null;
+				}
+				TInput.attack = false;
+			}
+			return false;
+		}
+		if(TInput.attack) {
 			TInput.attack = false;
 			takeEnergyPoints(1);			
 			return true;

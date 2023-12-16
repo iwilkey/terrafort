@@ -30,7 +30,6 @@ public final class TUserInterface implements Disposable {
 	
 	static {
 		LABEL_STYLE = new LabelStyle();
-		LABEL_STYLE.font = TUserInterface.getGameFont();
 	}
 	
 	private static final Array<TContainer> CURRENT_CONTAINERS = new Array<>();
@@ -53,6 +52,7 @@ public final class TUserInterface implements Disposable {
 		parameters.size                                              = 72;
 		gameFont                                                     = generator.generateFont(parameters);
 		gameFont.getData().markupEnabled = true;
+		LABEL_STYLE.font = gameFont;
 		generator.dispose();
 		dad.setDragTime(0);
 	}

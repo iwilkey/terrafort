@@ -10,50 +10,47 @@ import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop.Source;
 import com.badlogic.gdx.scenes.scene2d.utils.DragAndDrop.Target;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Align;
-
+import com.badlogic.gdx.utils.Null;
 import com.kotcrab.vis.ui.widget.VisImageButton;
 import com.kotcrab.vis.ui.widget.VisLabel;
 import com.kotcrab.vis.ui.widget.VisTable;
 
 import dev.iwilkey.terrafort.TInput;
-import dev.iwilkey.terrafort.idea.TIdeaNode;
 import dev.iwilkey.terrafort.item.TItemStack;
 import dev.iwilkey.terrafort.ui.TDroppable;
 import dev.iwilkey.terrafort.ui.TUserInterface;
+import dev.iwilkey.terrafort.ui.containers.interfaces.TInventoryAndForgerInterface;
 
 /**
  * A UI widget representing the functionality of a single {@link TItemStack} slot.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TItemStackSlot extends VisTable {
+public final class TItemStackSlotWidget extends VisTable {
 	
 	public static final int SLOT_SIZE = 48;
 	
 	private TDroppable     droppable;
-	private TItemStackSlot slotHoveringAboveMe;
+	private TItemStackSlotWidget slotHoveringAboveMe;
 	private boolean        dragCancelled;
 	private TItemStack     itemStack;
 	private VisLabel       amtLabel;
 	private VisImageButton slot;
 	
-	public TItemStackSlot(TDroppable droppable) {
+	public TItemStackSlotWidget(TDroppable droppable) {
 		super();
-		
 		this.droppable              = droppable;
 		slotHoveringAboveMe         = null;
 		dragCancelled               = false;
 		slot                        = new VisImageButton((Drawable)null);
 		amtLabel                    = new VisLabel();
 		slot.getStyle().focusBorder = null;
-		
-		amtLabel.setStyle(TIdeaNode.LABEL_STYLE);
+		amtLabel.setStyle(TUserInterface.LABEL_STYLE);
 		amtLabel.setFontScale(0.15f);
 		slot.getImage().setTouchable(Touchable.disabled);
 		amtLabel.setTouchable(Touchable.disabled);
 		add(slot).center().expand().fill().prefSize(SLOT_SIZE, SLOT_SIZE);
 		slot.row();
 		slot.add(amtLabel).center().align(Align.center);
-		
 		/**
 		 * Implementation of the {@link TPopup} system to trigger when the cursor enters and exits a {@link TItemStackSlot}.
 		 */
@@ -61,15 +58,13 @@ public final class TItemStackSlot extends VisTable {
 			@Override
 		    public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
 				if(itemStack != null)
-					TUserInterface.beginPopup(itemStack.getItem().name(), itemStack.getItem().getDescription());
-		    }
-
+					TUserInterface.beginPopup(itemStack.getItem().is().getName(), itemStack.getItem().is().getDescription());
+			}
 		    @Override
 		    public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
 		    	TUserInterface.endPopup();
 		    }
 		});
-		
 		/**
 		 * Implementation of source slot behavior during Drag & Drop operation.
 		 */
@@ -84,15 +79,20 @@ public final class TItemStackSlot extends VisTable {
 		        final Image dragActor = new Image(is.getIcon());
 		        dragActor.setScale(2.0f);
 		        payload.setDragActor(dragActor);
+		        TInventoryAndForgerInterface.setDrag();
 				return payload;
 			}
 			@Override
 			public void drag (InputEvent event, float x, float y, int pointer) {
 				TUserInterface.getDad().setDragActorPosition(2, -16);
-				if(TItemStackSlot.this.getItemStack() == null)
+				if(TItemStackSlotWidget.this.getItemStack() == null)
 					dragCancelled = true;
-				else if(TItemStackSlot.this.getItemStack().isEmpty())
+				else if(TItemStackSlotWidget.this.getItemStack().isEmpty())
 					dragCancelled = true;
+			}
+			@Override
+			public void dragStop (InputEvent event, float x, float y, int pointer, @Null Payload payload, @Null Target target) {
+				TInventoryAndForgerInterface.unsetDrag();
 			}
 		});
 		
@@ -102,7 +102,7 @@ public final class TItemStackSlot extends VisTable {
 		TUserInterface.getDad().addTarget(new Target(this) {
 			@Override
 			public boolean drag(Source source, Payload payload, float x, float y, int pointer) {
-				slotHoveringAboveMe = ((TItemStackSlot)source.getActor());
+				slotHoveringAboveMe = ((TItemStackSlotWidget)source.getActor());
 				if(slotHoveringAboveMe.dragCancelled)
 					payload.getDragActor().setScale(0);
 				return true;
@@ -115,9 +115,10 @@ public final class TItemStackSlot extends VisTable {
 			
 			@Override
 			public void drop(Source source, Payload payload, float x, float y, int pointer) {
-				final TItemStackSlot srcSlot  = ((TItemStackSlot)source.getActor());
-				final TItemStackSlot trgSlot  = TItemStackSlot.this;
+				final TItemStackSlotWidget srcSlot  = ((TItemStackSlotWidget)source.getActor());
+				final TItemStackSlotWidget trgSlot  = TItemStackSlotWidget.this;
 				if(srcSlot.dragCancelled || trgSlot.dragCancelled) {
+					TInventoryAndForgerInterface.unsetDrag();
 					srcSlot.dragCancelled = false;
 					trgSlot.dragCancelled = false;
 					return;
@@ -141,16 +142,17 @@ public final class TItemStackSlot extends VisTable {
 					}
 				}
 				// finally, do a swap. this encapsulates all behavior.
-				srcSlot.setItemStack(TItemStackSlot.this.itemStack);
-				TItemStackSlot.this.setItemStack((TItemStack)payload.getObject());
+				srcSlot.setItemStack(TItemStackSlotWidget.this.itemStack);
+				TItemStackSlotWidget.this.setItemStack((TItemStack)payload.getObject());
 				srcSlot.droppable.dropcall();
-				TItemStackSlot.this.droppable.dropcall();
+				TItemStackSlotWidget.this.droppable.dropcall();
+				TInventoryAndForgerInterface.unsetDrag();
 			}
 		});
 	}
-	
+
 	public void setItemStack(TItemStack item) {
-		this.itemStack = item;
+		itemStack = item;
 		update();
 	}
 	

@@ -7,9 +7,11 @@ import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Manifold;
 
 import dev.iwilkey.terrafort.obj.TObject;
+import dev.iwilkey.terrafort.obj.entity.TEntity;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
 import dev.iwilkey.terrafort.obj.particulate.TParticulate;
+import dev.iwilkey.terrafort.obj.particulate.TProjectile;
 
 /**
  * Efficiently facilitates the the Terrafort physical collision filtering and notification system.
@@ -25,6 +27,16 @@ public final class TCollisionManifold implements ContactListener {
 		final Body bodyB = contact.getFixtureB().getBody();
 		final TObject objA = (TObject)(bodyA.getUserData());
 		final TObject objB = (TObject)(bodyB.getUserData());
+		
+		// collisions between a projectile and an entity should trigger the hurt() event for the entity and finish
+		// the projectile.
+		if(objB instanceof TProjectile && objA instanceof TEntity) {
+			TProjectile proj = (TProjectile)objB;
+			TEntity     ent  = (TEntity)objA;
+			ent.hurt(proj.getCollisionDamage());
+			proj.setDone();
+			return;
+		}
 		
 		// collisions between a player and item drop trigger the transferTo() event.
 		if(objA instanceof TPlayer && objB instanceof TItemDrop) {

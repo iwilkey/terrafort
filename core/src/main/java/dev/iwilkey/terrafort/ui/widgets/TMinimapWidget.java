@@ -4,22 +4,18 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.kotcrab.vis.ui.widget.VisImage;
 import com.kotcrab.vis.ui.widget.VisTable;
 
 import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.obj.world.TWorld;
-import dev.iwilkey.terrafort.ui.TUserInterface;
 
 /**
  * A simple Minimap UI widget. Shows an abstract notion of the given {@link TWorld}s terrain height.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TMinimap extends VisTable {
+public final class TMinimapWidget extends VisTable {
 	
 	public static final Color LOW_COLOR   = new Color().set(0x555555ff);
 	public static final Color HIGH_COLOR  = new Color().set(0xffffffff);
@@ -39,26 +35,12 @@ public final class TMinimap extends VisTable {
 	/**
 	 * Creates a frash minimap, with given world.
 	 */
-	public TMinimap(TWorld world) {
+	public TMinimapWidget(TWorld world) {
 		this.world = world;
 		pixels = new Pixmap(WIDTH_PX, HEIGHT_PX, Pixmap.Format.RGBA8888);
         texture = new Texture(pixels);
         map = new VisImage(texture);
         add(map).expand().fill();
-        addListener(new InputListener() {
-        	@Override
-		    public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
-				TUserInterface.beginPopup("[TEAL]Minimap[]", "This tool represents your player's \ncurrent [TEAL]location[].\n\n"
-										+ "As you explore the world, your\n[TEAL]minimap[] records it topographically.\n\n"
-										+ "  - WHITE: Highest point\n"
-										+ "  - [GRAY]DARK GRAY[]: Lowest point\n\n"
-										+ "Use the '+' and '-' buttons to zoom.");
-		    }
-		    @Override
-		    public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
-		    	TUserInterface.endPopup();
-		    }
-        });
 	}
 	
 	/**
