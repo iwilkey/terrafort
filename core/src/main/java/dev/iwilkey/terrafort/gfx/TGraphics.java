@@ -53,11 +53,13 @@ public final class TGraphics implements Disposable {
 	private static final TInterpolator             CAMERA_X              = new TInterpolator(0);
 	private static final TInterpolator             CAMERA_Y              = new TInterpolator(0);
 	private static final TInterpolator             CAMERA_ZOOM           = new TInterpolator(1);
+	private static final Array<TRenderableRaw>     RAW_TEX_RENDERABLES   = new Array<>();
 	private static final Array<TRenderableSprite>  OBJECT_RENDERABLES    = new Array<>();
 	private static final Array<TRenderableSprite>  TILE_RENDERABLES      = new Array<>();
 	private static final Array<TRenderableShape>   OL_GEO_RENDERABLES    = new Array<>();
 	private static final Array<TRenderableShape>   TL_GEO_RENDERABLES    = new Array<>();
 	private static final SpriteBatch               OBJECT_BATCH          = new SpriteBatch(MAX_RENDERABLES);
+	private static final SpriteBatch               RAW_BATCH             = new SpriteBatch(MAX_RENDERABLES);
 	private static final Array<SpriteBatch>        TILE_BATCH_POOL       = new Array<>();
 	private static final ShapeRenderer             GEOMETRIC_RENDERER    = new ShapeRenderer();
 	
@@ -112,6 +114,10 @@ public final class TGraphics implements Disposable {
      * @param renderable The {@link TRenderableSprite} object to be rendered.
      */
 	public static void draw(final TRenderableSprite renderable) {
+		if(renderable instanceof TRenderableRaw) {
+			RAW_TEX_RENDERABLES.add((TRenderableRaw)renderable);
+			return;
+		}
 		if(renderable instanceof TObject)
 			if(!((TObject)renderable).shouldDraw)
 				return;
@@ -162,22 +168,39 @@ public final class TGraphics implements Disposable {
 	
 	/**
 	 * Gradually fades the screen to black then back in.
-	 * @param time the time of the fade.
+	 * @param timeFactor the time factor of the fade; smaller = longer.
 	 */
-	public static void fadeOutIn(float time) {
-		screenFade.setSpeed(time);
+	public static void fadeOutIn(float timeFactor) {
+		screenFade.setSpeed(timeFactor);
 		screenFade.set(1.0f);
 		fadingDown = true;
 	}
 	
 	/**
 	 * Forces the screen directly to black and fades in naturally over time.
-	 * @param time the time of the fade.
+	 * @param timeFactor the time factor of the fade; smaller = longer.
 	 */
-	public static void fadeIn(float time) {
-		screenFade.setSpeed(time);
+	public static void fadeIn(float timeFactor) {
+		screenFade.setSpeed(timeFactor);
 		screenFade.force(1.0f);
 		screenFade.set(0.0f);
+	}
+	
+	/**
+	 * Fade the screen to black with given time factor.
+	 * @param timeFactor the time factor of the fade; smaller = longer.
+	 */
+	public static void fadeOut(float timeFactor) {
+		screenFade.setSpeed(timeFactor);
+		screenFade.set(1.0f);
+	}
+	
+	/**
+	 * Resets the fade system. Ideal when switching states to ensure there are no dangling fade state issues.
+	 */
+	public static void resetFade() {
+		screenFade.force(0.0f);
+		fadingDown = false;
 	}
 	
 	/**
@@ -215,7 +238,7 @@ public final class TGraphics implements Disposable {
      */
 	public static void requestCameraZoomChange(boolean in) {
 		int suggested = (!in) ? currentZoomTwoFactor + 1 : currentZoomTwoFactor - 1;
-		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -4.0f, -2.0f));
+		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -3.0f, -2.0f));
 		if(suggested == currentZoomTwoFactor) {
 			fadeOutIn(6.0f);
 			zoomRequest = true;
@@ -238,7 +261,7 @@ public final class TGraphics implements Disposable {
 	 */
 	private void calculateFadeAndZoom() {
 		screenFade.update();
-		int a = Math.round(screenFade.get() * 0xff);
+		int a = (int)(screenFade.get() * 0xff);
 		fadeRect.setCX(CAMERA.position.x);
         fadeRect.setCY(CAMERA.position.y);
         fadeRect.setWidth(Gdx.graphics.getWidth());
@@ -390,6 +413,12 @@ public final class TGraphics implements Disposable {
 	        	r.render(CAMERA, OBJECT_BATCH);
 	        OBJECT_BATCH.end();
 		}
+		if(RAW_TEX_RENDERABLES.size >= 1) {
+			RAW_BATCH.begin();
+	        for(final TRenderableSprite r : RAW_TEX_RENDERABLES)
+	        	r.render(CAMERA, RAW_BATCH);
+	        RAW_BATCH.end();
+		}
 		TEngine.mObjectDrawCount = OBJECT_RENDERABLES.size;
         OL_GEO_RENDERABLES.add(fadeRect);
         useShapeRenderer(OL_GEO_RENDERABLES, false, true);
@@ -407,6 +436,7 @@ public final class TGraphics implements Disposable {
 	 * @param newHeight the new height of the screen.
 	 */
 	public void resize(int newWidth, int newHeight) {
+		RAW_BATCH.getProjectionMatrix().setToOrtho2D(0, 0, newWidth, newHeight);
 		CAMERA.setToOrtho(false, newWidth, newHeight);
 		CAMERA.update();
 		POST_PROCESSING.resize(newWidth, newHeight);
@@ -421,8 +451,6 @@ public final class TGraphics implements Disposable {
 	 */
 	public static void gc() {
 		flush();
-		for(SpriteBatch batch : TILE_BATCH_POOL)
-			batch.dispose();
 		TILE_BATCH_POOL.clear();
 	}
 	
@@ -433,6 +461,7 @@ public final class TGraphics implements Disposable {
 		OL_GEO_RENDERABLES.clear();
 		TL_GEO_RENDERABLES.clear();
 	    OBJECT_RENDERABLES.clear();
+	    RAW_TEX_RENDERABLES.clear();
 	    TILE_RENDERABLES.clear();
 	}
 	

@@ -4,8 +4,11 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 
+import dev.iwilkey.terrafort.audio.TAudio;
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.state.TSinglePlayer;
+import dev.iwilkey.terrafort.state.TMainMenuState;
+import dev.iwilkey.terrafort.state.TSinglePlayerState;
+import dev.iwilkey.terrafort.state.TTessellationLogoState;
 import dev.iwilkey.terrafort.ui.TUserInterface;
 
 /**
@@ -22,7 +25,7 @@ import dev.iwilkey.terrafort.ui.TUserInterface;
  */
 public final class TEngine extends ApplicationAdapter {
 	
-	public static final String VERSION = "0.0.0.9";
+	public static final String VERSION = "0.0.0.10 [DEBUG]";
 	
 	// engine metrics (updated internally, even though they are public!) do NOT manually change them!
 	
@@ -44,6 +47,7 @@ public final class TEngine extends ApplicationAdapter {
 	private static TInput 		    input       = null;
 	private static TClock           clock       = null;
 	private static TGraphics        renderer    = null;
+	private static TAudio           audio       = null;
 	private static TUserInterface   ui          = null;
 	
 	/**
@@ -59,8 +63,8 @@ public final class TEngine extends ApplicationAdapter {
 		if(toState == null)
 			return;
 		state = toState;
+		TGraphics.resetFade();
 		state.start();
-		TGraphics.fadeIn(0.5f);
 	}
 	
     @Override
@@ -68,12 +72,15 @@ public final class TEngine extends ApplicationAdapter {
     	clock    = new TClock();
     	input    = new TInput();
     	renderer = new TGraphics();
+    	audio    = new TAudio();
     	ui       = new TUserInterface();
     	multiplexer = new InputMultiplexer();
     	multiplexer.addProcessor(TUserInterface.getParent());
     	multiplexer.addProcessor(input);
     	Gdx.input.setInputProcessor(multiplexer);
-    	setState(new TSinglePlayer());
+    	setState(new TTessellationLogoState());
+    	// setState(new TMainMenuState());
+        // setState(new TSinglePlayerState());
     }
 
     @Override
@@ -82,13 +89,12 @@ public final class TEngine extends ApplicationAdapter {
     	renderer.render(ui);
     	if(state != null)
     		state.render();
+    	audio.tick();
     	input.tick();
     	clock.tock();
     	ui.render();
-    	
     	mFrameProcessTime = (float)TClock.pt();
     	mDeltaTime = (float)TClock.dt();
-    	
     }
     
     @Override
@@ -99,6 +105,7 @@ public final class TEngine extends ApplicationAdapter {
 
     @Override
     public void dispose() {
+    	audio.dispose();
     	ui.dispose();
     	setState(null);
     	renderer.dispose();

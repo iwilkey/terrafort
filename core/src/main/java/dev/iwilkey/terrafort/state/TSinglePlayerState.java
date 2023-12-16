@@ -13,7 +13,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  * A single-player game of Terrafort.
  * @author Ian Wilkey (iwilkey)
  */
-public class TSinglePlayer implements TState {
+public class TSinglePlayerState implements TState {
 	
 	TPlayer player;
 	TWorld  world;
@@ -24,12 +24,12 @@ public class TSinglePlayer implements TState {
 		TGraphics.setCameraSpeedToTarget(4.0f);
 		world = new TWorld(ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE - 1));
 		player = (TPlayer)world.addObject(new TPlayer(world));
+		TGraphics.fadeIn(0.5f);
 	}
 
 	@Override
 	public void render() {
 		world.update((float)TClock.dt());
-		world.render();
 		if(TInput.zoomOut) {
 			TGraphics.requestCameraZoomChange(false);
 			TInput.zoomOut = false;

@@ -15,6 +15,8 @@ import dev.iwilkey.terrafort.TClock;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TInterpolator {
+	
+	public final static double FLOAT_ROUNDING_EPSILLON = 1e-3;
     
     private Interpolation equ;
     private float         prog;
@@ -54,14 +56,6 @@ public final class TInterpolator {
     	prog    = 1.0f;
     }
     
-    /**
-     * Force the interpolators progress to 100%.
-     */
-    public void finish() {
-    	prog = 1.0f;
-    	current = equ.apply(current, target, prog);
-    }
-
     /**
      * Sets the interpolation equation to be used for the transition.
      * 
@@ -113,8 +107,11 @@ public final class TInterpolator {
      * the value based on the defined speed and interpolation equation.
      */
     public void update() {
-        if(prog >= 1.0f)
-            return;
+    	// epsilon for rounding error.
+    	if(Math.abs(current - target) <= FLOAT_ROUNDING_EPSILLON) {
+    		current = target;
+    		return;
+    	}
         prog += ((float)TClock.dt()) * speed;
         current = equ.apply(current, target, prog);
     }

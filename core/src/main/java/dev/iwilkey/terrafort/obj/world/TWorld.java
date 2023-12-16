@@ -124,17 +124,14 @@ public final class TWorld implements Disposable {
 	float time = 0.0f;
 	
 	/**
-	 * Steps the world simulation forward one tick.
-	 * @param dt the change in time since the last tick.
+	 * Runs Terrafort's spatial partitioning algorithm given a center chunk to provide efficient infinite terrain generation.
 	 */
-	public void update(float dt) {
+	private void infinity(float dt, int pcx, int pcy) {
 		world.step(dt, 6, 2);
 		updateDayNightCycle(dt);
 		// Optimization: since the chunks are hashed by position, I don't need to search through the entire list of loaded chunks
 		// to find what chunks are closest to the player...
 		loadedChunks.clear();
-		final int pcx = clientPlayer.getCurrentTileX() / TChunk.CHUNK_SIZE;
-		final int pcy = clientPlayer.getCurrentTileY() / TChunk.CHUNK_SIZE;
 		for(int cx = pcx - CHUNK_CULLING_THRESHOLD; cx < pcx + CHUNK_CULLING_THRESHOLD; cx++) {
 			for(int cy = pcy - CHUNK_CULLING_THRESHOLD; cy < pcy + CHUNK_CULLING_THRESHOLD; cy++) {
 				long hash = (((long)cx) << 32) | (cy & 0xffffffffL);
@@ -147,7 +144,7 @@ public final class TWorld implements Disposable {
 				currentChunk.tick(dt);
 			}
 		}
-		// the chunk dormant watchdog basically facilitates chunk sleeping if it isn't currently loaded.
+		// the chunk dormant watchdog basically facilitates chunk sleeping if it isn't currently loaded...
 		chunkWatchdog += dt;
 		if(chunkWatchdog >= CHUNK_DORMANT_WATCHDOG) {
 			for(final long chunkHash : chunkMemory.keySet()) {
@@ -165,10 +162,32 @@ public final class TWorld implements Disposable {
 	}
 	
 	/**
+	 * Steps the world simulation forward one tick.
+	 * @param dt the change in time since the last tick.
+	 */
+	public void update(float dt) {
+		final int pcx = clientPlayer.getCurrentTileX() / TChunk.CHUNK_SIZE;
+		final int pcy = clientPlayer.getCurrentTileY() / TChunk.CHUNK_SIZE;
+		infinity(dt, pcx, pcy);
+		render(clientPlayer.getCurrentTileX(), clientPlayer.getCurrentTileY());
+	}
+	
+	/**
+	 * Steps the world simulation forward one tick using given tile coordinates.
+	 * @param dt the change in time since the last tick.
+	 */
+	public void update(float dt, int ctx, int cty) {
+		final int pcx = ctx / TChunk.CHUNK_SIZE;
+		final int pcy = cty / TChunk.CHUNK_SIZE;
+		infinity(dt, pcx, pcy);
+		render(ctx, cty);
+	}
+	
+	/**
 	 * Renders the world's objects, Box2D debug information, and dynamic lighting.
 	 */
-	public void render() {
-		TTerrainRenderer.render(this, clientPlayer);
+	private void render(int ctx, int cty) {
+		TTerrainRenderer.render(this, ctx, cty);
 		for(long hash : loadedChunks)
 			chunkMemory.get(hash).render();
 		if(debug) debugRenderer.render(world, TGraphics.CAMERA.combined);

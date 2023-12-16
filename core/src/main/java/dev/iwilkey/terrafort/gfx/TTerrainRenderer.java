@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.math.TMath;
-import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -63,15 +62,13 @@ public final class TTerrainRenderer {
 	 * @param world the world the terrain belongs to.
 	 * @param player the player.
 	 */
-	public static void render(final TWorld world, final TPlayer player) {
-		if(player == null) 
-			return;
+	public static void render(final TWorld world, int tileX, int tileY) {
 		final float camWidthWorldUnits  = TGraphics.CAMERA.viewportWidth * TGraphics.CAMERA.zoom;
 	    final float camHeightWorldUnits = TGraphics.CAMERA.viewportHeight * TGraphics.CAMERA.zoom;
 	    final int tilesInViewWidth      = Math.round(camWidthWorldUnits / TERRAIN_TILE_WIDTH) / 2;
 	    final int tilesInViewHeight     = Math.round(camHeightWorldUnits / TERRAIN_TILE_HEIGHT) / 2;
-	    final int playerTileX           = Math.round(player.getRenderX() / TERRAIN_TILE_WIDTH);
-	    final int playerTileY           = Math.round(player.getRenderY() / TERRAIN_TILE_HEIGHT);
+	    final int playerTileX           = tileX;
+	    final int playerTileY           = tileY;
 	    final int xs                    = playerTileX - (tilesInViewWidth + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    final int xe                    = playerTileX + (tilesInViewWidth + TERRAIN_VIEWPORT_CULLING_PADDING);
 	    final int ys                    = playerTileY - (tilesInViewHeight + TERRAIN_VIEWPORT_CULLING_PADDING);
