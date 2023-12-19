@@ -17,11 +17,11 @@ import box2dLight.PointLight;
 import box2dLight.RayHandler;
 import dev.iwilkey.terrafort.TEngine;
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
+import dev.iwilkey.terrafort.obj.entity.tile.TBuildingTile;
 
 /**
  * A physical space that efficiently manages {@link TChunk}s, global and local forces, and dynamic lighting all active 
@@ -32,7 +32,6 @@ public final class TWorld implements Disposable {
 
 	public static final short           LIGHTING_RAYS           = 16;
 	public static final short           CHUNK_CULLING_THRESHOLD = 4;
-	public static final float           CHUNK_DORMANT_WATCHDOG  = 1.0f;
 	public static final float           DAY_NIGHT_CYCLE_PERIOD  = Float.MAX_VALUE;
 	public static final Filter          LIGHTING_COLLISION_MASK = new Filter();
 	
@@ -43,16 +42,16 @@ public final class TWorld implements Disposable {
 	private final World              	world;
 	private final long                  seed;
 	
-	private final HashMap<Long, TChunk> chunkMemory;
-	private final Set<Long>             loadedChunks;
-	
+	private final HashMap<Long, TChunk> calloc;  // chunk allocation
+	private final Set<Long>             acalloc; // active chunk allocation
+	private final Set<Long>             ucalloc; // indeterminate chunk allocation
+
 	private final Box2DDebugRenderer    debugRenderer;
 	private final RayHandler            lightRenderer;
 	
 	private TPlayer                     clientPlayer;
 	private boolean                     debug;
 	private float                       worldTime;
-	private float                       chunkWatchdog;
 	private boolean                     day;
 	private boolean                     dusk;
 	private boolean                     night;
@@ -62,14 +61,14 @@ public final class TWorld implements Disposable {
 	public TWorld(long seed) {
 		this.seed                       = seed;
 		world                           = new World(new Vector2(0, 0), false);
-		chunkMemory                     = new HashMap<>();
-		loadedChunks                    = new HashSet<>();
+		calloc                          = new HashMap<>();
+		acalloc                         = new HashSet<>();
+		ucalloc                         = new HashSet<>();
 		lightRenderer                   = new RayHandler(world);
 		debugRenderer                   = new Box2DDebugRenderer();
 		debug                           = false;
 		clientPlayer                    = null;
 		worldTime                       = DAY_NIGHT_CYCLE_PERIOD;
-		chunkWatchdog                   = CHUNK_DORMANT_WATCHDOG;
 		day                             = true;
 		dusk                            = false;
 		night                           = false;
@@ -103,8 +102,8 @@ public final class TWorld implements Disposable {
 	public TObject addObject(final TObject obj) {
 		if(obj instanceof TPlayer) 
 			clientPlayer = (TPlayer)obj;
-		final int xx = Math.round(obj.getActualX() / TTerrainRenderer.TERRAIN_TILE_WIDTH);
-		final int yy = Math.round(obj.getActualY() / TTerrainRenderer.TERRAIN_TILE_HEIGHT);
+		final int xx = Math.round(obj.getActualX() / TTerrain.TILE_WIDTH);
+		final int yy = Math.round(obj.getActualY() / TTerrain.TILE_HEIGHT);
 		final TChunk chunk = requestChunkThatContains(xx, yy);
 		chunk.register(obj);
 		return obj;
@@ -115,13 +114,11 @@ public final class TWorld implements Disposable {
 	 * @param obj the object to remove.
 	 */
 	public void removeObject(final TObject obj) {
-		final int xx = Math.round(obj.getActualX() / TTerrainRenderer.TERRAIN_TILE_WIDTH);
-		final int yy = Math.round(obj.getActualY() / TTerrainRenderer.TERRAIN_TILE_HEIGHT);
+		final int xx = Math.round(obj.getActualX() / TTerrain.TILE_WIDTH);
+		final int yy = Math.round(obj.getActualY() / TTerrain.TILE_HEIGHT);
 		final TChunk chunk = requestChunkThatContains(xx, yy);
 		chunk.remove(obj);
 	}
-	
-	float time = 0.0f;
 	
 	/**
 	 * Runs Terrafort's spatial partitioning algorithm given a center chunk to provide efficient infinite terrain generation.
@@ -131,33 +128,30 @@ public final class TWorld implements Disposable {
 		updateDayNightCycle(dt);
 		// Optimization: since the chunks are hashed by position, I don't need to search through the entire list of loaded chunks
 		// to find what chunks are closest to the player...
-		loadedChunks.clear();
+		acalloc.clear();
 		for(int cx = pcx - CHUNK_CULLING_THRESHOLD; cx < pcx + CHUNK_CULLING_THRESHOLD; cx++) {
 			for(int cy = pcy - CHUNK_CULLING_THRESHOLD; cy < pcy + CHUNK_CULLING_THRESHOLD; cy++) {
 				long hash = (((long)cx) << 32) | (cy & 0xffffffffL);
-				final TChunk currentChunk = chunkMemory.get(hash);
+				final TChunk currentChunk = calloc.get(hash);
 				if(currentChunk == null)
 					continue;
-				loadedChunks.add(hash);
+				acalloc.add(hash);
+				ucalloc.add(hash);
 				if(currentChunk.isDormant())
 					currentChunk.wake();
 				currentChunk.tick(dt);
 			}
 		}
-		// the chunk dormant watchdog basically facilitates chunk sleeping if it isn't currently loaded...
-		chunkWatchdog += dt;
-		if(chunkWatchdog >= CHUNK_DORMANT_WATCHDOG) {
-			for(final long chunkHash : chunkMemory.keySet()) {
-				if(loadedChunks.contains(chunkHash))
-					continue;
-				TChunk toDormant = chunkMemory.get(chunkHash);
-				if(toDormant.isDormant())
-					continue;
-				chunkMemory.get(chunkHash).sleep();
-			}	
-			chunkWatchdog = 0.0f;
-		}
-		dormantChunks = chunkMemory.size() - loadedChunks.size();	
+		// Optimization: check the difference between watchlist and the loadedChunks to know what to sleep instead of looking through
+		// the entire calloc.
+		final Set<Long> sleepers = new HashSet<>();
+		for(long hash : ucalloc) 
+			if(!acalloc.contains(hash)) {
+				calloc.get(hash).sleep();
+				sleepers.add(hash);
+			}
+		ucalloc.removeAll(sleepers);
+		dormantChunks = calloc.size() - acalloc.size();	
 		collectEngineMetrics();
 	}
 	
@@ -187,9 +181,9 @@ public final class TWorld implements Disposable {
 	 * Renders the world's objects, Box2D debug information, and dynamic lighting.
 	 */
 	private void render(int ctx, int cty) {
-		TTerrainRenderer.render(this, ctx, cty);
-		for(long hash : loadedChunks)
-			chunkMemory.get(hash).render();
+		TTerrain.render(this, ctx, cty);
+		for(long hash : acalloc)
+			calloc.get(hash).render();
 		if(debug) debugRenderer.render(world, TGraphics.CAMERA.combined);
 		lightRenderer.setCombinedMatrix(TGraphics.CAMERA);
 		lightRenderer.updateAndRender();
@@ -209,7 +203,7 @@ public final class TWorld implements Disposable {
 	 * @return the z value of the tile.
 	 */
 	public int getOrGenerateTileHeightAt(int tileX, int tileY) {
-		return requestChunkThatContains(tileX, tileY).getTileHeightAt(tileX, tileY);
+		return requestChunkThatContains(tileX, tileY).getTerrainDataAt(tileX, tileY);
 	}
 	
 	/**
@@ -220,12 +214,25 @@ public final class TWorld implements Disposable {
 	 * </p>
 	 */
 	public int checkTileHeightAt(int tileX, int tileY) {
-		final int chunkX = tileX / TChunk.CHUNK_SIZE;
-		final int chunkY = tileY / TChunk.CHUNK_SIZE;
+		final int chunkX     = tileX / TChunk.CHUNK_SIZE;
+		final int chunkY     = tileY / TChunk.CHUNK_SIZE;
 		final long chunkHash = (((long)chunkX) << 32) | (chunkY & 0xffffffffL);
-		if(chunkMemory.containsKey(chunkHash))
-			return requestChunkThatContains(tileX, tileY).getTileHeightAt(tileX, tileY);
-		else return -1;
+		if(calloc.containsKey(chunkHash))
+			return requestChunkThatContains(tileX, tileY).getTerrainDataAt(tileX, tileY);
+		return -1;
+	}
+	
+	/**
+	 * Checks for a {@link TBuildingTile} at a given tile coordinate. If the chunk that contains it isn't loaded yet, 
+	 * null is returned.
+	 */
+	public TBuildingTile checkBuildingTileAt(int tileX, int tileY) {
+		final int chunkX     = tileX / TChunk.CHUNK_SIZE;
+		final int chunkY     = tileY / TChunk.CHUNK_SIZE;
+		final long chunkHash = (((long)chunkX) << 32) | (chunkY & 0xffffffffL);
+		if(calloc.containsKey(chunkHash))
+			return requestChunkThatContains(tileX, tileY).getBuildingTileDataAt(tileX, tileY);
+		return null;
 	}
 
 	/**
@@ -239,7 +246,7 @@ public final class TWorld implements Disposable {
 	 * @param z the height to set the tile.
 	 */
 	public void setTileHeightAt(int tileX, int tileY, int z) {
-		requestChunkThatContains(tileX, tileY).setTileHeightAt(tileX, tileY, z);
+		requestChunkThatContains(tileX, tileY).setTerrainDataAt(tileX, tileY, z);
 	}
 	
 	/**
@@ -253,11 +260,11 @@ public final class TWorld implements Disposable {
 		int chunkX = (x / TChunk.CHUNK_SIZE);
 		int chunkY = (y / TChunk.CHUNK_SIZE);
 		long hash  = (((long)chunkX) << 32) | (chunkY & 0xffffffffL);
-		if(!chunkMemory.containsKey(hash)) {
+		if(!calloc.containsKey(hash)) {
 			final TChunk newChunk = new TChunk(this, chunkX, chunkY);
-			chunkMemory.put(hash, newChunk);
+			calloc.put(hash, newChunk);
 		}
-		return chunkMemory.get(hash);
+		return calloc.get(hash);
 	}
 	
 	public long getSeed() {
@@ -265,11 +272,11 @@ public final class TWorld implements Disposable {
 	}
 	
 	public HashMap<Long, TChunk> getChunkMemory() {
-		return chunkMemory;
+		return calloc;
 	}
 	
 	public Set<Long> getLoadedChunks() {
-		return loadedChunks;
+		return acalloc;
 	}
 	
 	public boolean isDay() {
@@ -316,7 +323,7 @@ public final class TWorld implements Disposable {
 	 * Destroys all bodies and objects current active in the world.
 	 */
 	public void clearAllActiveObjectsAndBodies() {
-		for(final TChunk o : chunkMemory.values())
+		for(final TChunk o : calloc.values())
 			o.destroy();
 		 final Array<Body> others = new Array<>();
 		 world.getBodies(others);
@@ -327,7 +334,7 @@ public final class TWorld implements Disposable {
 	@Override
 	public void dispose() {
 		clearAllActiveObjectsAndBodies();
-		chunkMemory.clear();
+		calloc.clear();
 		lightRenderer.removeAll();
 		lightRenderer.dispose();
 		collectEngineMetrics();
@@ -339,7 +346,7 @@ public final class TWorld implements Disposable {
 	 * Updates the metrics in the {@link TEngine}.
 	 */
 	private void collectEngineMetrics() {
-		TEngine.mChunksInMemory = chunkMemory.size();
+		TEngine.mChunksInMemory = calloc.size();
 		TEngine.mChunksDormant = dormantChunks;
 		TEngine.mPhysicalBodies = world.getBodyCount();
 	}

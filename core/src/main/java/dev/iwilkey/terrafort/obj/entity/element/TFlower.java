@@ -4,9 +4,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.badlogic.gdx.graphics.Color;
 
-import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
+import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -20,13 +20,13 @@ public final class TFlower extends TNaturalElement {
 	public TFlower(TWorld world, int tileX, int tileY) {
 		super(world, 
 		      false,
-		      tileX * TTerrainRenderer.TERRAIN_TILE_WIDTH, 
-		      tileY * TTerrainRenderer.TERRAIN_TILE_HEIGHT, 
+		      tileX * TTerrain.TILE_WIDTH, 
+		      tileY * TTerrain.TILE_HEIGHT, 
 		      1, 
-		      TTerrainRenderer.TERRAIN_TILE_WIDTH / 2f, 
-		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 2f, 
-		      TTerrainRenderer.TERRAIN_TILE_WIDTH / 4f, 
-		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 4f,
+		      TTerrain.TILE_WIDTH, 
+		      TTerrain.TILE_HEIGHT, 
+		      TTerrain.TILE_WIDTH / 2f, 
+		      TTerrain.TILE_HEIGHT / 2f,
 		      7, 
 		      ThreadLocalRandom.current().nextInt(0, 6),
 			  1, 

@@ -164,7 +164,7 @@ public final class TForgerWidget extends VisTable implements Disposable {
 	 */
 	public static void sync() {
 		if(selected != null) {
-			forgeButton.setText("Create " + selected.name());
+			forgeButton.setText("Create " + selected.is().getName());
 			if(!player.canForgeItem(selected)) {
 				forgeButton.setTouchable(Touchable.disabled);
 				forgeButton.getLabel().setColor(Color.GRAY);

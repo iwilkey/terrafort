@@ -18,6 +18,18 @@ public final class TLine implements TRenderableShape {
 	private final Vector2 end;
 	private final Color   color;
 	
+	/**
+	 * Creates a new {@link TLine} with all parameters initialized and set to 0.
+	 */
+	public TLine() {
+		start = new Vector2(0, 0);
+		end   = new Vector2(0, 0);
+		color = Color.WHITE.cpy();
+	}
+	
+	/**
+	 * Creates a new {@link TLine} with given parameters.
+	 */
 	public TLine(float x0, float y0, float x1, float y1) {
 		start = new Vector2(x0, y0);
 		end   = new Vector2(x1, y1);
@@ -46,6 +58,7 @@ public final class TLine implements TRenderableShape {
 	
 	@Override
 	public void drawFilled(OrthographicCamera camera, ShapeRenderer renderer) {
+		// It's a line, it can't be drawn filled.
 	}
 
 	@Override

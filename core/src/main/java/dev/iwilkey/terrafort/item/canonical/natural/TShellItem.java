@@ -11,7 +11,7 @@ import dev.iwilkey.terrafort.obj.particulate.TProjectile;
  * Found naturally in dunes. Can be thrown.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TShell extends TItemDefinition {
+public final class TShellItem extends TItemDefinition {
 	
 	public static final int   ENERGY_TO_THROW  = 4;
 	public static final int   THROWING_FORCE   = 128;
@@ -19,7 +19,7 @@ public final class TShell extends TItemDefinition {
 	public static final float DENSITY          = 1.0f;
 	public static final int   ANGLE_SPREAD     = 10;
 
-	public TShell() {
+	public TShellItem() {
 		super("Shell", 
 			  "Found naturally in [YELLOW]dunes[].\n\n"
 			  + "[YELLOW][ACTION][]\n"

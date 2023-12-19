@@ -3,10 +3,10 @@ package dev.iwilkey.terrafort.state;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 
+import dev.iwilkey.terrafort.TAudio;
 import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.TEngine;
 import dev.iwilkey.terrafort.TState;
-import dev.iwilkey.terrafort.audio.TAudio;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.TRenderableRaw;
 
@@ -20,7 +20,7 @@ public final class TTessellationLogoState implements TState {
 	public static final float     DURATION         = 2.0f;
 	
 	private Texture               tessellationLogo = new Texture(Gdx.files.internal("tessellation-logo.png"));
-	private TRenderableRaw logo             = new TRenderableRaw(tessellationLogo);
+	private TRenderableRaw logo                    = new TRenderableRaw(tessellationLogo);
 	
 	// various state bits and timers you don't need to worry about
 	
@@ -35,8 +35,8 @@ public final class TTessellationLogoState implements TState {
 		TAudio.mallocfx("snd/tessellation.wav");
 		logo.x      = 0;
 		logo.y      = 0;
-		logo.width  = 512;
-		logo.height = 512;
+		logo.width  = 256;
+		logo.height = 256;
 		TGraphics.POST_PROCESSING.removeAllEffects();
 	}
 
@@ -65,8 +65,8 @@ public final class TTessellationLogoState implements TState {
 		TGraphics.draw(logo);
 		if(t > DURATION) {
 			TGraphics.fadeOut(0.5f);
-			TGraphics.POST_PROCESSING.addEffect(TGraphics.POST_CHROME_ABER);
-			TGraphics.POST_CHROME_ABER.setMaxDistortion(0.0f);
+			// TGraphics.POST_PROCESSING.addEffect(TGraphics.POST_CHROME_ABER);
+			// TGraphics.POST_CHROME_ABER.setMaxDistortion(0.0f);
 			inp = true;
 			t = 0.0f;
 		}

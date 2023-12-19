@@ -8,7 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.kotcrab.vis.ui.widget.VisImage;
 import com.kotcrab.vis.ui.widget.VisTable;
 
-import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
+import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -21,6 +21,8 @@ public final class TMinimapWidget extends VisTable {
 	public static final Color HIGH_COLOR  = new Color().set(0xffffffff);
 	public static final Color UNDEF_COLOR = new Color().set(0x000000ff);
 	public static final Color CROSS_COLOR = new Color().set(0xf2ce30ff);
+	public static final Color TILE_COLOR  = new Color().set(0xffff00ff);
+	
 	public static final byte  WIDTH_PX    = 64;
 	public static final byte  HEIGHT_PX   = 64;
 	public static final byte  HALF_WIDTH  = WIDTH_PX / 2;
@@ -52,18 +54,22 @@ public final class TMinimapWidget extends VisTable {
 	 * </p>
 	 */
 	public void update(int playerWorldX, int playerWorldY, int tilesPerPixel) {
-	    final int playerTileX = playerWorldX / TTerrainRenderer.TERRAIN_TILE_WIDTH;
-	    final int playerTileY = playerWorldY / TTerrainRenderer.TERRAIN_TILE_HEIGHT;
+	    final int playerTileX = playerWorldX / TTerrain.TILE_WIDTH;
+	    final int playerTileY = playerWorldY / TTerrain.TILE_HEIGHT;
 	    final int startX      = playerTileX - (WIDTH_PX * tilesPerPixel / 2) + tilesPerPixel / 2;
 	    final int startY      = playerTileY - (HEIGHT_PX * tilesPerPixel / 2) + tilesPerPixel / 2;
 	    for (int x = 0; x < WIDTH_PX; x++) {
 	        for (int y = 0; y < HEIGHT_PX; y++) {
-	            int tileX         = startX + x * tilesPerPixel;
-	            int tileY         = startY + y * tilesPerPixel;
-	            int tileHeight    = world.checkTileHeightAt(tileX, tileY);
+	            int tileX                = startX + x * tilesPerPixel;
+	            int tileY                = startY + y * tilesPerPixel;
+	            int tileHeight           = world.checkTileHeightAt(tileX, tileY);
+	            boolean isBuildingTileAt = world.checkBuildingTileAt(tileX, tileY) != null;
 	            final Color col;
-	            if(tileHeight == -1) col = UNDEF_COLOR;
-	            else col = getGradientColor(tileHeight, TTerrainRenderer.TERRAIN_LEVELS - 1);
+	            if(isBuildingTileAt) col = TILE_COLOR;
+	            else {
+	            	if(tileHeight == -1) col = UNDEF_COLOR;
+	 	            else col = getGradientColor(tileHeight, TTerrain.TERRAIN_LEVELS - 1);
+	            }
 	            pixels.drawPixel(x, HEIGHT_PX - y - 1, Color.rgba8888(col));
 	        }
 	    }

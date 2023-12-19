@@ -1,4 +1,4 @@
-package dev.iwilkey.terrafort.audio;
+package dev.iwilkey.terrafort;
 
 import java.util.HashMap;
 

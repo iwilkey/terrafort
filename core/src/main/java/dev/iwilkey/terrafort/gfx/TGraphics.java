@@ -32,7 +32,7 @@ import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.math.TInterpolator;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
-import dev.iwilkey.terrafort.obj.entity.tile.TTile;
+import dev.iwilkey.terrafort.obj.entity.tile.TBuildingTile;
 import dev.iwilkey.terrafort.ui.TUserInterface;
 
 /**
@@ -121,7 +121,7 @@ public final class TGraphics implements Disposable {
 		if(renderable instanceof TObject)
 			if(!((TObject)renderable).shouldDraw)
 				return;
-		if(renderable instanceof TTile) {
+		if(renderable instanceof TBuildingTile) {
 			TILE_RENDERABLES.add(renderable);
 		} else OBJECT_RENDERABLES.add(renderable);
 	}

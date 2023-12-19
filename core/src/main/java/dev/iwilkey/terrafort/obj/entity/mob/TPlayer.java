@@ -3,6 +3,7 @@ package dev.iwilkey.terrafort.obj.entity.mob;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.TClock;
@@ -10,13 +11,17 @@ import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.anim.TLifeformAnimationArray;
+import dev.iwilkey.terrafort.gfx.shape.TCircle;
+import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.item.TItem;
+import dev.iwilkey.terrafort.item.TItemFunction;
 import dev.iwilkey.terrafort.item.TItemSpec;
 import dev.iwilkey.terrafort.item.TItemStack;
 import dev.iwilkey.terrafort.item.TItemStackCollection;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
+import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 import dev.iwilkey.terrafort.ui.TUserInterface;
 import dev.iwilkey.terrafort.ui.containers.interfaces.TInventoryAndForgerInterface;
@@ -229,7 +234,7 @@ public final class TPlayer extends TMob {
 		
 		// What items does the player have at spawn?
 		for(int i = 0; i < 256; i++)
-			inventory.addItem(TItem.SHELL);
+			inventory.addItem(TItem.HEALTHY_WOOD);
 		
 		// give a way to see and interact with the inventory.
 		inventoryInterface = new TInventoryAndForgerInterface(this, true);
@@ -253,7 +258,6 @@ public final class TPlayer extends TMob {
 	public void task(float dt) {
 		super.task(dt);
 		focusCamera();
-		
 		// you cannot open or close the Forger while a drag is going on because that can cause an item dupe glitch.
 		if(Gdx.input.isKeyJustPressed(Keys.F) && !TInventoryAndForgerInterface.dragMutex()) {
 			TUserInterface.removeContainer(inventoryInterface);
@@ -263,7 +267,6 @@ public final class TPlayer extends TMob {
 			inventoryInterface.init();
 			TUserInterface.addContainer(inventoryInterface);
 		}
-		
 		// get hungry =3.
 		hungerTime += dt;
 		if(hungerTime > hungerDepletionTime) {
@@ -275,6 +278,24 @@ public final class TPlayer extends TMob {
 			hungerTime = 0.0f;
 		}
 		energyRepletionTime = BASE_ENERGY_REPL - ((BASE_ENERGY_REPL / 1.25f) * ((float)hunger / PLAYER_MAX_HUNGER));
+		if(equipped != null) {
+			if(equipped.getItem().is().getFunction() == TItemFunction.STRUCTURE) {
+				// Render a square based on the the tile the player is looking at.
+				final TRect rect   = new TRect(0, 0, TTerrain.TILE_WIDTH, TTerrain.TILE_HEIGHT);
+				final TCircle circ = new TCircle(0, 0, TTerrain.TILE_WIDTH * 4);
+				final Vector2 tsm  = TMath.translateScreenToTileCoordinates(Gdx.input.getX(), Gdx.input.getY());
+				int tx             = (int)tsm.x;
+				int ty             = (int)tsm.y;
+				rect.setFilled(false);
+				circ.setFilled(false);
+				rect.setCX(tx * TTerrain.TILE_WIDTH);
+				rect.setCY(ty * TTerrain.TILE_HEIGHT);
+				circ.setCX(getActualX());
+				circ.setCY(getActualY());
+				TGraphics.draw(rect, false);
+				TGraphics.draw(circ, false);
+			}
+		}
 	}
 	
 	@Override

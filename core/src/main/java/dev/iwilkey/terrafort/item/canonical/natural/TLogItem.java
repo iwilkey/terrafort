@@ -11,7 +11,7 @@ import dev.iwilkey.terrafort.obj.particulate.TProjectile;
  * Dropped naturally from bushes or trees. Can be thrown.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TLog extends TItemDefinition {
+public final class TLogItem extends TItemDefinition {
 	
 	public static final int   ENERGY_TO_THROW  = 3;
 	public static final int   THROWING_FORCE   = 64;
@@ -19,7 +19,7 @@ public final class TLog extends TItemDefinition {
 	public static final float DENSITY          = 1.0f;
 	public static final int   ANGLE_SPREAD     = 30;
 	
-	public TLog() {
+	public TLogItem() {
 		super("Log", 
 			  "Dropped naturally from\n[GREEN]bushes[] and [GREEN]trees[].\n\n"
 			  + "[YELLOW][ACTION][]\n"

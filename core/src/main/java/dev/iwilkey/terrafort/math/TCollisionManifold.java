@@ -27,17 +27,17 @@ public final class TCollisionManifold implements ContactListener {
 		final Body bodyB = contact.getFixtureB().getBody();
 		final TObject objA = (TObject)(bodyA.getUserData());
 		final TObject objB = (TObject)(bodyB.getUserData());
-		
 		// collisions between a projectile and an entity should trigger the hurt() event for the entity and finish
 		// the projectile.
 		if(objB instanceof TProjectile && objA instanceof TEntity) {
-			TProjectile proj = (TProjectile)objB;
-			TEntity     ent  = (TEntity)objA;
+			final TProjectile proj = (TProjectile)objB;
+			if(!proj.shouldHurt())
+				return;
+			final TEntity ent  = (TEntity)objA;
 			ent.hurt(proj.getCollisionDamage());
 			proj.setDone();
 			return;
 		}
-		
 		// collisions between a player and item drop trigger the transferTo() event.
 		if(objA instanceof TPlayer && objB instanceof TItemDrop) {
 			final TItemDrop drop   = (TItemDrop)objB;
@@ -45,11 +45,9 @@ public final class TCollisionManifold implements ContactListener {
 			drop.transferTo(player);
 			return;
 		}
-		
 		// otherwise, particles are insignificant and shouldn't go through the manifold.
 		if(objA instanceof TParticulate || objB instanceof TParticulate) 
 			return;
-		
 		objA.addToCollisionManifold(objB);
 		objB.addToCollisionManifold(objA);
 	}

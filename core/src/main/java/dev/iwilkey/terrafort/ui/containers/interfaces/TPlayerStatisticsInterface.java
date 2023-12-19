@@ -24,7 +24,7 @@ public final class TPlayerStatisticsInterface extends TContainer {
 	public static final int HUNGER_COLOR = 0xfec293ff;
 	public static final int THIRST_COLOR = 0x84d3e9ff;
 	public static final int ENERGY_COLOR = 0xf2ce30ff;
-	public static final int THICKNESS_PX = 8;
+	public static final int THICKNESS_PX = 16;
 
 	private final TPlayer        player;
 	private final VisProgressBar health;
@@ -36,9 +36,9 @@ public final class TPlayerStatisticsInterface extends TContainer {
 	
 	public TPlayerStatisticsInterface(TPlayer player) {
 		this.player = player;
-		setAnchor(TAnchor.BOTTOM_RIGHT);
+		setAnchor(TAnchor.TOP_LEFT);
 		setInternalPadding(8, 8, 8, 8);
-		setExternalPadding(0, 8, 8, 0);
+		setExternalPadding(8, 0, 0, 8);
 		final Drawable back = TDrawable.solid(BACK_COLOR, 1, THICKNESS_PX / 2);
 		final ProgressBarStyle healthStyle = new ProgressBarStyle();
 		healthStyle.background             = back;
@@ -91,8 +91,8 @@ public final class TPlayerStatisticsInterface extends TContainer {
 		energyTable.add(energy).fill().expand();
 		energyTable.add(energyLabel).padLeft(8);
 		internal.add(energyTable);
-		window.add(internal).prefSize(256, 64).expand().fill();
-		style.background = TDrawable.solidWithShadow(0x444444ff, 0x000000cc, 256, 64, 4, 4);
+		window.add(internal).prefSize(256 * 1.05f, 64 * 1.1f).expand().fill();
+		style.background = TDrawable.solidWithShadow(0x444444ff, 0x000000cc, (int)(256 * 1.05f), (int)(64 * 1.1f), 4, 4);
 		window.setStyle(style);
 	}
 

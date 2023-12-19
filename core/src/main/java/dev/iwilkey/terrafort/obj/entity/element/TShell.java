@@ -4,12 +4,12 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.badlogic.gdx.graphics.Color;
 
-import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
+import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -24,13 +24,13 @@ public final class TShell extends TNaturalElement {
 	public TShell(TWorld world, int tileX, int tileY) {
 		super(world, 
 		      false,
-		      tileX * TTerrainRenderer.TERRAIN_TILE_WIDTH, 
-		      tileY * TTerrainRenderer.TERRAIN_TILE_HEIGHT, 
+		      tileX * TTerrain.TILE_WIDTH, 
+		      tileY * TTerrain.TILE_HEIGHT, 
 		      1, 
-		      TTerrainRenderer.TERRAIN_TILE_WIDTH / 2f, 
-		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 2f, 
-		      TTerrainRenderer.TERRAIN_TILE_WIDTH / 2f, 
-		      TTerrainRenderer.TERRAIN_TILE_HEIGHT / 2f,
+		      TTerrain.TILE_WIDTH / 2f, 
+		      TTerrain.TILE_HEIGHT / 2f, 
+		      TTerrain.TILE_WIDTH / 2f, 
+		      TTerrain.TILE_HEIGHT / 2f,
 		      (int)TMath.equalPick(5.0f, 6.0f), 
 		      (int)TMath.equalPick(7.0f, 9.0f),
 			  1, 

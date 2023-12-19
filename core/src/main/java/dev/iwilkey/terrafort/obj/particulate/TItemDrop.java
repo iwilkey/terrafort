@@ -2,10 +2,10 @@ package dev.iwilkey.terrafort.obj.particulate;
 
 import com.badlogic.gdx.math.Vector2;
 
-import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
+import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -16,7 +16,7 @@ public final class TItemDrop extends TParticulate {
 	
 	public static final float PICKUP_TIME_BEST_CASE  = 60.0f * 3; // 3 minutes!
 	public static final float PICKUP_TIME_WORST_CASE = 50.0f * 3;
-	public static final int   WORLD_SIZE             = (int)(TTerrainRenderer.TERRAIN_TILE_WIDTH / 1.5f);
+	public static final int   WORLD_SIZE             = (int)(TTerrain.TILE_WIDTH / 1.5f);
 	
 	private final TItem item;
 	private final float bulgeTimeMultipler;

@@ -16,9 +16,11 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public final class TProjectile extends TParticulate {
 	
-	public static final int WORLD_SIZE = 4;
+	public static final int   WORLD_SIZE = 4;
+	public static final float HURT_SPEED_THRESHOLD = 10.0f; 
 	
-	private int collisionDamage;
+	private boolean           shouldHurt;
+	private int               collisionDamage;
 	
 	/**
 	 * Creates a new projectile with the given properties.
@@ -38,15 +40,15 @@ public final class TProjectile extends TParticulate {
 			           float density,
 			           int angleSpreadDegrees) {
 		super(world, 
-			  (int)originator.getActualX() + (TMath.DX[originator.getFacingDirection()] * (WORLD_SIZE * 2.1f)), 
-		      (int)originator.getActualY() + (-TMath.DY[originator.getFacingDirection()] * (WORLD_SIZE * 2.1f)), 
+			  (int)originator.getActualX() + (TMath.DX[originator.getFacingDirection()] * (WORLD_SIZE * 2)), 
+		      (int)originator.getActualY() + ((originator.getFacingDirection() == TMath.SOUTH) ? 0 : (originator.getRenderHeight() / 5f)) + (-TMath.DY[originator.getFacingDirection()] * (WORLD_SIZE * 2)), 
 		      WORLD_SIZE, 
 		      WORLD_SIZE,
 		      10.0f);
-		this.collisionDamage = collisionDamage;
-		this.dataOffsetX = item.is().getIcon().getDataOffsetX();
-		this.dataOffsetY = item.is().getIcon().getDataOffsetY();
-		this.dataSelectionSquareWidth = item.is().getIcon().getDataSelectionWidth();
+		this.collisionDamage           = collisionDamage;
+		this.dataOffsetX               = item.is().getIcon().getDataOffsetX();
+		this.dataOffsetY               = item.is().getIcon().getDataOffsetY();
+		this.dataSelectionSquareWidth  = item.is().getIcon().getDataSelectionWidth();
 		this.dataSelectionSquareHeight = item.is().getIcon().getDataSelectionHeight();
 		randomDirectedImpulseForce(force, 
 								   force + 1, 
@@ -56,12 +58,14 @@ public final class TProjectile extends TParticulate {
 		getPhysicalFixture().setDensity(density);
 		getPhysicalBody().resetMassData();
 		getPhysicalBody().applyTorque(ThreadLocalRandom.current().nextInt(5000, 500000), false);
+		getPhysicalBody().setLinearDamping(density * 2);
+		getPhysicalBody().setAngularDamping(density * 2);
 		setAsSensor();
 	}
 
 	@Override
 	public void behavior(float dt) {
-
+		shouldHurt = speed() > HURT_SPEED_THRESHOLD;
 	}
 	
 	/**
@@ -69,6 +73,23 @@ public final class TProjectile extends TParticulate {
 	 */
 	public int getCollisionDamage() {
 		return collisionDamage;
+	}
+	
+	/**
+	 * Returns whether or not a projectile should hurt on contact. If a projectile has stopped,
+	 * why should it hurt?
+	 */
+	public boolean shouldHurt() {
+		return shouldHurt;
+	}
+	
+	/**
+	 * Get the current magnitude of the linear velocity vector.
+	 */
+	public float speed() {
+		final float x = getPhysicalBody().getLinearVelocity().x;
+		final float y = getPhysicalBody().getLinearVelocity().y;
+		return (float)Math.sqrt((x * x) + (y * y));
 	}
 
 }

@@ -6,12 +6,12 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.gfx.anim.TLifeformAnimationArray;
 import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
+import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -88,7 +88,7 @@ public abstract class TMob extends TEntity {
 		isMoving  = (movementVector.x != 0 || movementVector.y != 0);
 		
 		// Water mechanics...
-		isInWater = world.getOrGenerateTileHeightAt(getCurrentTileX(), getCurrentTileY()) == TTerrainRenderer.TERRAIN_LEVELS - 1;
+		isInWater = world.getOrGenerateTileHeightAt(getCurrentTileX(), getCurrentTileY()) == TTerrain.TERRAIN_LEVELS - 1;
 		if(isInWater) {
 			actualMoveSpeed           = requestedMoveSpeed / 3f;
 			dataSelectionSquareHeight = 1;
@@ -170,8 +170,8 @@ public abstract class TMob extends TEntity {
 		for(final TObject o : getCollisionManifold()) {
 			final float ox = o.getRenderX();
 			final float oy = o.getRenderY();
-			final int dx = (int)(ox - x / (TTerrainRenderer.TERRAIN_TILE_WIDTH / 2));
-			final int dy = (int)(oy - y / (TTerrainRenderer.TERRAIN_TILE_HEIGHT / 2));
+			final int dx = (int)(ox - x / (TTerrain.TILE_WIDTH / 2));
+			final int dy = (int)(oy - y / (TTerrain.TILE_HEIGHT / 2));
 			switch(directionFace) {
 				case TMath.SOUTH:
 					if(dx == 0 && dy == -1)

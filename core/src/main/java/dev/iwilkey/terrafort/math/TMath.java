@@ -6,7 +6,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
+import dev.iwilkey.terrafort.obj.world.TTerrain;
 
 /**
  * Quick and efficient mathematical utilities.
@@ -78,8 +78,8 @@ public final class TMath {
 	 * @return a rounded {@link Vector2} representing the input coordinates rounded to the nearest tile grid location.
 	 */
 	public static Vector2 roundToWorldTileGrid(float x, float y) {
-		x = Math.round(x / TTerrainRenderer.TERRAIN_TILE_WIDTH) * TTerrainRenderer.TERRAIN_TILE_WIDTH;
-		y = Math.round(y / TTerrainRenderer.TERRAIN_TILE_HEIGHT) * TTerrainRenderer.TERRAIN_TILE_HEIGHT;
+		x = Math.round(x / TTerrain.TILE_WIDTH) * TTerrain.TILE_WIDTH;
+		y = Math.round(y / TTerrain.TILE_HEIGHT) * TTerrain.TILE_HEIGHT;
 		return new Vector2(x, y);
 	}
 	
@@ -92,52 +92,44 @@ public final class TMath {
 	public static Vector2 translateScreenToTileCoordinates(int x, int y) {
 		final Vector2 ret = translateScreenToWorldCoordinates(x, y);
 		ret.set(roundToWorldTileGrid(ret.x, ret.y));
-		ret.x = Math.round(ret.x / TTerrainRenderer.TERRAIN_TILE_WIDTH);
-		ret.y = Math.round(ret.y / TTerrainRenderer.TERRAIN_TILE_HEIGHT);
+		ret.x = Math.round(ret.x / TTerrain.TILE_WIDTH);
+		ret.y = Math.round(ret.y / TTerrain.TILE_HEIGHT);
 		return ret;
 	}
 	
 	/**
-	 * This function will return an integer between 0 and levels - 1, indicating the segmentation region of the input value.
-	 * 
+	 * This function will return an integer between 0 and levels - 1, indicating the partition region of the input value.
 	 * <p>
-	 * Ex. 0.24 quantized to level 4 would return 1 because 0.24 lies in the first equal division of the [0, 1] interval in four slices.
+	 * Ex. 0.24 equally partitioned to level 4 would return 1 because 0.24 lies in the first equal division of the [0, 1] interval in four slices.
 	 * </p>
-	 * @param value the value to quantize. Must be on an interval [0, 1].
-	 * @param levels the level to quantize to. Must be at least 1.
-	 * @return
+	 * <p>
+	 * The function will also accept an array of float values "partitionMagnitude" that segment the interval [0, 1] unequally, where partitionMagnitude[i] 
+	 * corresponds to what percentage partition segment "i" gets of [0, 1].
+	 * </p>
 	 */
-	public static int segment(double value, int levels, float... customSegments) {
-		if(value < 0 || value > 1) {
-			System.err.println("TMath.segment(): only accepts a value between [0, 1]!");
-			return -1;
+	public static int partition(float value, int levels, float... partitionMagnitude) {
+		if(!inInclusiveInterval(value, 0, 1))
+			throw new IllegalArgumentException("TMath.segment(): first parameter \"value\" must be in the interval [0, 1].");
+		if(partitionMagnitude.length == 0)
+			return (int)Math.floor(value * levels);
+		if(partitionMagnitude.length > levels)
+			throw new IllegalArgumentException("TMath.segment(): given partitionMagnitude array length must be less than or equal to given levels.");
+		float pb = 0.0f; // parition bound...
+		for(int i = 0; i < levels; i++) {
+			final float partitionSize = (partitionMagnitude.length > i) ? partitionMagnitude[i] : ((1.0f - pb) / (levels - partitionMagnitude.length));
+			pb += partitionSize;
+			if (value < pb)
+				return i;
 		}
-		if(levels < 1) {
-			System.err.println("TMath.segment(): only accepts a levels value greater than or equal to 1!");
-			return -1;
-		}
-		if(customSegments.length != 0) {
-			if(customSegments.length != (levels - 1)) {
-				System.err.println("TMath.segment(): 'customSegments...' option will mandates that the list is has a value for each (levels - 1)! Nothing more, nothing less.");
-				return -1;
-			} else {
-				// Validate custom segments...
-			    for(int i = 0; i < customSegments.length - 1; i++) {
-			        if(customSegments[i] >= customSegments[i + 1] || customSegments[i] < 0 || customSegments[i] > 1) {
-			            System.err.println("TMath.segment() 'customSegments...' must be in ascending order and within [0, 1]!");
-			            return -1;
-			        }
-			    }
-			    // Determine the segment
-			    for(int i = 0; i < customSegments.length; i++) {
-			        if(value <= customSegments[i]) {
-			            return i;
-			        }
-			    }
-			}
-		}
-		int ret = (int)Math.floor(value * levels);
-		return Math.min(ret, levels - 1);
+		// edge case for v == 1.
+		return levels - 1;
+	}
+	
+	/**
+	 * Returns whether or not a given value is in the interval [lb, rb].
+	 */
+	public static boolean inInclusiveInterval(float val, float lb, float rb) {
+		return (val >= lb && val <= rb);
 	}
 	
 	/**
@@ -217,26 +209,20 @@ public final class TMath {
      * @return A value from the values array, selected based on the specified probabilities in the chances array.
      */
     public static float unequalPick(float[] values, float[] chances) {
-    	if(chances.length != values.length) {
-    		System.err.println("TMath.unequalPick(): Chance and value vector should be of equal length!");
-            return -1.0f;
-    	}
-    	if(chances.length == 0) {
-    		System.err.println("TMath.unequalPick(): Chance and value vector should have at least one value!");
-            return -1.0f;
-    	}
+    	if(chances.length != values.length)
+    		throw new IllegalArgumentException("TMath.unequalPick(): Chance and value vector should be of equal length!");
+    	if(chances.length == 0) 
+    		throw new IllegalArgumentException("TMath.unequalPick(): Chance and value vector should have at least one value!");
         float sum = 0;
-        for (float chance : chances)
+        for(final float chance : chances)
             sum += chance;
-        if (Math.abs(sum - 1.0f) > 0.0001) {
-            System.err.println("TMath.unequalPick(): Sum of chances must be approximately 1!");
-            return -1.0f;
-        }
-        float randomFloat = ThreadLocalRandom.current().nextFloat();
-        float cumulativeProbability = 0.0f;
+        if (Math.abs(sum - 1.0f) > 0.0001)
+        	throw new IllegalArgumentException("TMath.unequalPick(): Sum of chances must be approximately 1!");
+        final float rf = ThreadLocalRandom.current().nextFloat();
+        float cp = 0.0f;
         for (int i = 0; i < chances.length; i++) {
-            cumulativeProbability += chances[i];
-            if (randomFloat < cumulativeProbability)
+            cp += chances[i];
+            if (rf < cp)
                 return values[i];
         }
         return values[values.length - 1];

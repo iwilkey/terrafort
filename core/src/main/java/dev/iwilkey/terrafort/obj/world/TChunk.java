@@ -1,23 +1,16 @@
 package dev.iwilkey.terrafort.obj.world;
 
 import java.util.HashMap;
-import java.util.Random;
 
 import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.gfx.TTerrainRenderer;
 import dev.iwilkey.terrafort.math.TMath;
-import dev.iwilkey.terrafort.math.TNoise;
-
-import dev.iwilkey.terrafort.obj.entity.element.TFlower;
-import dev.iwilkey.terrafort.obj.entity.element.TShell;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
-import dev.iwilkey.terrafort.obj.entity.element.TBush;
-import dev.iwilkey.terrafort.obj.entity.element.TTree;
+import dev.iwilkey.terrafort.obj.entity.element.TNaturalElement;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
-import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
+import dev.iwilkey.terrafort.obj.entity.tile.TBuildingTile;
 import dev.iwilkey.terrafort.obj.particulate.TParticulate;
 
 /**
@@ -28,20 +21,21 @@ import dev.iwilkey.terrafort.obj.particulate.TParticulate;
 public final class TChunk {
 	
 	public static final int   CHUNK_SIZE        = 16;
-	
 	public static final int   TREE_ELEMENT      = 0;
 	public static final int   FLOWER_ELEMENT    = 1;
 	public static final int   BUSH_ELEMENT      = 2;
 	
-	private final Random                         random;
 	private final TWorld                         world;
-	private final HashMap<Long, Integer>         terrainData;
-	private final Array<TObject>                 objData;
-	private final Array<TObject>                 objDataGarbageCollector;
+	
+	private final HashMap<Long, Integer>         tdat;
+	private final HashMap<Long, TBuildingTile>   btdat;
+	private final Array<TObject>                 odat;
+	private final Array<TObject>                 odatGC;
+	
 	private final int                            chunkX;
 	private final int                            chunkY;
 	
-	private boolean                              dormant;
+	private       boolean                        dormant;
 	
 	/**
 	 * Create a new chunk with no previous data; a "clean" chunk.
@@ -50,10 +44,10 @@ public final class TChunk {
 		this.world              = world;
 		this.chunkX             = chunkX;
 		this.chunkY             = chunkY;
-		terrainData             = new HashMap<>();
-		objData                 = new Array<>();
-		objDataGarbageCollector = new Array<>();
-		random                  = new Random(world.getSeed());
+		tdat                    = new HashMap<>();
+		btdat                    = new HashMap<>();
+		odat                    = new Array<>();
+		odatGC                  = new Array<>();
 		dormant                 = false;
 	}
 	
@@ -79,7 +73,7 @@ public final class TChunk {
 	public void sleep() {
 		if(dormant)
 			return;
-		for(final TObject obj : objData)
+		for(final TObject obj : odat)
 			if(obj.isEnabled())
 				obj.minimize();
 		dormant = true;
@@ -91,7 +85,7 @@ public final class TChunk {
 	public void wake() {
 		if(!dormant)
 			return;
-		for(final TObject obj : objData)
+		for(final TObject obj : odat)
 			if(!obj.isEnabled())
 				obj.maximize();
 		dormant = false;
@@ -101,11 +95,11 @@ public final class TChunk {
 	 * Forcefully destroy all the {@link TChunk}'s data forever. Do not use this in-game, only during engine state transitions.
 	 */
 	public void destroy() {
-		for(final TObject obj : objData)
+		for(final TObject obj : odat)
 				obj.minimize();
-		objData.clear();
-		objDataGarbageCollector.clear();
-		terrainData.clear();
+		odat.clear();
+		odatGC.clear();
+		tdat.clear();
 		dormant = true;
 	}
 	
@@ -113,34 +107,47 @@ public final class TChunk {
 	 * Registers a {@link TObject} to be the responsibility of this {@link TChunk}.
 	 */
 	public void register(final TObject obj) {
-		objData.add(obj);
+		// keep track of building tiles...
+		if(obj instanceof TBuildingTile) {
+			final int tx    = Math.round(obj.getActualX() / TTerrain.TILE_WIDTH);
+			final int ty    = Math.round(obj.getActualY() / TTerrain.TILE_HEIGHT);
+			final long hash = (((long)tx) << 32) | (ty & 0xffffffffL);
+			btdat.put(hash, (TBuildingTile)obj);
+		}
+		odat.add(obj);
 	}
 	
 	/**
 	 * Removes a {@link TObject} from the {@link TChunk}, and thus, the {@link TWorld}.
 	 */
 	public void remove(final TObject obj) {
-		objDataGarbageCollector.add(obj);
+		if(obj instanceof TBuildingTile) {
+			final int tx    = Math.round(obj.getActualX() / TTerrain.TILE_WIDTH);
+			final int ty    = Math.round(obj.getActualY() / TTerrain.TILE_HEIGHT);
+			final long hash = (((long)tx) << 32) | (ty & 0xffffffffL);
+			btdat.remove(hash);
+		}
+		odatGC.add(obj);
 	}
 	
 	/**
 	 * Manages all active {@link TObject}'s in this {@link TChunk}'s jurisdiction.
 	 */
 	public void tick(float dt) {
-		for(final TObject obj : objData) {
+		for(final TObject obj : odat) {
 			if(!obj.isEnabled())
 				continue;
 			obj.sync();
 			if(obj instanceof TMob) {
             	// Lifeforms need to be treated differently because
             	// they have the power to move out of the chunk.
-            	final int ltx = Math.round(obj.getActualX() / TTerrainRenderer.TERRAIN_TILE_WIDTH);
-        		final int lty = Math.round(obj.getActualY() / TTerrainRenderer.TERRAIN_TILE_HEIGHT);
+            	final int ltx = Math.round(obj.getActualX() / TTerrain.TILE_WIDTH);
+        		final int lty = Math.round(obj.getActualY() / TTerrain.TILE_HEIGHT);
         		if(!contains(ltx, lty)) {
         			// this chunk doesn't need to watch over this lifeform anymore, so
         			// we need to transfer it to the next chunk.
         			// System.out.println("Moving player into chunk that contains: " + ltx + ", " + lty);
-        			objData.removeValue(obj, false);
+        			odat.removeValue(obj, false);
         			world.requestChunkThatContains(ltx, lty).register(obj);
         			continue;
         		}
@@ -148,28 +155,28 @@ public final class TChunk {
 			if(obj instanceof TEntity) {
             	TEntity e = (TEntity)obj;
             	if(!e.isAlive()) {
-            		objDataGarbageCollector.add(e);
+            		odatGC.add(e);
             		continue;
             	}
             	e.tick(dt);
             } else if(obj instanceof TParticulate) {
             	TParticulate p = (TParticulate)obj;
             	if(p.isDone()) {
-            		objDataGarbageCollector.add(p);
+            		odatGC.add(p);
             		continue;
             	}
             	p.age(dt);
             }
 		}
-		if(objDataGarbageCollector.size != 0) {
-			for(TObject o : objDataGarbageCollector) {
+		if(odatGC.size != 0) {
+			for(TObject o : odatGC) {
 				if(o instanceof TEntity)
 	        		((TEntity)o).die();
 				if (o.getPhysicalBody() != null)
 	        		world.getPhysicalWorld().destroyBody(o.getPhysicalBody());
 			}
-			objData.removeAll(objDataGarbageCollector, false);
-			objDataGarbageCollector.clear();
+			odat.removeAll(odatGC, false);
+			odatGC.clear();
 		}
 	}
 	
@@ -177,7 +184,7 @@ public final class TChunk {
 	 * Render the contents of the {@link TChunk}.
 	 */
 	public void render() {
-		for(final TObject obj : objData)
+		for(final TObject obj : odat)
 			TGraphics.draw(obj);
 	}
 	
@@ -196,101 +203,50 @@ public final class TChunk {
 	 * <p>
 	 * Note: z value will be clamped to [0, TERRAIN_LEVELS - 1].
 	 * </p>
-	 * @param x the tile x coordinate.
-	 * @param y the tile y coordinate.
-	 * @param z the height to set the tile.
+	 * @param tileX the tile x coordinate.
+	 * @param tileY the tile y coordinate.
+	 * @param terrainHeight the height to set the tile.
 	 */
-	public void setTileHeightAt(int x, int y, int z) {
-		if(!contains(x, y)) 
+	public void setTerrainDataAt(int tileX, int tileY, int terrainHeight) {
+		if(!contains(tileX, tileY)) 
 			return;
-		z         = (int)TMath.clamp(z, 0, TTerrainRenderer.TERRAIN_LEVELS - 1);
-		long hash = (((long)x) << 32) | (y & 0xffffffffL);
-		terrainData.put(hash, z);
+		terrainHeight = (int)TMath.clamp(terrainHeight, 0, TTerrain.TERRAIN_LEVELS - 1);
+		long hash     = (((long)tileX) << 32) | (tileY & 0xffffffffL);
+		tdat.put(hash, terrainHeight);
 	}
 
 	/**
-	 * Returns the tile height at any given pair of tile coordinates.
-	 * @param x the tile x coordinate.
-	 * @param y the tile y coordinate.
-	 * @return the z value of the tile.
+	 * Returns the chunk registered tile height at any given pair of tile coordinates.
+	 * @param tileX the tile x coordinate.
+	 * @param tileY the tile y coordinate.
 	 */
-	public int getTileHeightAt(int x, int y) {
-		// check if that value is suppose to be in the chunk.
-		if(!contains(x, y)) 
-			return TTerrainRenderer.TERRAIN_LEVELS - 1;
-		// it is, so we either return the hash or generate it.
-		long hash = (((long)x) << 32) | (y & 0xffffffffL);
-		if(!terrainData.containsKey(hash)) {
-			double layer0     = TNoise.get(this.world.getSeed(), x * 0.001f, y * 0.001f);
-			layer0            = (layer0 + 1) / 2;
-			double layer0Norm = 0.0000001f + (0.005f - 0.0000001f) * layer0;
-			double layer1     = TNoise.get(this.world.getSeed(), x * layer0Norm, y * layer0Norm);
-			layer1            = (layer1 + 1) / 2;
-			int tile          = TMath.segment(layer1, 
-											TTerrainRenderer.TERRAIN_LEVELS,
-											0.10f,
-											0.20f,
-											0.30f,
-											0.40f,
-											0.75f,
-											0.80f);
-			terrainData.put(hash, tile);
-			
-			switch(tile) {
-				case TTerrainRenderer.SAND_TILE:
-					if(random.nextFloat() < 0.05f)
-						register(new TShell(world, x, y));
-					
-					
-					
-					break;
-				case TTerrainRenderer.GRASS_TILE:
-					final double layer0Norm2 =  0.01f + (0.1f - 0.01f) * layer0;
-					int          element     = -1;
-					double layer3            = TNoise.get(this.world.getSeed() - 1, x * layer0Norm2, y * layer0Norm2);
-					layer3                   = (layer3 + 1) / 2;
-					element                  = TMath.segment(layer3, 4, 0.40f, 0.41f, 0.42f);
-					double layer4            = TNoise.get(this.world.getSeed() - 1, x * layer0Norm2, y * layer0Norm2);
-					layer4                   = (layer4 + 1) / 2; // [0, 1].
-					switch(element) {
-						case TREE_ELEMENT:
-							if(random.nextFloat() < layer4)
-								register(new TTree(world, x, y));
-							break;
-						case BUSH_ELEMENT:
-							if(random.nextFloat() < (layer4 / 8f))
-								register(new TBush(world, x, y));
-							break;
-						case FLOWER_ELEMENT:
-							register(new TFlower(world, x, y));
-							break;
-					}
-					break;
-				case TTerrainRenderer.ASPHALT_TILE:
-				case TTerrainRenderer.STONE_LOW_TILE:
-				case TTerrainRenderer.STONE_MEDIUM_TILE:
-				case TTerrainRenderer.STONE_HIGH_TILE:
-					
-					break;
-			}
+	public int getTerrainDataAt(int tileX, int tileY) {
+		if(!contains(tileX, tileY)) 
+			return TTerrain.TERRAIN_LEVELS - 1;
+		long hash = (((long)tileX) << 32) | (tileY & 0xffffffffL);
+		if(!tdat.containsKey(hash)) {
+			final int tileZ   = TTerrain.requestTerrainHeight(world.getSeed(), tileX, tileY);
+			tdat.put(hash, tileZ);
+			final TNaturalElement element = TTerrain.requestNaturalElement(world, tileX, tileY, tileZ);
+			if(element != null)
+				register(element);
 		}
-		return terrainData.get(hash);
+		return tdat.get(hash);
 	}
 	
 	/**
-	 * Returns how far away the center of this chunk is from the given player.
-	 * @param player the player to test.
-	 * @return the average distance to from this chunk to the player.
+	 * Returns the {@link TBuildingTile} that the {@link TPlayer} placed in the chunk given tile coordinates. 
+	 * Returns null if no building tile is there.
+	 * @param tileX the tile x coordinate.
+	 * @param tileY the tile y coordinate.
 	 */
-	public float tileDistTo(final TPlayer player) {
-		final int tw = TTerrainRenderer.TERRAIN_TILE_WIDTH;
-		final int th = TTerrainRenderer.TERRAIN_TILE_HEIGHT;
-		float px = Math.round(player.getActualX() / tw);
-		float py = Math.round(player.getActualY() / th);
-		float xx = chunkX * CHUNK_SIZE;
-		float yy = chunkY * CHUNK_SIZE;
-		float dx2 = (px - xx) * (px - xx);
-		float dy2 = (py - yy) * (py - yy);
-		return (float)Math.sqrt(dx2 + dy2);
+	public TBuildingTile getBuildingTileDataAt(int tileX, int tileY) {
+		if(!contains(tileX, tileY)) 
+			return null;
+		long hash = (((long)tileX) << 32) | (tileY & 0xffffffffL);
+		if(btdat.containsKey(hash))
+			return btdat.get(hash);
+		else return null;
 	}
+
 }

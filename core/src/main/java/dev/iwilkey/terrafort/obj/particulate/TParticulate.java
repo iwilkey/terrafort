@@ -14,9 +14,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
 public abstract class TParticulate extends TObject {
 	
 	private final float   lifespan;
-	
 	protected     boolean shouldFade;
-	
 	private       boolean done;
 	private       float   aliveTime;
 	
