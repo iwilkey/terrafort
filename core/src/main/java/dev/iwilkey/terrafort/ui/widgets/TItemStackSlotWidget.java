@@ -58,11 +58,11 @@ public final class TItemStackSlotWidget extends VisTable {
 			@Override
 		    public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
 				if(itemStack != null)
-					TUserInterface.beginPopup(itemStack.getItem().is().getName(), itemStack.getItem().is().getDescription());
+					TUserInterface.mallocpop(itemStack.getItem().is().getName(), itemStack.getItem().is().getDescription());
 			}
 		    @Override
 		    public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
-		    	TUserInterface.endPopup();
+		    	TUserInterface.freepop();
 		    }
 		});
 		/**

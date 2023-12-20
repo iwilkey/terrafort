@@ -20,11 +20,11 @@ public final class TInformationWidget extends VisLabel {
 		addListener(new InputListener() {
 			@Override
 		    public void enter(InputEvent event, float x, float y, int pointer, Actor fromActor) {
-				TUserInterface.beginPopup(header, information);
+				TUserInterface.mallocpop(header, information);
 			}
 		    @Override
 		    public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
-		    	TUserInterface.endPopup();
+		    	TUserInterface.freepop();
 		    }
 		});
 	}

@@ -8,6 +8,9 @@ import dev.iwilkey.terrafort.TState;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
+import dev.iwilkey.terrafort.ui.TUserInterface;
+import dev.iwilkey.terrafort.ui.containers.interfaces.TMainMenuInterface;
+import dev.iwilkey.terrafort.ui.containers.interfaces.TTerrafortCopyrightNotice;
 
 /**
  * The main menu of Terrafort.
@@ -16,22 +19,32 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
 public final class TMainMenuState implements TState {
 	
 	public static final float MOVEMENT_UPDATE_TIME  = 0.1f;
-	public static final float DIRECTION_CHANGE_TIME = 0.5f;
+	public static final float DIRECTION_CHANGE_TIME = 4.0f;
 	
-	private TWorld            world;
-	private float             px                    = 0;
-	private float             py                    = 0;
-	private float             dtx                   = 0;
-	private float             dty                   = 0;
-	private float             cpt                   = 0.0f;
-	private float             mut                   = 0.0f;
+	private TWorld             world;
+	private TMainMenuInterface menu;
+	private TTerrafortCopyrightNotice data;
+	private float              px                    = 0;
+	private float              py                    = 0;
+	private float              dtx                   = 0;
+	private float              dty                   = 0;
+	private float              cpt                   = 0.0f;
+	private float              mut                   = 0.0f;
 	
 	@Override
 	public void start() {
 		TGraphics.fadeIn(0.5f);
 		TGraphics.setCameraSpeedToTarget(0.5f);
+		TGraphics.POST_GAUSSIAN_BLUR.setPasses(16);
+		TGraphics.POST_PROCESSING.addEffect(TGraphics.POST_GAUSSIAN_BLUR);
 		world = new TWorld(ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE - 1));
 		locSwitch();
+		menu = new TMainMenuInterface();
+		menu.init();
+		TUserInterface.mallocon(menu);
+		data = new TTerrafortCopyrightNotice();
+		data.init();
+		TUserInterface.mallocon(data);
 	}
 	
 	boolean start = false;
@@ -60,6 +73,8 @@ public final class TMainMenuState implements TState {
 	@Override
 	public void stop() {
 		TGraphics.POST_PROCESSING.removeAllEffects();
+		TUserInterface.freecon(menu);
+		TUserInterface.freecon(data);
 		world.dispose();
 	}
 	

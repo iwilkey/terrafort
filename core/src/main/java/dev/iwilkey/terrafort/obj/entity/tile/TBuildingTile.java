@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
-import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
@@ -59,11 +58,6 @@ public abstract class TBuildingTile extends TEntity {
 	@Override
 	public void task(float dt) {
 
-	}
-
-	@Override
-	public void onInteraction(TMob interactee) {
-		hurt(1);
 	}
 
 	@Override

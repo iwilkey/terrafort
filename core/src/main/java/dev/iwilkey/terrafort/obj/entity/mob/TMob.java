@@ -4,13 +4,17 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Fixture;
+import com.badlogic.gdx.physics.box2d.RayCastCallback;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.anim.TLifeformAnimationArray;
+import dev.iwilkey.terrafort.gfx.shape.TLine;
 import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
+import dev.iwilkey.terrafort.obj.particulate.TParticulate;
 import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
@@ -149,6 +153,72 @@ public abstract class TMob extends TEntity {
 		movementVector.add(0, -actualMoveSpeed);
 	}
 	
+	TObject rr; // memory that is referenced by the callback below.
+	final RayCastCallback cb = new RayCastCallback() {
+	    @Override
+	    public float reportRayFixture(Fixture fixture, Vector2 point, Vector2 normal, float fraction) {
+	    	rr = (TObject)fixture.getBody().getUserData();
+	    	// Don't let particles get in the way...
+	    	if(rr instanceof TParticulate) {
+	    		rr = null;
+	    		return -1;
+	    	}
+	        return 0;
+	    }
+	};
+	
+	/**
+	 * Casts a ray with given length from the {@link TMob}s origin in the facing direction of the {@link TMob}. 
+	 * Returns the first object it collides with, null if none. This acts as a {@link TMob}s way to "sense" the physical
+	 * environment they exist in.
+	 * 
+	 * <p>
+	 * This function also requires a "fov" and "spread".
+	 * </p>
+	 * 
+	 * <p>
+	 * The "foa" stands for "Field of Attack" where every "spread" line will extend +- "foa" radians from the last one. 
+	 * This implies that, indeed, "spread" is the amount of rays to extend on each side of the center ray.
+	 * </p>
+	 * 
+	 * <p>
+	 * This method is optimized to return the first valid hit, so best case it wil only cast one center ray. Worst case, 
+	 * (spread * 2) + 1 rays will be casted, all in search for a colliding {@link TObject}.
+	 * </p>
+	 */
+	public final TObject sense(float length, float foa, int spread) {
+		int cdir = getFacingDirection();
+		int dx   = TMath.DX[cdir];
+		int dy   = -TMath.DY[cdir];
+		final Vector2 origin = new Vector2(getActualX(), getActualY());
+		final Vector2 to     = origin.cpy().add(dx * length, dy * length);
+		// only draw the rays if the world is in debug mode...
+		if(world.isDebug()) {
+			final TLine l = new TLine(origin.x, origin.y, to.x, to.y);
+			TGraphics.draw(l, true);
+		}
+		// try the center ray first...
+		rr = null;
+		world.getPhysicalWorld().rayCast(cb, origin, to);
+		if(rr != null)
+			return rr;
+		// nothing? let's try "spread" more +- foa * lineNum from the center line...
+		final float rad = foa;
+		for(int i = 1; i <= spread * 2; i++) {
+			final float   arad  = ((i & 1) == 0) ? rad * i : -rad * i;
+			final Vector2 rotto = to.cpy().rotateAroundRad(origin, arad);
+			if(world.isDebug()) {
+				final TLine line = new TLine(origin.x, origin.y, rotto.x, rotto.y);
+				TGraphics.draw(line, true);
+			}
+			rr = null;
+			world.getPhysicalWorld().rayCast(cb, origin, rotto);
+			if(rr != null)
+				return rr;
+		}
+		return null;
+	}
+	
 	public final void setMoveSpeed(float moveSpeed) {
 		this.requestedMoveSpeed = moveSpeed;
 	}
@@ -161,60 +231,9 @@ public abstract class TMob extends TEntity {
 	}
 	
 	/**
-	 * Return the object from the collision manifold that is most likely to match the {@link TMob}s expectations.
-	 */
-	public final TObject getNextCollisionFromManifold() {
-		if(getCollisionManifold().size == 0)
-			return this;
-		// Otherwise, pick based on directional criteria.
-		for(final TObject o : getCollisionManifold()) {
-			final float ox = o.getRenderX();
-			final float oy = o.getRenderY();
-			final int dx = (int)(ox - x / (TTerrain.TILE_WIDTH / 2));
-			final int dy = (int)(oy - y / (TTerrain.TILE_HEIGHT / 2));
-			switch(directionFace) {
-				case TMath.SOUTH:
-					if(dx == 0 && dy == -1)
-						return o;
-					break;
-				case TMath.SOUTH_EAST:
-					if(dx == 1 && dy == -1)
-						return o;
-					break;
-				case TMath.EAST:
-					if(dx == 1 && dy == 0)
-						return o;
-					break;
-				case TMath.NORTH_EAST:
-					if(dx == 1 && dy == 1)
-						return o;
-					break;
-				case TMath.NORTH:
-					if(dx == 0 && dy == 1)
-						return o;
-					break;
-				case TMath.NORTH_WEST:
-					if(dx == -1 && dy == 1)
-						return o;
-					break;
-				case TMath.WEST:
-					if(dx == -1 && dy == 0)
-						return o;
-					break;
-				case TMath.SOUTH_WEST:
-					if(dx == -1 && dy == -1)
-						return o;
-					break;
-			}
-		}
-		return getCollisionManifold().get(0);
-	}
-	
-	/**
 	 * Calculates what animation should play based on {@link TMob} state.
 	 */
 	private final void calculateGraphics(float dt) {
-		
 		// Animates a {@link TLifeform} moving in any of the 8 possible directions based on the animations provided by the
 		// {@link TLifeformAnimationArray}...
 		getAnimationController().setTargetFrameRate(requestedMoveSpeed / 6);
@@ -222,7 +241,6 @@ public abstract class TMob extends TEntity {
         lastNonZeroDirection = animationLabel.replace("move_", "idle_");
         if(!shouldDraw) 
         	shouldDraw = true;
-        
         // Handles the attack clock and animations...
         if(attackTimer < attackCooldownAmt) {
         	attackTimer += dt;
@@ -249,17 +267,14 @@ public abstract class TMob extends TEntity {
         				renderTint,
         				false);
         } else attackTimer = attackCooldownAmt;
-        
         // Facilitates fair attack requesting...
     	if(requestAttack() && attackTimer == attackCooldownAmt && !isInWater) {
     		attackProcedure();
     		attackTimer = 0.0f;
     	}
-    	
     	// Queues idle animations if not moving...
         if(!isMoving)
         	animationLabel = lastNonZeroDirection;
-        
         // Sets final deduced state...
 	    getAnimationController().setAnimation(animationLabel);
 	}

@@ -38,14 +38,14 @@ public final class TPopup implements Disposable {
 		final VisTable table = new VisTable();
 		final VisLabel label = new VisLabel(header);
 		label.setAlignment(Align.center);
-		label.getStyle().font = TUserInterface.getGameFont();
+		label.setStyle(TUserInterface.LABEL_STYLE);
 		label.setFontScale(0.16f);
 		table.add(label).expand().fill();
 		table.row();
 		table.addSeparator();
 		final VisLabel desc = new VisLabel(body);
 		desc.setAlignment(Align.left);
-		desc.getStyle().font = TUserInterface.getGameFont();
+		desc.setStyle(TUserInterface.LABEL_STYLE);
 		desc.setFontScale(0.16f);
 		table.add(desc).expand().fill();
 		window.add(table).expand().fill().pad(8);

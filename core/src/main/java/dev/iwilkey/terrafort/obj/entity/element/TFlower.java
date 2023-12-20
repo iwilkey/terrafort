@@ -4,7 +4,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.badlogic.gdx.graphics.Color;
 
-import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
@@ -50,10 +49,5 @@ public final class TFlower extends TNaturalElement {
 	public void task(float dt) {
 		
 	}
-
-	@Override
-	public void onInteraction(TMob interactee) {
-		hurt(1);
-	}
-
+	
 }

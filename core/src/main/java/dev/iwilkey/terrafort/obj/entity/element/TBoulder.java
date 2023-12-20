@@ -53,7 +53,7 @@ public final class TBoulder extends TNaturalElement {
 
 	@Override
 	public void onInteraction(TMob interactee) {
-		hurt(1);
+		super.onInteraction(interactee);
 		for(int i = 0; i < 2; i++)
 			world.addObject(new TParticle(world, x, y, Color.GRAY));
 	}

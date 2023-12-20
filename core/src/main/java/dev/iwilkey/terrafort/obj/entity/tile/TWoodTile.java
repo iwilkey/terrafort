@@ -14,9 +14,9 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  * A structural tile with decent strength.
  * @author Ian Wilkey (iwilkey)
  */
-public class TWoodenBuildingTile extends TBuildingTile {
+public class TWoodTile extends TBuildingTile {
 	
-	public TWoodenBuildingTile(TWorld world, TItem item, int tileX, int tileY, int maxHP) {
+	public TWoodTile(TWorld world, TItem item, int tileX, int tileY, int maxHP) {
 		super(world, item, tileX, tileY, maxHP);
 	}
 	
@@ -24,7 +24,10 @@ public class TWoodenBuildingTile extends TBuildingTile {
 	public void onInteraction(TMob interactee) {
 		hurt(1);
 		for(int i = 0; i < ThreadLocalRandom.current().nextInt(4, 8); i++)
-			interactee.getWorld().addObject(new TParticle(interactee.getWorld(), getTileX() * TTerrain.TILE_WIDTH, getTileY() * TTerrain.TILE_HEIGHT, Color.BROWN));
+			interactee.getWorld().addObject(new TParticle(interactee.getWorld(), 
+					                                      getTileX() * TTerrain.TILE_WIDTH, 
+					                                      getTileY() * TTerrain.TILE_HEIGHT, 
+					                                      Color.BROWN));
 	}
 	
 }

@@ -51,7 +51,7 @@ public final class TTree extends TNaturalElement {
 	
 	@Override
 	public void onInteraction(TMob interactee) {
-		hurt(1);
+		super.onInteraction(interactee);
 		world.addObject(new TParticle(world, x, y, Color.BROWN));
 	}
 

@@ -1,10 +1,11 @@
 package dev.iwilkey.terrafort.obj.entity.mob;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.TInput;
@@ -21,6 +22,7 @@ import dev.iwilkey.terrafort.item.TItemStackCollection;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
+import dev.iwilkey.terrafort.obj.world.TBuilding;
 import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 import dev.iwilkey.terrafort.ui.TUserInterface;
@@ -70,7 +72,7 @@ public final class TPlayer extends TMob {
 			  0,
 			  1,
 			  2,
-			  Color.GREEN.cpy(),
+			  Color.WHITE.cpy(),
 			  PLAYER_MAX_HP,
 			  new TLifeformAnimationArray(new TFrame(0, 0, 1, 2), new TFrame(14, 0, 1, 2)));
 		setGraphicsColliderOffset(-1, 8);
@@ -233,26 +235,26 @@ public final class TPlayer extends TMob {
 		inventory = new TItemStackCollection(12);
 		
 		// What items does the player have at spawn?
-		for(int i = 0; i < 256; i++)
-			inventory.addItem(TItem.HEALTHY_WOOD);
+		for(int i = 0; i < 16; i++)
+			inventory.addItem(TItem.CAMPFIRE);
 		
 		// give a way to see and interact with the inventory.
 		inventoryInterface = new TInventoryAndForgerInterface(this, true);
 		inventoryInterface.init();
-		TUserInterface.addContainer(inventoryInterface);
+		TUserInterface.mallocon(inventoryInterface);
 		// give the minimap utility.
 		minimapInterface = new TMinimapInterface(this);
 		minimapInterface.init();
-		TUserInterface.addContainer(minimapInterface);
+		TUserInterface.mallocon(minimapInterface);
 		// give the player statistics
 		statisticsInterface = new TPlayerStatisticsInterface(this);
 		statisticsInterface.init();
-		TUserInterface.addContainer(statisticsInterface);
+		TUserInterface.mallocon(statisticsInterface);
 	}
 	
-	float hungerTime = 0.0f;
-	float energyTime = 0.0f;
-	boolean f = true;
+	float   ht = 0.0f;
+	float   et = 0.0f;
+	boolean f  = true;
 
 	@Override
 	public void task(float dt) {
@@ -260,39 +262,45 @@ public final class TPlayer extends TMob {
 		focusCamera();
 		// you cannot open or close the Forger while a drag is going on because that can cause an item dupe glitch.
 		if(Gdx.input.isKeyJustPressed(Keys.F) && !TInventoryAndForgerInterface.dragMutex()) {
-			TUserInterface.removeContainer(inventoryInterface);
+			TUserInterface.freecon(inventoryInterface);
 			f = !f;
 			inventoryInterface.dispose();
 			inventoryInterface = new TInventoryAndForgerInterface(this, f);
 			inventoryInterface.init();
-			TUserInterface.addContainer(inventoryInterface);
+			TUserInterface.mallocon(inventoryInterface);
 		}
 		// get hungry =3.
-		hungerTime += dt;
-		if(hungerTime > hungerDepletionTime) {
+		ht += dt;
+		if(ht > hungerDepletionTime) {
 			takeHungerPoints(1);
 			if(hunger == 0) {
 				// EAT!
 				hurt(5);
 			}
-			hungerTime = 0.0f;
+			ht = 0.0f;
 		}
 		energyRepletionTime = BASE_ENERGY_REPL - ((BASE_ENERGY_REPL / 1.25f) * ((float)hunger / PLAYER_MAX_HUNGER));
 		if(equipped != null) {
 			if(equipped.getItem().is().getFunction() == TItemFunction.STRUCTURE) {
 				// Render a square based on the the tile the player is looking at.
-				final TRect rect   = new TRect(0, 0, TTerrain.TILE_WIDTH, TTerrain.TILE_HEIGHT);
-				final TCircle circ = new TCircle(0, 0, TTerrain.TILE_WIDTH * 4);
+				final TRect   rect = new TRect(0, 0, TTerrain.TILE_WIDTH, TTerrain.TILE_HEIGHT);
+				final TCircle circ = new TCircle(0, 0, TTerrain.TILE_WIDTH * 4.1f);
 				final Vector2 tsm  = TMath.translateScreenToTileCoordinates(Gdx.input.getX(), Gdx.input.getY());
 				int tx             = (int)tsm.x;
 				int ty             = (int)tsm.y;
+				int ax             = tx * TTerrain.TILE_WIDTH;
+				int ay             = ty * TTerrain.TILE_HEIGHT;
 				rect.setFilled(false);
 				circ.setFilled(false);
-				rect.setCX(tx * TTerrain.TILE_WIDTH);
-				rect.setCY(ty * TTerrain.TILE_HEIGHT);
+				rect.setCX(ax);
+				rect.setCY(ay);
 				circ.setCX(getActualX());
 				circ.setCY(getActualY());
-				TGraphics.draw(rect, false);
+				if(TBuilding.canPlaceAt(this, TBuilding.cursorTileSelection(this))) {
+					TGraphics.draw(equipped.getItem().is().getIcon(), ax, ay, ax, ay, 0, TTerrain.TILE_WIDTH, TTerrain.TILE_HEIGHT, new Color().set(0xffffff99), true);
+					TGraphics.draw(rect, false);
+					circ.setColor(new Color().set(0xffffffff));
+				} else circ.setColor(new Color().set(0x5D6855ff));
 				TGraphics.draw(circ, false);
 			}
 		}
@@ -317,12 +325,12 @@ public final class TPlayer extends TMob {
 			actuallyMoving = true;
 			moveDown();
 		}
-		energyTime += TClock.dt();
-		energyTime %= energyRepletionTime * 2;
+		et += TClock.dt();
+		et %= energyRepletionTime * 2;
 		if(!actuallyMoving) {
-			if(energyTime > energyRepletionTime) {
+			if(et > energyRepletionTime) {
 				giveEnergyPoints(((float)hunger / PLAYER_MAX_HUNGER) > 0.25f ? 4 : 1);
-				energyTime = 0.0f;
+				et = 0.0f;
 			}
 			hungerDepletionTime = REST_HUNGER_DEPL;
 		} else {
@@ -330,15 +338,15 @@ public final class TPlayer extends TMob {
 			if(TInput.run && energy >= 3) {
 				hungerDepletionTime = REST_HUNGER_DEPL / 4;
 				setMoveSpeed((TInput.slide) ? (PLAYER_RUN_SPEED / 2f) : PLAYER_RUN_SPEED);
-				if(energyTime > 0.5f && actuallyMoving) {
+				if(et > 0.5f && actuallyMoving) {
 					takeEnergyPoints(3);
-					energyTime = 0.0f;
+					et = 0.0f;
 				}
 			} else {
 				setMoveSpeed((TInput.slide) ? (PLAYER_WALK_SPEED / 2f) : PLAYER_WALK_SPEED);
-				if(energyTime > energyRepletionTime) {
+				if(et > energyRepletionTime) {
 					giveEnergyPoints(1);
-					energyTime = 0.0f;
+					et = 0.0f;
 				}
 			}
 		}
@@ -372,16 +380,20 @@ public final class TPlayer extends TMob {
 	
 	@Override
 	public void attackProcedure() {
-		final Array<TObject> manifold = getCollisionManifold();
-		if(manifold.size != 0) {
-			final TEntity picked = (TEntity)getNextCollisionFromManifold();
-			picked.onInteraction(this);
+		final TObject hit;
+		hit = sense(6f, (float)Math.PI / 32f, 2);
+		if(hit != null) {
+			if(hit instanceof TEntity) {
+				final TEntity e = (TEntity)hit;
+				e.onInteraction(this);
+			}
 		}
 	}
 	
 	@Override
 	public void onInteraction(TMob interactee) {
-		
+		if(interactee instanceof TBandit)
+			hurt(ThreadLocalRandom.current().nextInt(1, 16));
 	}
 	
 	@Override
@@ -401,9 +413,10 @@ public final class TPlayer extends TMob {
 
 	@Override
 	public void die() {
-		TUserInterface.removeContainer(inventoryInterface);
-		TUserInterface.removeContainer(minimapInterface);
-		TUserInterface.removeContainer(statisticsInterface);
+		TUserInterface.freecon(inventoryInterface);
+		TUserInterface.freecon(minimapInterface);
+		TUserInterface.freecon(statisticsInterface);
+		TGraphics.fadeOut(0.1f);
 	}
 
 }

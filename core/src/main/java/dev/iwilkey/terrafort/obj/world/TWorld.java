@@ -3,25 +3,28 @@ package dev.iwilkey.terrafort.obj.world;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
-import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 import box2dLight.PointLight;
 import box2dLight.RayHandler;
+import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.TEngine;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
+import dev.iwilkey.terrafort.obj.entity.mob.TBandit;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.entity.tile.TBuildingTile;
+import dev.iwilkey.terrafort.state.TMainMenuState;
 
 /**
  * A physical space that efficiently manages {@link TChunk}s, global and local forces, and dynamic lighting all active 
@@ -32,12 +35,7 @@ public final class TWorld implements Disposable {
 
 	public static final short           LIGHTING_RAYS           = 16;
 	public static final short           CHUNK_CULLING_THRESHOLD = 4;
-	public static final float           DAY_NIGHT_CYCLE_PERIOD  = Float.MAX_VALUE;
-	public static final Filter          LIGHTING_COLLISION_MASK = new Filter();
-	
-	static {
-		LIGHTING_COLLISION_MASK.maskBits                        = (short)(~TCollisionManifold.IGNORE_GROUP);
-	}
+	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 30.0f;
 
 	private final World              	world;
 	private final long                  seed;
@@ -50,8 +48,10 @@ public final class TWorld implements Disposable {
 	private final RayHandler            lightRenderer;
 	
 	private TPlayer                     clientPlayer;
+	
 	private boolean                     debug;
 	private float                       worldTime;
+	private long                        wave;
 	private boolean                     day;
 	private boolean                     dusk;
 	private boolean                     night;
@@ -73,6 +73,7 @@ public final class TWorld implements Disposable {
 		dusk                            = false;
 		night                           = false;
 		dawn                            = false;
+		wave                            = 0;
 		dormantChunks                   = 0;
 		lightRenderer.setAmbientLight(0.1f, 0.1f, 0.1f, 0.5f);
 		world.setContactListener(new TCollisionManifold());
@@ -90,7 +91,6 @@ public final class TWorld implements Disposable {
 	 */
 	public PointLight addPointLight(int x, int y, float r, Color color) {
 		final PointLight ret = new PointLight(lightRenderer, LIGHTING_RAYS, color, r, x, y);
-		ret.setContactFilter(LIGHTING_COLLISION_MASK);
 		return ret;
 	}
 	
@@ -177,6 +177,8 @@ public final class TWorld implements Disposable {
 		render(ctx, cty);
 	}
 	
+	float btmt = 0.0f;
+	
 	/**
 	 * Renders the world's objects, Box2D debug information, and dynamic lighting.
 	 */
@@ -187,6 +189,13 @@ public final class TWorld implements Disposable {
 		if(debug) debugRenderer.render(world, TGraphics.CAMERA.combined);
 		lightRenderer.setCombinedMatrix(TGraphics.CAMERA);
 		lightRenderer.updateAndRender();
+		if(playerdead) {
+			btmt += TClock.dt();
+			if(btmt >= 5.0f) {
+				TEngine.setState(new TMainMenuState());
+				btmt = 0.0f;
+			}
+		}
 	}
 	
 	/**
@@ -295,6 +304,14 @@ public final class TWorld implements Disposable {
 		return dawn;
 	}
 	
+	public boolean isDebug() {
+		return debug;
+	}
+	
+	public TPlayer getPlayer() {
+		return clientPlayer;
+	}
+	
 	/**
 	 * Set to render Box2D debug information.
 	 */
@@ -302,13 +319,38 @@ public final class TWorld implements Disposable {
 		this.debug = debug;
 	}
 	
+	boolean playerdead = false;
+	
+	public void banditsAreOP() {
+		playerdead = true;
+	}
+	
+	boolean wavechecl = false;
+	
 	/**
 	 * Updates dynamic lighting to represent the world time. Cycles through day, dusk, night, and dawn.
 	 */
 	private void updateDayNightCycle(float dt) {
+		if(clientPlayer == null)
+			return;
 	    worldTime += dt;
-	    if (worldTime > DAY_NIGHT_CYCLE_PERIOD) 
+	    if(Math.abs(worldTime - (DAY_NIGHT_CYCLE_PERIOD / 2f)) <= 0.5f && wavechecl) {
+	    	wave++;
+	    	for(int i = 0; i < wave; i++) {
+	    	    double angle = 2 * Math.PI * i / wave;
+	    	    int cx = clientPlayer.getCurrentTileX();
+	    	    int cy = clientPlayer.getCurrentTileY();
+	    	    int r = ThreadLocalRandom.current().nextInt(TTerrain.TILE_WIDTH * 4, TTerrain.TILE_WIDTH * 8);
+	    	    int spawnXPos = cx + (int)(r * Math.cos(angle));
+	    	    int spawnYPos = cy + (int)(r * Math.sin(angle));
+	    	    addObject(new TBandit(this, spawnXPos, spawnYPos));
+	    	}
+	    	wavechecl = false;
+	    }
+	    if(worldTime > DAY_NIGHT_CYCLE_PERIOD) {
+	    	wavechecl = true;
 	    	worldTime = 0.0f;
+	    }
 	    final float progress    = worldTime / DAY_NIGHT_CYCLE_PERIOD;
 	    float sunlightIntensity = 0.5f * ((float)Math.cos(2 * Math.PI * progress) + 1.0f);
 	    sunlightIntensity       = TMath.clamp(sunlightIntensity, 0.1f, 0.9f);

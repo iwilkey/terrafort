@@ -56,8 +56,8 @@ public final class TForgerWidget extends VisTable implements Disposable {
 					);
 		        	final Image ico = new Image(icon);
 		    		final Drawable icoD = ico.getDrawable();
-		    		icoD.setMinHeight(16);
-		    		icoD.setMinWidth(16);
+		    		icoD.setMinHeight(32);
+		    		icoD.setMinWidth(32);
 		    		final VisImageButton itemButton = new VisImageButton(icoD);
 		    		itemButton.getImage().setTouchable(Touchable.disabled);
 		    		itemButton.getStyle().focusBorder = null;
@@ -75,11 +75,11 @@ public final class TForgerWidget extends VisTable implements Disposable {
 							for(int i = 0; i < item.is().getRecipe().length; i++)
 								recp += " [YELLOW][x" + item.is().getRecipe()[i].amount + "][] " + item.is().getRecipe()[i].item.is().getName() + ((i != item.is().getRecipe().length - 1) ? "\n" : "");
 							final String out = String.format("%s\n\n[PINK][REQUIRES][]\n%s\n\nClick to select!", item.is().getDescription(), recp);
-							TUserInterface.beginPopup(item.is().getName(), out);
+							TUserInterface.mallocpop(item.is().getName(), out);
 					    }
 					    @Override
 					    public void exit(InputEvent event, float x, float y, int pointer, Actor toActor) {
-					    	TUserInterface.endPopup();
+					    	TUserInterface.freepop();
 					    }
 					});
 		            ITEM_STOCK.get(function).add(itemButton);

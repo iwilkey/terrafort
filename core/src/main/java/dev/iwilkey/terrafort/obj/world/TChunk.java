@@ -10,6 +10,7 @@ import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
 import dev.iwilkey.terrafort.obj.entity.element.TNaturalElement;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
+import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.entity.tile.TBuildingTile;
 import dev.iwilkey.terrafort.obj.particulate.TParticulate;
 
@@ -121,12 +122,6 @@ public final class TChunk {
 	 * Removes a {@link TObject} from the {@link TChunk}, and thus, the {@link TWorld}.
 	 */
 	public void remove(final TObject obj) {
-		if(obj instanceof TBuildingTile) {
-			final int tx    = Math.round(obj.getActualX() / TTerrain.TILE_WIDTH);
-			final int ty    = Math.round(obj.getActualY() / TTerrain.TILE_HEIGHT);
-			final long hash = (((long)tx) << 32) | (ty & 0xffffffffL);
-			btdat.remove(hash);
-		}
 		odatGC.add(obj);
 	}
 	
@@ -135,8 +130,6 @@ public final class TChunk {
 	 */
 	public void tick(float dt) {
 		for(final TObject obj : odat) {
-			if(!obj.isEnabled())
-				continue;
 			obj.sync();
 			if(obj instanceof TMob) {
             	// Lifeforms need to be treated differently because
@@ -155,6 +148,9 @@ public final class TChunk {
 			if(obj instanceof TEntity) {
             	TEntity e = (TEntity)obj;
             	if(!e.isAlive()) {
+            		if(e instanceof TPlayer) {
+            			world.banditsAreOP();
+            		}
             		odatGC.add(e);
             		continue;
             	}
@@ -170,8 +166,16 @@ public final class TChunk {
 		}
 		if(odatGC.size != 0) {
 			for(TObject o : odatGC) {
-				if(o instanceof TEntity)
+				if(o instanceof TEntity) {
 	        		((TEntity)o).die();
+	        		if(o instanceof TBuildingTile) {
+	        			final int tx    = Math.round(o.getActualX() / TTerrain.TILE_WIDTH);
+	        			final int ty    = Math.round(o.getActualY() / TTerrain.TILE_HEIGHT);
+	        			final long hash = (((long)tx) << 32) | (ty & 0xffffffffL);
+	        			System.out.println("Removing hash " + Long.toHexString(hash));
+	        			btdat.remove(hash);
+	        		}
+				}
 				if (o.getPhysicalBody() != null)
 	        		world.getPhysicalWorld().destroyBody(o.getPhysicalBody());
 			}

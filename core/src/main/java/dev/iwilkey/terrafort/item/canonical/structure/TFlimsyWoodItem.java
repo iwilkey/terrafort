@@ -13,31 +13,28 @@ import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TBuilding;
 import dev.iwilkey.terrafort.obj.world.TBuilding.TMaterial;
 
-/**
- * A decent building material. Forged from logs.
- * @author Ian Wilkey (iwilkey)
- */
-public final class THealthyWoodItem extends TItemDefinition {
+public final class TFlimsyWoodItem extends TItemDefinition {
 	
-	public static final int STRENGTH = 8;
+	public static final int STRENGTH = 1;
 	
-	public THealthyWoodItem() {
-		super("Healthy Wood", 
-			  "A decent building material.\n\n"
+	public TFlimsyWoodItem() {
+		super("Flimsy Wood", 
+			  "A cheap, flimsy building"
+			  + "\nmaterial.\n\n"
 			  + "[YELLOW][ACTION][]\n"
 			  + "Can be placed in the world to provide\n"
-			  + "shelter from [RED]Bandits[]. Requires " + STRENGTH + " hits to break.",
+			  + "shelter from [RED]Bandits[]. Requires " + STRENGTH + " hit to break.",
 			  256,
-			  new TFrame(5, 2, 1, 1), 
+			  new TFrame(3, 2, 1, 1), 
 			  TItemFunction.STRUCTURE,
-			  new TItemSpec(TItem.WORN_WOOD, 2));
+			  new TItemSpec(TItem.LOG, 2));
 	}
 
 	@Override
 	public boolean use(TPlayer player) {
-		final Vector2 placed = TBuilding.place(player, TItem.HEALTHY_WOOD, TMaterial.WOOD, STRENGTH);
+		final Vector2 placed = TBuilding.place(player, TItem.FLIMSY_WOOD, TMaterial.WOOD, STRENGTH);
 	    if(placed != null) {
-	    	for(int i = 0; i < 8; i++)
+	    	for(int i = 0; i < 4; i++)
 	    		player.getWorld().addObject(new TParticle(player.getWorld(), placed.x, placed.y, Color.BROWN));
 			return true;
 	    }

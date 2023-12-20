@@ -2,6 +2,7 @@ package dev.iwilkey.terrafort.item;
 
 import dev.iwilkey.terrafort.item.canonical.TItemDefinition;
 import dev.iwilkey.terrafort.item.canonical.structure.*;
+import dev.iwilkey.terrafort.item.canonical.lighting.*;
 import dev.iwilkey.terrafort.item.canonical.natural.*;
 import dev.iwilkey.terrafort.item.canonical.food.*;
 
@@ -22,7 +23,15 @@ public enum TItem {
 	// STRUCTURE
 	///////////////////////////////////////////////////////////////////////////
 	
+	FLIMSY_WOOD(new TFlimsyWoodItem()),
+	WORN_WOOD(new TWornWoodItem()),
 	HEALTHY_WOOD(new THealthyWoodItem()),
+		
+	///////////////////////////////////////////////////////////////////////////
+	// LIGHTING
+	///////////////////////////////////////////////////////////////////////////
+	
+	CAMPFIRE(new TCampfireItem()),
 	
 	///////////////////////////////////////////////////////////////////////////
 	// FOOD

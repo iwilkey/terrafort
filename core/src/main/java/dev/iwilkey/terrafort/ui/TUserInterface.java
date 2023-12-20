@@ -69,9 +69,9 @@ public final class TUserInterface implements Disposable {
 	 * </p>
 	 * @param text
 	 */
-	public static void beginPopup(String header, String body) {
+	public static void mallocpop(String header, String body) {
 		if(currentPopup != null)
-			endPopup();
+			freepop();
 		currentPopup = new TPopup(header, body);
 		mom.addActor(currentPopup.get());
 	}
@@ -79,7 +79,7 @@ public final class TUserInterface implements Disposable {
 	/**
 	 * Ends the current {@link TPopup}, if applicable. Nothing happens if there is no active {@link TPopup}.
 	 */
-	public static void endPopup() {
+	public static void freepop() {
 		if(currentPopup == null)
 			return;
 		if(currentPopup.get() != null) {
@@ -95,7 +95,7 @@ public final class TUserInterface implements Disposable {
 	 * @param container the {@code TContainer} instance to be added to the UI system.
 	 * @return the {@code TContainer} instance that has been added.
 	 */
-	public static TContainer addContainer(final TContainer container) {
+	public static TContainer mallocon(final TContainer container) {
 		container.reset();
 		CURRENT_CONTAINERS.add(container);
 		mom.addActor(container.get());
@@ -109,7 +109,7 @@ public final class TUserInterface implements Disposable {
 	 * @return {@code true} if the container was successfully found and removed; 
 	 *         {@code false} otherwise.
 	 */
-	public static boolean removeContainer(final TContainer container) {
+	public static boolean freecon(final TContainer container) {
 		final boolean in = CURRENT_CONTAINERS.removeValue(container, false);
 		if(in)
 			container.get().remove();
@@ -122,7 +122,7 @@ public final class TUserInterface implements Disposable {
 	 * @param container the {@code TContainer} instance to be removed from the UI system.
 	 * @return {@code true} if the container was found and successfully removed; {@code false} otherwise.
 	 */
-	public static boolean disposeContainer(final TContainer container) {
+	public static boolean deletecon(final TContainer container) {
 		final boolean in = CURRENT_CONTAINERS.removeValue(container, false);
 		if(in) {
 			container.get().remove();

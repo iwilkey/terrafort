@@ -3,6 +3,8 @@ package dev.iwilkey.terrafort.obj.entity.element;
 import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.obj.entity.TEntity;
+import dev.iwilkey.terrafort.obj.entity.mob.TBandit;
+import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
@@ -11,6 +13,8 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public abstract class TNaturalElement extends TEntity {
 
+	protected TMob lastInteractee;
+	
 	public TNaturalElement(TWorld  world, 
 			           boolean isDynamic, 
 			           float   x, 
@@ -49,7 +53,16 @@ public abstract class TNaturalElement extends TEntity {
 	public abstract void drops();
 	
 	@Override
+	public void onInteraction(TMob interactee) {
+		lastInteractee = interactee;
+		hurt(1);
+	}
+	
+	@Override
 	public void die() {
+		// bandits cant cause item drops.
+		if(lastInteractee instanceof TBandit)
+			return;
 		drops();
 	}
 

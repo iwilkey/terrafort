@@ -13,14 +13,14 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  * A single-player game of Terrafort.
  * @author Ian Wilkey (iwilkey)
  */
-public class TSinglePlayerState implements TState {
+public class TDemoState implements TState {
 	
 	TPlayer player;
 	TWorld  world;
 
 	@Override
 	public void start() {
-		TGraphics.setGlLineWidth(1.0f);
+		TGraphics.setGlLineWidth(2.0f);
 		TGraphics.setCameraSpeedToTarget(4.0f);
 		TGraphics.POST_PROCESSING.addEffect(TGraphics.POST_FXAA);
 		world = new TWorld(ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE - 1));

@@ -315,7 +315,7 @@ public abstract class TObject implements TRenderableSprite {
 	}
 
 	@Override
-	public final Color getRenderTint() {
+	public Color getRenderTint() {
 		return renderTint;
 	}
 

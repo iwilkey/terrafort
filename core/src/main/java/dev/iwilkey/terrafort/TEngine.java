@@ -6,13 +6,13 @@ import com.badlogic.gdx.InputMultiplexer;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.state.TMainMenuState;
-import dev.iwilkey.terrafort.state.TSinglePlayerState;
+import dev.iwilkey.terrafort.state.TDemoState;
 import dev.iwilkey.terrafort.state.TTessellationLogoState;
 import dev.iwilkey.terrafort.ui.TUserInterface;
 
 /**
- * The TEngine class serves as the central entry point and controller for Terrafort.
- * It manages the game's state, input, clock, and rendering system, managing the overall game software processing.
+ * The global interface to the Terrafort game engine. It manages the game's state, input, clock, 
+ * and rendering system, managing the overall game software processing.
  * 
  * <p>
  * <strong>ENGINE BEST PERFORMANCE JVM ARGUMENTS</strong>: 
@@ -24,7 +24,7 @@ import dev.iwilkey.terrafort.ui.TUserInterface;
  */
 public final class TEngine extends ApplicationAdapter {
 	
-	public static final String VERSION = "0.0.0.10 [DEBUG]";
+	public static final String VERSION = "0.0.0.10 [DEMO]";
 	
 	// engine metrics (updated internally, even though they are public!) do NOT manually change them!
 	
@@ -77,9 +77,9 @@ public final class TEngine extends ApplicationAdapter {
     	multiplexer.addProcessor(TUserInterface.getParent());
     	multiplexer.addProcessor(input);
     	Gdx.input.setInputProcessor(multiplexer);
-    	//setState(new TTessellationLogoState());
-    	//setState(new TMainMenuState());
-       setState(new TSinglePlayerState());
+    	// setState(new TTessellationLogoState());
+    	// setState(new TMainMenuState());
+        setState(new TDemoState());
     }
 
     @Override

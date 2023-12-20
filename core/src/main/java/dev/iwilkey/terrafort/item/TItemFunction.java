@@ -18,7 +18,7 @@ public enum TItemFunction {
 	
 	STRUCTURE,
 	
-	WEAPON,
+	TOOL,
 	
 	TURRET;
 	
