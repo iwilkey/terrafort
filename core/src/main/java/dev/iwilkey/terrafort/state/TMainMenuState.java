@@ -35,6 +35,7 @@ public final class TMainMenuState implements TState {
 	public void start() {
 		TGraphics.fadeIn(0.5f);
 		TGraphics.setCameraSpeedToTarget(0.5f);
+		TGraphics.POST_PROCESSING.removeAllEffects();
 		TGraphics.POST_GAUSSIAN_BLUR.setPasses(16);
 		TGraphics.POST_PROCESSING.addEffect(TGraphics.POST_GAUSSIAN_BLUR);
 		world = new TWorld(ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE - 1));

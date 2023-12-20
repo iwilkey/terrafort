@@ -27,7 +27,7 @@ public final class TTerrain {
 	public static final int    HALF_TILE_HEIGHT                 = TILE_HEIGHT / 2;
 	public static final int    TERRAIN_LEVELS                   = 7;
 	public static final int    TRANSITION_THICKNESS_FACTOR      = 6; // higher value = thinner transition borders.
-	public static final int    TERRAIN_VIEWPORT_CULLING_PADDING = 4;
+	public static final int    TERRAIN_VIEWPORT_CULLING_PADDING = 16;
 
 	public static final int    STONE_HIGH_TILE                  = 0;
 	public static final int    STONE_MEDIUM_TILE                = 1;

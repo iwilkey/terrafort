@@ -36,10 +36,10 @@ public final class TForgerWidget extends VisTable implements Disposable {
 	
 	private static final HashMap<TItemFunction, Array<VisImageButton>> ITEM_STOCK = new HashMap<>();
 	
-	private static TPlayer       player      = null;
-	private static VisTextButton forgeButton = null;
-	private static VisLabel      selectLabel = null;
-	private static TItem         selected    = null;
+	private static TPlayer       player         = null;
+	private static VisTextButton forgeButton    = null;
+	private static VisLabel      selectLabel    = null;
+	private static TItem         selected       = null;
 	
 	static {
 		for(TItemFunction function : TItemFunction.values()) {

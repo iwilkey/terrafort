@@ -17,7 +17,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
 public final class TProjectile extends TParticulate {
 	
 	public static final int   WORLD_SIZE = 4;
-	public static final float HURT_SPEED_THRESHOLD = 10.0f; 
+	public static final float HURT_SPEED_THRESHOLD = 3.0f; 
 	
 	private boolean           shouldHurt;
 	private int               collisionDamage;
@@ -65,7 +65,7 @@ public final class TProjectile extends TParticulate {
 
 	@Override
 	public void behavior(float dt) {
-		shouldHurt = speed() > HURT_SPEED_THRESHOLD;
+		shouldHurt = speed() >= HURT_SPEED_THRESHOLD;
 	}
 	
 	/**

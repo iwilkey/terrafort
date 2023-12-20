@@ -74,11 +74,15 @@ public interface TRenderableSprite {
      * @param camera The {@link OrthographicCamera} used to view and render the scene.
      * @param batch The {@link SpriteBatch} used for rendering.
      */
-	default public void render(final OrthographicCamera camera, final SpriteBatch batch) {
+	default public void render(final OrthographicCamera camera, final SpriteBatch batch, boolean... trans) {
 		if (shouldCull(camera))
             return;
-        if (!batch.getColor().equals(getRenderTint()))
-            batch.setColor(getRenderTint());
+		if(trans.length != 0) {
+			batch.setColor(new Color().set(0xffffff55));
+		} else {
+			if(!batch.getColor().equals(getRenderTint()))
+				batch.setColor(getRenderTint());
+		}
         float originX         = getRenderWidth() / 2;
         float originY         = getRenderHeight() / 2;
         float rotationDegrees = (float)Math.toDegrees(getRotationInRadians());

@@ -29,7 +29,7 @@ public final class THealthyWoodItem extends TItemDefinition {
 			  + "shelter from [RED]Bandits[]. Requires " + STRENGTH + " hits to break.",
 			  256,
 			  new TFrame(5, 2, 1, 1), 
-			  TItemFunction.STRUCTURE,
+			  TItemFunction.BUILDING,
 			  new TItemSpec(TItem.WORN_WOOD, 2));
 	}
 

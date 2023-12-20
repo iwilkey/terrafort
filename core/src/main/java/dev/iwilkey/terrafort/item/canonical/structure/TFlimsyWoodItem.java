@@ -26,7 +26,7 @@ public final class TFlimsyWoodItem extends TItemDefinition {
 			  + "shelter from [RED]Bandits[]. Requires " + STRENGTH + " hit to break.",
 			  256,
 			  new TFrame(3, 2, 1, 1), 
-			  TItemFunction.STRUCTURE,
+			  TItemFunction.BUILDING,
 			  new TItemSpec(TItem.LOG, 2));
 	}
 

@@ -14,19 +14,34 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public final class TLightTile extends TBuildingTile {
 	
-	Light light;
+	public static final float TORCH_BASE_EMISSION_DISTANCE = 32.0f;
+	
+	private final float distance;
+	private final Light light;
 	
 	public TLightTile(TWorld world, TItem item, int tileX, int tileY, int maxHP) {
 		super(world, item, tileX, tileY, maxHP);
 		switch(item) {
-			case CAMPFIRE:
+			case TORCH:
+				distance = TORCH_BASE_EMISSION_DISTANCE;
 				light = world.addPointLight(tileX * TTerrain.TILE_WIDTH, 
 									tileY * TTerrain.TILE_HEIGHT, 
-									32, 
-									new Color().set(0xFFDF8Eaa));
+									distance, 
+									new Color().set(0xFFDF8E77));
 				break;
-			default:;
+			default:
+				throw new IllegalArgumentException("You cannot create a " + item.is().getName() + " tile that emits light.");
 		}
+	}
+	
+	float time = 0.0f;
+	
+	@Override
+	public void task(float dt) {
+		super.task(dt);
+		time += dt;
+		time %= 2 * Math.PI;
+		light.setDistance(distance + (8.0f * (float)Math.sin(time)));
 	}
 
 	@Override

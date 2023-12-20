@@ -233,13 +233,8 @@ public final class TPlayer extends TMob {
 	public void spawn() {
 		// give the abstract inventory.
 		inventory = new TItemStackCollection(12);
-		
-		// What items does the player have at spawn?
-		for(int i = 0; i < 16; i++)
-			inventory.addItem(TItem.CAMPFIRE);
-		
 		// give a way to see and interact with the inventory.
-		inventoryInterface = new TInventoryAndForgerInterface(this, true);
+		inventoryInterface = new TInventoryAndForgerInterface(this, false);
 		inventoryInterface.init();
 		TUserInterface.mallocon(inventoryInterface);
 		// give the minimap utility.
@@ -254,7 +249,7 @@ public final class TPlayer extends TMob {
 	
 	float   ht = 0.0f;
 	float   et = 0.0f;
-	boolean f  = true;
+	boolean f  = false;
 
 	@Override
 	public void task(float dt) {
@@ -281,7 +276,7 @@ public final class TPlayer extends TMob {
 		}
 		energyRepletionTime = BASE_ENERGY_REPL - ((BASE_ENERGY_REPL / 1.25f) * ((float)hunger / PLAYER_MAX_HUNGER));
 		if(equipped != null) {
-			if(equipped.getItem().is().getFunction() == TItemFunction.STRUCTURE) {
+			if(equipped.getItem().is().getFunction() == TItemFunction.BUILDING) {
 				// Render a square based on the the tile the player is looking at.
 				final TRect   rect = new TRect(0, 0, TTerrain.TILE_WIDTH, TTerrain.TILE_HEIGHT);
 				final TCircle circ = new TCircle(0, 0, TTerrain.TILE_WIDTH * 4.1f);

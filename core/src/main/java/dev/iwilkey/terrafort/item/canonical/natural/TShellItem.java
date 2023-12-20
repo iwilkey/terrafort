@@ -13,7 +13,7 @@ import dev.iwilkey.terrafort.obj.particulate.TProjectile;
  */
 public final class TShellItem extends TItemDefinition {
 	
-	public static final int   ENERGY_TO_THROW  = 4;
+	public static final int   ENERGY_TO_THROW  = 0;
 	public static final int   THROWING_FORCE   = 128;
 	public static final int   COLLISION_DAMAGE = 2;
 	public static final float DENSITY          = 1.0f;

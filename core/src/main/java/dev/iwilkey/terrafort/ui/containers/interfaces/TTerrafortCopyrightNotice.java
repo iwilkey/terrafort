@@ -29,7 +29,7 @@ public final class TTerrafortCopyrightNotice extends TContainer {
 		final VisLabel info = new VisLabel();
 		info.setStyle(TUserInterface.LABEL_STYLE);
 		info.setFontScale(0.16f);
-		info.setText("© 2023 Tessellation Specifications. All Rights Reserved.");
+		info.setText("(c) 2023 Tessellation Specifications. All Rights Reserved.");
 		info.setAlignment(Align.center);
 		body.add(info).expand().fill().center();
 		body.add(new TInformationWidget("Copyright Notice & Terms of Use", 

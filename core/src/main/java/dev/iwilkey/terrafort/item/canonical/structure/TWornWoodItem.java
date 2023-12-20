@@ -30,7 +30,7 @@ public final class TWornWoodItem extends TItemDefinition {
 			  + "shelter from [RED]Bandits[]. Requires " + STRENGTH + " hits to break.",
 			  256,
 			  new TFrame(4, 2, 1, 1), 
-			  TItemFunction.STRUCTURE,
+			  TItemFunction.BUILDING,
 			  new TItemSpec(TItem.FLIMSY_WOOD, 2));
 	}
 

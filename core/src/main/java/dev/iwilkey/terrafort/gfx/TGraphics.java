@@ -32,6 +32,7 @@ import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.math.TInterpolator;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
+import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.entity.tile.TBuildingTile;
 import dev.iwilkey.terrafort.ui.TUserInterface;
 
@@ -55,10 +56,12 @@ public final class TGraphics implements Disposable {
 	private static final TInterpolator             CAMERA_ZOOM           = new TInterpolator(1);
 	private static final Array<TRenderableRaw>     RAW_TEX_RENDERABLES   = new Array<>();
 	private static final Array<TRenderableSprite>  OBJECT_RENDERABLES    = new Array<>();
+	private static final Array<TRenderableSprite>  TRANS_OBJ_RENDERABLES = new Array<>();
 	private static final Array<TRenderableSprite>  TILE_RENDERABLES      = new Array<>();
 	private static final Array<TRenderableShape>   OL_GEO_RENDERABLES    = new Array<>();
 	private static final Array<TRenderableShape>   TL_GEO_RENDERABLES    = new Array<>();
 	private static final SpriteBatch               OBJECT_BATCH          = new SpriteBatch(MAX_RENDERABLES);
+	private static final SpriteBatch               TRANS_OBJ_OVERLAY     = new SpriteBatch(MAX_RENDERABLES);
 	private static final SpriteBatch               RAW_BATCH             = new SpriteBatch(MAX_RENDERABLES);
 	private static final Array<SpriteBatch>        TILE_BATCH_POOL       = new Array<>();
 	private static final ShapeRenderer             GEOMETRIC_RENDERER    = new ShapeRenderer();
@@ -121,6 +124,8 @@ public final class TGraphics implements Disposable {
 		if(renderable instanceof TObject)
 			if(!((TObject)renderable).shouldDraw)
 				return;
+		if(renderable instanceof TMob)
+			TRANS_OBJ_RENDERABLES.add(renderable);
 		if(renderable instanceof TBuildingTile) {
 			TILE_RENDERABLES.add(renderable);
 		} else OBJECT_RENDERABLES.add(renderable);
@@ -419,11 +424,22 @@ public final class TGraphics implements Disposable {
 	        	r.render(CAMERA, RAW_BATCH);
 	        RAW_BATCH.end();
 		}
-		TEngine.mObjectDrawCount = OBJECT_RENDERABLES.size;
+		TEngine.mObjectDrawCount = OBJECT_RENDERABLES.size + TRANS_OBJ_RENDERABLES.size;
         OL_GEO_RENDERABLES.add(fadeRect);
         useShapeRenderer(OL_GEO_RENDERABLES, false, true);
         useShapeRenderer(OL_GEO_RENDERABLES, true, false);
-        TEngine.mObjectLevelGeometryDrawCount = OL_GEO_RENDERABLES.size;
+        TEngine.mObjectLevelGeometryDrawCount = OL_GEO_RENDERABLES.size;  
+        if(TRANS_OBJ_RENDERABLES.size >= 1) {
+        	TRANS_OBJ_OVERLAY.setProjectionMatrix(CAMERA.combined);
+        	Gdx.gl.glEnable(GL20.GL_BLEND);
+			Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        	TRANS_OBJ_OVERLAY.begin();
+        	for(final TRenderableSprite r : TRANS_OBJ_RENDERABLES) {
+	        	r.render(CAMERA, TRANS_OBJ_OVERLAY, true);
+        	}
+        	TRANS_OBJ_OVERLAY.end();
+        	Gdx.gl.glDisable(GL20.GL_BLEND);
+        }
         POST_PROCESSING.endInputCapture();
         POST_PROCESSING.applyEffects();
         POST_PROCESSING.renderToScreen();
@@ -463,6 +479,7 @@ public final class TGraphics implements Disposable {
 	    OBJECT_RENDERABLES.clear();
 	    RAW_TEX_RENDERABLES.clear();
 	    TILE_RENDERABLES.clear();
+	    TRANS_OBJ_RENDERABLES.clear();
 	}
 	
 	/**

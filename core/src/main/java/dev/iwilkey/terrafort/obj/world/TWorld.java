@@ -35,7 +35,7 @@ public final class TWorld implements Disposable {
 
 	public static final short           LIGHTING_RAYS           = 16;
 	public static final short           CHUNK_CULLING_THRESHOLD = 4;
-	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 30.0f;
+	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 3.0f * 60.0f;
 
 	private final World              	world;
 	private final long                  seed;
@@ -331,25 +331,25 @@ public final class TWorld implements Disposable {
 	 * Updates dynamic lighting to represent the world time. Cycles through day, dusk, night, and dawn.
 	 */
 	private void updateDayNightCycle(float dt) {
-		if(clientPlayer == null)
-			return;
-	    worldTime += dt;
-	    if(Math.abs(worldTime - (DAY_NIGHT_CYCLE_PERIOD / 2f)) <= 0.5f && wavechecl) {
-	    	wave++;
-	    	for(int i = 0; i < wave; i++) {
-	    	    double angle = 2 * Math.PI * i / wave;
-	    	    int cx = clientPlayer.getCurrentTileX();
-	    	    int cy = clientPlayer.getCurrentTileY();
-	    	    int r = ThreadLocalRandom.current().nextInt(TTerrain.TILE_WIDTH * 4, TTerrain.TILE_WIDTH * 8);
-	    	    int spawnXPos = cx + (int)(r * Math.cos(angle));
-	    	    int spawnYPos = cy + (int)(r * Math.sin(angle));
-	    	    addObject(new TBandit(this, spawnXPos, spawnYPos));
-	    	}
-	    	wavechecl = false;
-	    }
-	    if(worldTime > DAY_NIGHT_CYCLE_PERIOD) {
-	    	wavechecl = true;
-	    	worldTime = 0.0f;
+	    if(clientPlayer != null) {
+			worldTime += dt;
+		    if(Math.abs(worldTime - (DAY_NIGHT_CYCLE_PERIOD / 2f)) <= 0.5f && wavechecl) {
+		    	wave++;
+		    	for(int i = 0; i < wave; i++) {
+		    	    double angle = 2 * Math.PI * i / wave;
+		    	    int cx = clientPlayer.getCurrentTileX();
+		    	    int cy = clientPlayer.getCurrentTileY();
+		    	    int r = ThreadLocalRandom.current().nextInt(TTerrain.TILE_WIDTH * 4, TTerrain.TILE_WIDTH * 8);
+		    	    int spawnXPos = cx + (int)(r * Math.cos(angle));
+		    	    int spawnYPos = cy + (int)(r * Math.sin(angle));
+		    	    addObject(new TBandit(this, spawnXPos, spawnYPos));
+		    	}
+		    	wavechecl = false;
+		    }
+		    if(worldTime > DAY_NIGHT_CYCLE_PERIOD) {
+		    	wavechecl = true;
+		    	worldTime = 0.0f;
+		    }
 	    }
 	    final float progress    = worldTime / DAY_NIGHT_CYCLE_PERIOD;
 	    float sunlightIntensity = 0.5f * ((float)Math.cos(2 * Math.PI * progress) + 1.0f);

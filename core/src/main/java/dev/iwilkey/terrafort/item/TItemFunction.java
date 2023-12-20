@@ -16,10 +16,10 @@ public enum TItemFunction {
 	 */
 	FOOD,
 	
-	STRUCTURE,
+	BUILDING,
 	
 	TOOL,
 	
-	TURRET;
+	WEAPON;
 	
 }

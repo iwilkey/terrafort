@@ -34,7 +34,7 @@ public final class TRenderableRaw implements TRenderableSprite {
 	}
 	
 	@Override
-	public void render(final OrthographicCamera camera, final SpriteBatch batch) {
+	public void render(final OrthographicCamera camera, final SpriteBatch batch, boolean... trans) {
 		batch.draw(texture, x, y, width, height);
 	}
 	

@@ -13,7 +13,7 @@ import dev.iwilkey.terrafort.obj.particulate.TProjectile;
  */
 public final class TLogItem extends TItemDefinition {
 	
-	public static final int   ENERGY_TO_THROW  = 3;
+	public static final int   ENERGY_TO_THROW  = 0;
 	public static final int   THROWING_FORCE   = 64;
 	public static final int   COLLISION_DAMAGE = 1;
 	public static final float DENSITY          = 1.0f;
