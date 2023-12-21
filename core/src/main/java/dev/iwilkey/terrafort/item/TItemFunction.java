@@ -9,17 +9,17 @@ public enum TItemFunction {
 	/**
 	 * This item is fundamental and found in nature.
 	 */
-	NATURAL,
+	NTRL,
 	
 	/**
 	 * This item can be consumed for nutrition.
 	 */
 	FOOD,
 	
-	BUILDING,
+	BULD,
 	
 	TOOL,
 	
-	WEAPON;
+	WPON;
 	
 }

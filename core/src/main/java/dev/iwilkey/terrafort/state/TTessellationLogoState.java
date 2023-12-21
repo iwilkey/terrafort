@@ -78,4 +78,10 @@ public final class TTessellationLogoState implements TState {
 		tessellationLogo.dispose();
 	}
 
+	@Override
+	public void resize(int nw, int nh) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

@@ -6,7 +6,6 @@ import com.badlogic.gdx.math.Vector2;
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.item.TItemFunction;
-import dev.iwilkey.terrafort.item.TItemSpec;
 import dev.iwilkey.terrafort.item.canonical.TItemDefinition;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
@@ -22,8 +21,9 @@ public final class TTorch extends TItemDefinition {
 			  + "Can be placed to create dim light.", 
 			  256,
 			  new TFrame(4, 11, 1, 1), 
-			  TItemFunction.BUILDING,
-			  new TItemSpec(TItem.LOG, 1));
+			  TItemFunction.BULD,
+			  50,
+			  100);
 	}
 
 	@Override

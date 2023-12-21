@@ -424,12 +424,7 @@ public final class TGraphics implements Disposable {
 	        	r.render(CAMERA, RAW_BATCH);
 	        RAW_BATCH.end();
 		}
-		TEngine.mObjectDrawCount = OBJECT_RENDERABLES.size + TRANS_OBJ_RENDERABLES.size;
-        OL_GEO_RENDERABLES.add(fadeRect);
-        useShapeRenderer(OL_GEO_RENDERABLES, false, true);
-        useShapeRenderer(OL_GEO_RENDERABLES, true, false);
-        TEngine.mObjectLevelGeometryDrawCount = OL_GEO_RENDERABLES.size;  
-        if(TRANS_OBJ_RENDERABLES.size >= 1) {
+		if(TRANS_OBJ_RENDERABLES.size >= 1) {
         	TRANS_OBJ_OVERLAY.setProjectionMatrix(CAMERA.combined);
         	Gdx.gl.glEnable(GL20.GL_BLEND);
 			Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -440,6 +435,11 @@ public final class TGraphics implements Disposable {
         	TRANS_OBJ_OVERLAY.end();
         	Gdx.gl.glDisable(GL20.GL_BLEND);
         }
+		TEngine.mObjectDrawCount = OBJECT_RENDERABLES.size + TRANS_OBJ_RENDERABLES.size;
+        OL_GEO_RENDERABLES.add(fadeRect);
+        useShapeRenderer(OL_GEO_RENDERABLES, false, true);
+        useShapeRenderer(OL_GEO_RENDERABLES, true, false);
+        TEngine.mObjectLevelGeometryDrawCount = OL_GEO_RENDERABLES.size;  
         POST_PROCESSING.endInputCapture();
         POST_PROCESSING.applyEffects();
         POST_PROCESSING.renderToScreen();
@@ -458,6 +458,7 @@ public final class TGraphics implements Disposable {
 		POST_PROCESSING.resize(newWidth, newHeight);
 		GEOMETRIC_RENDERER.getProjectionMatrix().setToOrtho2D(0f, 0f, newWidth, newHeight);
 		GEOMETRIC_RENDERER.updateMatrices();
+		TEngine.getState().resize(newWidth, newHeight);
 		TEngine.mScreenWidth = newWidth;
 		TEngine.mScreenHeight = newHeight;
     }

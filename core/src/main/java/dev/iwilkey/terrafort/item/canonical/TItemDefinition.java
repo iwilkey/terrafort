@@ -3,7 +3,6 @@ package dev.iwilkey.terrafort.item.canonical;
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.item.TItemFunction;
-import dev.iwilkey.terrafort.item.TItemSpec;
 
 /**
  * A canonical definition (or blueprint) for a Terrafort item.
@@ -16,27 +15,37 @@ public abstract class TItemDefinition implements TItemAction {
 	private final int           maxStackSize;
 	private final TFrame        icon;
 	private final TItemFunction function;
-	private final TItemSpec[]   recipe;
-	
+	private final long          baseSellValuePerUnit;
+	private final long          baseBuyValuePerUnit;
+
 	public TItemDefinition(final String        canonicalName,
 						   final String        canonicalDescription,
 						   final int           maxStackSize,
 						   final TFrame        icon,
 						   final TItemFunction function,
-						   final TItemSpec...  recipe) {
+						   final long          baseSellValue,
+						   final long          baseBuyValue) {
 		this.canonicalName        = canonicalName;
 		this.canonicalDescription = canonicalDescription;
 		this.maxStackSize         = maxStackSize;
 		this.icon                 = icon;
 		this.function             = function;
-		this.recipe               = recipe;
+		this.baseSellValuePerUnit = baseSellValue;
+		this.baseBuyValuePerUnit  = baseBuyValue;
 	}
 	
 	/**
-	 * Returns a list of {@link TItemSpec}s that are required to create the item. List may be empty.
+	 * Returns the {@link TItem}s base sell value per unit.
 	 */
-	public final TItemSpec[] getRecipe() {
-		return recipe;
+	public final long getBaseSellValuePerUnit() {
+		return baseSellValuePerUnit;
+	}
+	
+	/**
+	 * Returns the {@link TItem}s base buy value per unit.
+	 */
+	public final long getBaseBuyValuePerUnit() {
+		return baseBuyValuePerUnit;
 	}
 	
 	/**

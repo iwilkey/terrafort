@@ -29,7 +29,7 @@ public final class TBuilding {
 	 * Returns the location the tile was placed, in world space.
 	 */
 	public static Vector2 place(TPlayer player, TItem tile, TMaterial material, int strength) {
-		if(tile.is().getFunction() != TItemFunction.BUILDING)
+		if(tile.is().getFunction() != TItemFunction.BULD)
 			return null;
 		final Vector2 tileLoc = cursorTileSelection(player);
 		if(tileLoc != null) {

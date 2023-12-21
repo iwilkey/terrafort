@@ -35,7 +35,7 @@ public final class TWorld implements Disposable {
 
 	public static final short           LIGHTING_RAYS           = 16;
 	public static final short           CHUNK_CULLING_THRESHOLD = 4;
-	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 3.0f * 60.0f;
+	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 5.0f * 60.0f;
 
 	private final World              	world;
 	private final long                  seed;
@@ -124,7 +124,7 @@ public final class TWorld implements Disposable {
 	 * Runs Terrafort's spatial partitioning algorithm given a center chunk to provide efficient infinite terrain generation.
 	 */
 	private void infinity(float dt, int pcx, int pcy) {
-		world.step(dt, 6, 2);
+		world.step(dt, 4, 8);
 		updateDayNightCycle(dt);
 		// Optimization: since the chunks are hashed by position, I don't need to search through the entire list of loaded chunks
 		// to find what chunks are closest to the player...
@@ -306,6 +306,23 @@ public final class TWorld implements Disposable {
 	
 	public boolean isDebug() {
 		return debug;
+	}
+	
+	public long getWave() {
+		return wave;
+	}
+	
+	/**
+	 * Converts world time to a 12-hour clock format.
+	 */
+	public String worldTimeTo12hrClock() {
+	    float th = 24.0f * (worldTime / DAY_NIGHT_CYCLE_PERIOD);
+	    int   h  = (int)th % 12;
+	    int   m  = (int)(60 * (th - (int) th));
+	    if(h == 0) 
+	    	h = 12;
+	    final String amPm = th < 12 || th >= 24 ? "PM" : "AM";
+	    return String.format("%02d:%02d %s", h, m, amPm);
 	}
 	
 	public TPlayer getPlayer() {

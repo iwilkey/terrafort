@@ -150,7 +150,7 @@ public final class TUserInterface implements Disposable {
 		return gameFont;
 	}
 	
-	public static Stage getParent() {
+	public static Stage getMom() {
 		return mom;
 	}
 	

@@ -16,9 +16,9 @@ import dev.iwilkey.terrafort.gfx.shape.TCircle;
 import dev.iwilkey.terrafort.gfx.shape.TRect;
 import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.item.TItemFunction;
-import dev.iwilkey.terrafort.item.TItemSpec;
 import dev.iwilkey.terrafort.item.TItemStack;
 import dev.iwilkey.terrafort.item.TItemStackCollection;
+import dev.iwilkey.terrafort.math.TInterpolator;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
@@ -26,9 +26,9 @@ import dev.iwilkey.terrafort.obj.world.TBuilding;
 import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 import dev.iwilkey.terrafort.ui.TUserInterface;
-import dev.iwilkey.terrafort.ui.containers.interfaces.TInventoryAndForgerInterface;
+import dev.iwilkey.terrafort.ui.containers.interfaces.THUDInterface;
 import dev.iwilkey.terrafort.ui.containers.interfaces.TMinimapInterface;
-import dev.iwilkey.terrafort.ui.containers.interfaces.TPlayerStatisticsInterface;
+import dev.iwilkey.terrafort.ui.containers.interfaces.TShopInterface;
 
 /**
  * The player of Terrafort; entity controlled by the user.
@@ -46,6 +46,7 @@ public final class TPlayer extends TMob {
 	public static final float PLAYER_WIDTH      = 16.0f;
 	public static final float PLAYER_HEIGHT     = 32.0f;
 	
+	private TInterpolator                currency;
 	private int                          hunger;
 	private int                          energy;
 	private float                        energyRepletionTime;
@@ -53,10 +54,9 @@ public final class TPlayer extends TMob {
 	
 	private TItemStackCollection         inventory;
 	private TItemStack                   equipped;
-	
-	private TInventoryAndForgerInterface inventoryInterface;
+	private THUDInterface                inventoryInterface;
+	private TShopInterface               shopInterface;
 	private TMinimapInterface            minimapInterface;
-	private TPlayerStatisticsInterface   statisticsInterface;
 	
 	public TPlayer(TWorld world) {
 		super(world,
@@ -129,6 +129,52 @@ public final class TPlayer extends TMob {
 	}
 	
 	/**
+	 * Gives the {@link TPlayer} currency, provided in cents.
+	 * @param amtInCents
+	 */
+	public void giveCurrency(long amtInCents) {
+		currency.set(currency.getTarget() + amtInCents);
+		if(f) shopInterface.sync();
+	}
+	
+	/**
+	 * Requests to take some currency (in cents) from the {@link TPlayer}. If the player doesn't have enough, nothing will happen and the function
+	 * will return false.
+	 */
+	public boolean takeCurrency(long amtInCents) {
+		if(currency.getTarget() - amtInCents < 0)
+			return false;
+		currency.set(currency.getTarget() - amtInCents);
+		if(f) shopInterface.sync();
+		return true;
+	}
+	
+	/**
+	 * Returns the current value of the player.
+	 */
+	public long getNetWorth() {
+		return (long)currency.getTarget();
+	}
+	
+	/**
+	 * Returns a formatted string that represents the player's current currency, ready to be rendered.
+	 * Keep in note that the instantaneous value returned may still be in the process of interpolation
+	 * and should not be trusted as the actual current worth of the player.
+	 * 
+	 * <p>
+	 * To get the actual value of the player, use {@link TPlayer}.getNetWorth().
+	 * </p>
+	 * @return
+	 */
+	public String currencyRenderString() {
+		long   vos  = (long)currency.get();
+		long   d    = vos / 100;
+		long   c    = vos % 100;
+		String rend = String.format("$%,d.%02d", d, c);
+		return rend;
+	}
+	
+	/**
 	 * Gets the current state of the player's inventory.
 	 */
 	public TItemStackCollection getInventory() {
@@ -154,97 +200,24 @@ public final class TPlayer extends TMob {
 	 */
 	public boolean giveItem(TItem item) {
 		boolean ret = inventory.addItem(item);
-		inventoryInterface.forgerShouldSync();
 		return ret;
 	}
-	
-	/**
-	 * Returns whether or not the player can forge a given item based on the current items in their inventory.
-	 */
-	public boolean canForgeItem(TItem item) {
-		if(item == null)
-			return false;
-		if(item.is().getRecipe().length == 0)
-			return true;
-		for(TItemSpec i : item.is().getRecipe())
-			if(!has(i))
-				return false;
-		return true;
-	}
-	
-	/**
-	 * Takes {@link TItemSpec}s needed to create the given item. This calls the canForgeItem() once more as a safeguard to make sure that the player indeed can forge the given
-	 * {@link TItem}.
-	 */
-	public void forge(TItem item) {
-		if(!canForgeItem(item))
-			return;
-		for(TItemSpec i : item.is().getRecipe())
-			take(i);
-		giveItem(item);
-	}
-	
-	/**
-	 * Returns whether or not the player's inventory currently contains enough items to satisfy a given {@link TItemSpec}.
-	 */
-	public boolean has(TItemSpec itemSpec) {
-		int needs = itemSpec.amount;
-		for(int i = 0; i < getInventory().getItemStackCapacity(); i++) {
-			final TItemStack stack = getInventory().getCollection()[i];
-			if(stack != null) {
-				if(stack.getItem() == itemSpec.item) {
-					needs -= stack.getAmount();
-					if(needs <= 0) {
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
-	
-	/**
-	 * Called internally whilst forging an item. Only called when it is factually known that the player contains the proper items in their inventory to satisfy a given {@link TItemSpec}.
-	 */
-	private boolean take(TItemSpec itemSpec) {
-		int needs = itemSpec.amount;
-		for(int i = 0; i < getInventory().getItemStackCapacity(); i++) {
-			final TItemStack stack = getInventory().getCollection()[i];
-			if(stack != null) {
-				if(stack.getItem() == itemSpec.item) {
-					int has = stack.getAmount();
-					int diff = has - needs;
-					if(diff <= 0) {
-						needs -= has;
-						stack.setAmount(0);
-						if(diff == 0)
-							return true;
-					} else {
-						stack.setAmount(stack.getAmount() - needs);
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
-	
+
 	@Override
 	public void spawn() {
 		// give the abstract inventory.
-		inventory = new TItemStackCollection(12);
+		inventory = new TItemStackCollection(4);
+		currency  = new TInterpolator(5000);
 		// give a way to see and interact with the inventory.
-		inventoryInterface = new TInventoryAndForgerInterface(this, false);
+		inventoryInterface = new THUDInterface(this);
 		inventoryInterface.init();
 		TUserInterface.mallocon(inventoryInterface);
 		// give the minimap utility.
 		minimapInterface = new TMinimapInterface(this);
 		minimapInterface.init();
 		TUserInterface.mallocon(minimapInterface);
-		// give the player statistics
-		statisticsInterface = new TPlayerStatisticsInterface(this);
-		statisticsInterface.init();
-		TUserInterface.mallocon(statisticsInterface);
+		shopInterface = new TShopInterface(this);
+		shopInterface.init();
 	}
 	
 	float   ht = 0.0f;
@@ -255,14 +228,15 @@ public final class TPlayer extends TMob {
 	public void task(float dt) {
 		super.task(dt);
 		focusCamera();
+		currency.update();
 		// you cannot open or close the Forger while a drag is going on because that can cause an item dupe glitch.
-		if(Gdx.input.isKeyJustPressed(Keys.F) && !TInventoryAndForgerInterface.dragMutex()) {
-			TUserInterface.freecon(inventoryInterface);
+		if(Gdx.input.isKeyJustPressed(Keys.F) && !THUDInterface.dragMutex()) {
 			f = !f;
-			inventoryInterface.dispose();
-			inventoryInterface = new TInventoryAndForgerInterface(this, f);
-			inventoryInterface.init();
-			TUserInterface.mallocon(inventoryInterface);
+			if(f) {
+				TUserInterface.mallocon(shopInterface);
+			} else {
+				TUserInterface.freecon(shopInterface);
+			}
 		}
 		// get hungry =3.
 		ht += dt;
@@ -276,7 +250,7 @@ public final class TPlayer extends TMob {
 		}
 		energyRepletionTime = BASE_ENERGY_REPL - ((BASE_ENERGY_REPL / 1.25f) * ((float)hunger / PLAYER_MAX_HUNGER));
 		if(equipped != null) {
-			if(equipped.getItem().is().getFunction() == TItemFunction.BUILDING) {
+			if(equipped.getItem().is().getFunction() == TItemFunction.BULD) {
 				// Render a square based on the the tile the player is looking at.
 				final TRect   rect = new TRect(0, 0, TTerrain.TILE_WIDTH, TTerrain.TILE_HEIGHT);
 				final TCircle circ = new TCircle(0, 0, TTerrain.TILE_WIDTH * 4.1f);
@@ -393,7 +367,6 @@ public final class TPlayer extends TMob {
 	
 	@Override
 	protected void calculateFacingDirection() {
-		// check if "sliding"
 		if(TInput.slide)
 			return;
 		super.calculateFacingDirection();
@@ -410,8 +383,16 @@ public final class TPlayer extends TMob {
 	public void die() {
 		TUserInterface.freecon(inventoryInterface);
 		TUserInterface.freecon(minimapInterface);
-		TUserInterface.freecon(statisticsInterface);
+		TUserInterface.freecon(shopInterface);
 		TGraphics.fadeOut(0.1f);
+	}
+	
+	public void resize(int nw, int nh) {
+		TUserInterface.freecon(shopInterface);
+		if(f) {
+			TUserInterface.mallocon(shopInterface);
+		}
+		inventoryInterface.resize(nw, nh);
 	}
 
 }

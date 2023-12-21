@@ -26,7 +26,9 @@ public final class TLogItem extends TItemDefinition {
 			  + "Can be thrown. Hits\ndeal " + COLLISION_DAMAGE + " [PINK]damage[]. Requires\n" + ENERGY_TO_THROW + " [YELLOW]energy[] to throw.", 
 			  256,
 			  new TFrame(3, 11, 1, 1), 
-			  TItemFunction.NATURAL);
+			  TItemFunction.NTRL,
+			  10,
+			  20);
 	}
 	
 	@Override

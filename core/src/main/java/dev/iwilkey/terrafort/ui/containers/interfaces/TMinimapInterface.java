@@ -47,7 +47,6 @@ public final class TMinimapInterface extends TContainer {
 	public void pack(VisWindow window) {
 		window.add(minimap).prefSize(128 * 1.5f, 128 * 1.5f);
 		window.row();
-		
 		scaleLabel = new VisLabel((scale * scale) + " tle/px");
 		scaleLabel.getStyle().font = TUserInterface.getGameFont();
 		scaleLabel.setFontScale(0.13f);
@@ -88,11 +87,8 @@ public final class TMinimapInterface extends TContainer {
 		minus.getLabel().setFontScale(0.16f);
 		controls.add(minus).prefSize(16).pad(2);
 		controls.add(scaleLabel).pad(4);
-		
 		window.add(controls).expand().fill();
-		
-		// add drop shadow
-		style.background = TDrawable.solidWithShadow(0x444444ff, 0x000000cc, (int)window.getWidth(), (int)window.getHeight(), 6, 6);
+		style.background = TDrawable.solidWithShadow(0x444444ff, 0x000000cc, (int)window.getWidth(), (int)window.getHeight(), 4, 4);
 		window.setStyle(style);
 	}
 	
@@ -104,5 +100,4 @@ public final class TMinimapInterface extends TContainer {
 			time = 0.0f;
 		}
 	}
-
 }

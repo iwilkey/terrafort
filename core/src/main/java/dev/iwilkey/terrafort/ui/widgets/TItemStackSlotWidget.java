@@ -19,7 +19,7 @@ import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.item.TItemStack;
 import dev.iwilkey.terrafort.ui.TDroppable;
 import dev.iwilkey.terrafort.ui.TUserInterface;
-import dev.iwilkey.terrafort.ui.containers.interfaces.TInventoryAndForgerInterface;
+import dev.iwilkey.terrafort.ui.containers.interfaces.THUDInterface;
 
 /**
  * A UI widget representing the functionality of a single {@link TItemStack} slot.
@@ -79,7 +79,7 @@ public final class TItemStackSlotWidget extends VisTable {
 		        final Image dragActor = new Image(is.getIcon());
 		        dragActor.setScale(2.0f);
 		        payload.setDragActor(dragActor);
-		        TInventoryAndForgerInterface.setDrag();
+		        THUDInterface.setDrag();
 				return payload;
 			}
 			@Override
@@ -92,7 +92,7 @@ public final class TItemStackSlotWidget extends VisTable {
 			}
 			@Override
 			public void dragStop (InputEvent event, float x, float y, int pointer, @Null Payload payload, @Null Target target) {
-				TInventoryAndForgerInterface.unsetDrag();
+				THUDInterface.unsetDrag();
 			}
 		});
 		
@@ -118,7 +118,7 @@ public final class TItemStackSlotWidget extends VisTable {
 				final TItemStackSlotWidget srcSlot  = ((TItemStackSlotWidget)source.getActor());
 				final TItemStackSlotWidget trgSlot  = TItemStackSlotWidget.this;
 				if(srcSlot.dragCancelled || trgSlot.dragCancelled) {
-					TInventoryAndForgerInterface.unsetDrag();
+					THUDInterface.unsetDrag();
 					srcSlot.dragCancelled = false;
 					trgSlot.dragCancelled = false;
 					return;
@@ -146,7 +146,7 @@ public final class TItemStackSlotWidget extends VisTable {
 				TItemStackSlotWidget.this.setItemStack((TItemStack)payload.getObject());
 				srcSlot.droppable.dropcall();
 				TItemStackSlotWidget.this.droppable.dropcall();
-				TInventoryAndForgerInterface.unsetDrag();
+				THUDInterface.unsetDrag();
 			}
 		});
 	}

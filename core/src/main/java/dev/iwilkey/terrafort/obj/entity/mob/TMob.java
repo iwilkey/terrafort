@@ -230,6 +230,8 @@ public abstract class TMob extends TEntity {
 		attackCooldownAmt = time;
 	}
 	
+	boolean set = false;
+	
 	/**
 	 * Calculates what animation should play based on {@link TMob} state.
 	 */
@@ -237,46 +239,31 @@ public abstract class TMob extends TEntity {
 		// Animates a {@link TLifeform} moving in any of the 8 possible directions based on the animations provided by the
 		// {@link TLifeformAnimationArray}...
 		getAnimationController().setTargetFrameRate(requestedMoveSpeed / 6);
-		String animationLabel = TLifeformAnimationArray.LABELS[directionFace];
-        lastNonZeroDirection = animationLabel.replace("move_", "idle_");
-        if(!shouldDraw) 
-        	shouldDraw = true;
+		String label = TLifeformAnimationArray.LABELS[directionFace];
+        lastNonZeroDirection = label.replace("move_", "idle_");
         // Handles the attack clock and animations...
         if(attackTimer < attackCooldownAmt) {
         	attackTimer += dt;
-        	shouldDraw = false;
-        	if(attackTimer <= (attackCooldownAmt / 2f))
-        		TGraphics.draw(movementAnimationArray.getAttackFrame(directionFace, 0), 
-        				(int)getRenderX(), 
-        				(int)getRenderY(), 
-        				(int)getActualX(),
-        				(int)getActualY(),
-        				0, 
-        				(int)width, 
-        				(int)height,
-        				renderTint,
-        				false);
-        	else TGraphics.draw(movementAnimationArray.getAttackFrame(directionFace, 1), 
-        				(int)getRenderX(), 
-        				(int)getRenderY(), 
-        				(int)getActualX(),
-        				(int)getActualY(),
-        				0, 
-        				(int)width,
-        				(int)height,
-        				renderTint,
-        				false);
-        } else attackTimer = attackCooldownAmt;
+        	if(!set) {
+        		// getAnimationController().setTargetFrameRate((1f / attackCooldownAmt) * 2);
+        		getAnimationController().reset();
+        		set = true;
+        	}
+        	getAnimationController().setTargetFrameRate((1f / attackCooldownAmt) * 1.9f);
+        	getAnimationController().setAnimation(label.replace("move_", "attack_"));
+        } else {
+        	attackTimer = attackCooldownAmt;
+        	if(!isMoving)
+            	label = lastNonZeroDirection;
+        	// Sets final deduced state (if not attacking)...
+        	getAnimationController().setAnimation(label);
+        	set = false;
+        }
         // Facilitates fair attack requesting...
     	if(requestAttack() && attackTimer == attackCooldownAmt && !isInWater) {
     		attackProcedure();
     		attackTimer = 0.0f;
     	}
-    	// Queues idle animations if not moving...
-        if(!isMoving)
-        	animationLabel = lastNonZeroDirection;
-        // Sets final deduced state...
-	    getAnimationController().setAnimation(animationLabel);
 	}
 	
 	/**

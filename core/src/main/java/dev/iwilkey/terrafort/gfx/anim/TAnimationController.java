@@ -76,6 +76,14 @@ public final class TAnimationController {
 	}
 	
 	/**
+	 * Sets the animation controllers current frame to zero.
+	 */
+	public void reset() {
+		currentFrame = 0;
+		time         = 0.0f;
+	}
+	
+	/**
 	 * Updates the animation controller. Should be called every frame.
 	 */
 	public void tick(float dt) {

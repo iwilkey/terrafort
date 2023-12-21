@@ -52,12 +52,12 @@ public final class TLifeformAnimationArray {
 	
 	private TAnimation idleAnimations[];
 	private TAnimation movementAnimations[];
-	private TFrame     attackFrames[][];
+	private TAnimation attackAnimations[];
 	
 	public TLifeformAnimationArray(TFrame upperLeftFrameMovement, TFrame upperLeftFrameAttack) {
 		movementAnimations = new TAnimation[8];
 		idleAnimations     = new TAnimation[8];
-		attackFrames       = new TFrame[8][2];
+		attackAnimations   = new TAnimation[8];
 		for(int i = 0; i < 8; i++) {
 			final TFrame frames[] = new TFrame[4];
 			for(int j = 0; j < 4; j++) {
@@ -69,8 +69,9 @@ public final class TLifeformAnimationArray {
 			}
 			movementAnimations[i] = new TAnimation(LABELS[i], frames);
 			idleAnimations[i]     = new TAnimation(LABELS[i].replace("move_", "idle_"), frames[0]);
-			attackFrames[i][0]    = new TFrame(upperLeftFrameAttack.getDataOffsetX(), upperLeftFrameMovement.getDataOffsetY() + (i * 2), 1, 2);
-			attackFrames[i][1]    = new TFrame(upperLeftFrameAttack.getDataOffsetX() + 1, upperLeftFrameMovement.getDataOffsetY() + (i * 2), 1, 2);
+			attackAnimations[i]   = new TAnimation(LABELS[i].replace("move_", "attack_"), 
+					new TFrame(upperLeftFrameAttack.getDataOffsetX(), upperLeftFrameMovement.getDataOffsetY() + (i * 2), 1, 2), 
+					new TFrame(upperLeftFrameAttack.getDataOffsetX() + 1, upperLeftFrameMovement.getDataOffsetY() + (i * 2), 1, 2));
 		}
 	}
 	
@@ -78,11 +79,14 @@ public final class TLifeformAnimationArray {
 		for(int i = 0; i < 8; i++) {
 			anim.addAnimation(movementAnimations[i]);
 			anim.addAnimation(idleAnimations[i]);
+			anim.addAnimation(attackAnimations[i]);
 		}
 	}
 	
+	/*
 	public TFrame getAttackFrame(int direction, int frame) {
 		return attackFrames[direction][frame];
 	}
+	*/
 	
 }

@@ -7,12 +7,14 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
+import dev.iwilkey.terrafort.gfx.TFrame;
+
 /**
  * A static collection of various {@link Drawable}s that can be used for the construction of any UI interface.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TDrawable {
-	
+
 	/**
 	 * Utility method to translate a given {@link Pixmap} into a {@link Drawable}.
 	 */

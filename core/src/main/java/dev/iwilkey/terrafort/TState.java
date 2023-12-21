@@ -17,4 +17,9 @@ public interface TState {
 	 * Called right as the engine is switching to another state.
 	 */
 	public void stop();	
+	
+	/**
+	 * Called when the screen resizes itself.
+	 */
+	public void resize(int nw, int nh);
 }

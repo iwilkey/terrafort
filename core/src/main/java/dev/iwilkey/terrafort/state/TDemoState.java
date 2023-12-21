@@ -46,4 +46,9 @@ public class TDemoState implements TState {
 		world.dispose();
 	}
 
+	@Override
+	public void resize(int nw, int nh) {
+		player.resize(nw, nh);
+	}
+
 }

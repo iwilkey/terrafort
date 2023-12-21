@@ -1,9 +1,7 @@
 package dev.iwilkey.terrafort.item.canonical.food;
 
 import dev.iwilkey.terrafort.gfx.TFrame;
-import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.item.TItemFunction;
-import dev.iwilkey.terrafort.item.TItemSpec;
 import dev.iwilkey.terrafort.item.canonical.TItemDefinition;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 
@@ -23,12 +21,13 @@ public final class TEscargotItem extends TItemDefinition {
 			  256,
 			  new TFrame(7, 6, 1, 1), 
 			  TItemFunction.FOOD,
-			  new TItemSpec(TItem.SHELL, 16));
+			  100,
+			  200);
 	}
 
 	@Override
 	public boolean use(TPlayer player) {
-		if(player.getHungerPoints() + NUTRITION_RESTORATION <= TPlayer.PLAYER_MAX_HUNGER) {
+		if(player.getHungerPoints() != TPlayer.PLAYER_MAX_HUNGER) {
 			player.giveHungerPoints(NUTRITION_RESTORATION);
 			return true;
 		}

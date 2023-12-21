@@ -9,7 +9,6 @@ import dev.iwilkey.terrafort.ui.TAnchor;
 import dev.iwilkey.terrafort.ui.TDrawable;
 import dev.iwilkey.terrafort.ui.TUserInterface;
 import dev.iwilkey.terrafort.ui.containers.TContainer;
-import dev.iwilkey.terrafort.ui.widgets.TInformationWidget;
 
 /**
  * UI container that clearly states the Terrafort Copyright Notice & Terms of Use.
@@ -19,8 +18,8 @@ public final class TTerrafortCopyrightNotice extends TContainer {
 	
 	public TTerrafortCopyrightNotice() {
 		setInternalPadding(8, 8, 8, 8);
-		setExternalPadding(0, 8, 8, 0);
-		setAnchor(TAnchor.BOTTOM_RIGHT);
+		setExternalPadding(0, 8, 0, 0);
+		setAnchor(TAnchor.BOTTOM_CENTER);
 	}
 	
 	@Override
@@ -32,6 +31,7 @@ public final class TTerrafortCopyrightNotice extends TContainer {
 		info.setText("(c) 2023 Tessellation Specifications. All Rights Reserved.");
 		info.setAlignment(Align.center);
 		body.add(info).expand().fill().center();
+		/*
 		body.add(new TInformationWidget("Copyright Notice & Terms of Use", 
 				"[YELLOW]Terrafort[] is actively developed, owned and copywritten by"
 				+ "\n[YELLOW]Ian Wesley Wilkey[] (iwilkey) operating under the independent game studio"
@@ -44,6 +44,7 @@ public final class TTerrafortCopyrightNotice extends TContainer {
 				+ "\nwarmly welcomes community involvement in the ongoing development\n"
 				+ "of [YELLOW]Terrafort[]. To participate in shaping its future, join the official"
 				+ "\n[PURPLE]Discord[] server: https://discord.com")).padLeft(8).padRight(8);
+				*/
 		window.add(body).prefSize(256, 16).expand().fill();
 		style.background = TDrawable.solidWithShadow(0x444444ff, 0x000000cc, 256, 32, 4, 4);
 		window.setStyle(style);

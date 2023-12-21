@@ -90,4 +90,10 @@ public final class TMainMenuState implements TState {
 		TGraphics.forceCameraPosition(px, py);
 	}
 
+	@Override
+	public void resize(int nw, int nh) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

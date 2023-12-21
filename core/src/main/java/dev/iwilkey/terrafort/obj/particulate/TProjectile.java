@@ -16,7 +16,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public final class TProjectile extends TParticulate {
 	
-	public static final int   WORLD_SIZE = 4;
+	public static final int   WORLD_SIZE = 6;
 	public static final float HURT_SPEED_THRESHOLD = 3.0f; 
 	
 	private boolean           shouldHurt;

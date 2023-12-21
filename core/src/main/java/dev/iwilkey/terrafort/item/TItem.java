@@ -23,9 +23,9 @@ public enum TItem {
 	// STRUCTURE
 	///////////////////////////////////////////////////////////////////////////
 	
-	FLIMSY_WOOD(new TFlimsyWoodItem()),
-	WORN_WOOD(new TWornWoodItem()),
-	HEALTHY_WOOD(new THealthyWoodItem()),
+	FLIMSY_WOOD(new TWoodWallT1()),
+	WORN_WOOD(new TWoodWallT2()),
+	HEALTHY_WOOD(new TWoodWallT3()),
 		
 	///////////////////////////////////////////////////////////////////////////
 	// LIGHTING
