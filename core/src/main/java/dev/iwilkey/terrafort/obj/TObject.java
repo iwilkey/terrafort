@@ -9,6 +9,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.utils.Array;
 
+import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.TRenderableSprite;
 import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.obj.world.TWorld;
@@ -42,6 +43,7 @@ public abstract class TObject implements TRenderableSprite {
 	protected int                      dataSelectionSquareHeight;
 	protected Color                    renderTint;
 	
+	private   boolean                  manualRotation;
 	private   boolean                  isDynamic;
 	private   boolean                  isSensor;
 	private   boolean                  enabled;
@@ -100,6 +102,8 @@ public abstract class TObject implements TRenderableSprite {
 		body.createFixture(fixtureDef);
 		shape.dispose();
 		getPhysicalFixture().setSensor(isSensor);
+		getPhysicalFixture().getFilterData().categoryBits = TGraphics.BLOCKS_LIGHT;
+		getPhysicalFixture().getFilterData().maskBits     = TGraphics.BLOCKS_LIGHT | TGraphics.LIGHT_PASSTHROUGH;
 	}
 	
 	/**
@@ -127,9 +131,10 @@ public abstract class TObject implements TRenderableSprite {
 	public void sync() {
 		if(!enabled)
 			return;
-		x                 = body.getPosition().x;
-		y                 = body.getPosition().y;
-		rotationInRadians = (float)body.getAngle();
+		x = body.getPosition().x;
+		y = body.getPosition().y;
+		if(!manualRotation)
+			rotationInRadians = (float)body.getAngle();
 	}
 	
 	/**
@@ -214,6 +219,14 @@ public abstract class TObject implements TRenderableSprite {
 			return;
 		isSensor = true;
 		getPhysicalFixture().setSensor(true);
+	}
+	
+	public final void setManualRotation() {
+		manualRotation = true;
+	}
+	
+	public final void unsetManualRotation() {
+		manualRotation = false;
 	}
 	
 	/**

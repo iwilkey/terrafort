@@ -85,6 +85,7 @@ public final class TShopInterface extends TContainer {
 		final VisTable body        = new VisTable();
 		body.top();
 		final VisScrollPane pane   = new VisScrollPane(body);
+		pane.setFadeScrollBars(false);
 		pane.getStyle().background = BLACK_BG;
 		buy = new HashMap<>();
 		int i = 0;
@@ -153,14 +154,15 @@ public final class TShopInterface extends TContainer {
 		final VisLabel label = new VisLabel("");
 		label.setStyle(TUserInterface.LABEL_STYLE);
 		label.setFontScale(0.16f);
-		label.setText("[YELLOW][" + item.is().getFunction() + "][] " + item.is().getName());
+		label.setText(item.is().getName());
 		left.add(label).padLeft(8);
 		final VisTable right = new VisTable();
-		right.right().add(new TInformationWidget(item.is().getName(), item.is().getDescription())).padRight(8);
 		final VisLabel ppu = new VisLabel("");
 		ppu.setStyle(TUserInterface.LABEL_STYLE);
 		ppu.setFontScale(0.16f);
 		ppu.setText("" + currencyToString(item.is().getBaseBuyValuePerUnit()));
+		right.right().add(ppu).padRight(8);
+		right.add(new TInformationWidget(item.is().getName(), item.is().getDescription())).padRight(8);
 		buy.put(item, new VisTextButton[BULK_LEVELS]);
 		for(int i = 0; i < BULK_LEVELS; i++) {
 			int amt = 1 << i;
@@ -175,7 +177,6 @@ public final class TShopInterface extends TContainer {
 			buy.get(item)[i] = b;
 			right.add(b).padRight(8);
 		}
-		right.add(ppu).padRight(8);
 		ret.add(left).expand().fill();
 		ret.add(right).expand().fill();
 		return ret;

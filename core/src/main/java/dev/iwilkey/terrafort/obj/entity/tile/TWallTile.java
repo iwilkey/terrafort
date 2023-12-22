@@ -11,13 +11,13 @@ import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
 /**
- * A structural tile with decent strength.
+ * A structural tile with decent strength. Cannot be passed through.
  * @author Ian Wilkey (iwilkey)
  */
-public class TWoodTile extends TBuildingTile {
+public class TWallTile extends TBuildingTile {
 	
-	public TWoodTile(TWorld world, TItem item, int tileX, int tileY, int maxHP) {
-		super(world, item, tileX, tileY, maxHP);
+	public TWallTile(TWorld world, TItem item, int tileX, int tileY, int maxHP) {
+		super(world, item, tileX, tileY, TTerrain.TILE_WIDTH / 2, TTerrain.TILE_HEIGHT / 2, maxHP);
 	}
 	
 	@Override

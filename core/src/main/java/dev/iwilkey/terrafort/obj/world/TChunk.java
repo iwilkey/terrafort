@@ -12,6 +12,7 @@ import dev.iwilkey.terrafort.obj.entity.element.TNaturalElement;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.entity.tile.TBuildingTile;
+import dev.iwilkey.terrafort.obj.entity.tile.TFloorTile;
 import dev.iwilkey.terrafort.obj.particulate.TParticulate;
 
 /**
@@ -30,6 +31,7 @@ public final class TChunk {
 	
 	private final HashMap<Long, Integer>         tdat;
 	private final HashMap<Long, TBuildingTile>   btdat;
+	private final HashMap<Long, TFloorTile>      fdat;
 	private final Array<TObject>                 odat;
 	private final Array<TObject>                 odatGC;
 	
@@ -46,7 +48,8 @@ public final class TChunk {
 		this.chunkX             = chunkX;
 		this.chunkY             = chunkY;
 		tdat                    = new HashMap<>();
-		btdat                    = new HashMap<>();
+		btdat                   = new HashMap<>();
+		fdat                    = new HashMap<>();
 		odat                    = new Array<>();
 		odatGC                  = new Array<>();
 		dormant                 = false;
@@ -113,7 +116,9 @@ public final class TChunk {
 			final int tx    = Math.round(obj.getActualX() / TTerrain.TILE_WIDTH);
 			final int ty    = Math.round(obj.getActualY() / TTerrain.TILE_HEIGHT);
 			final long hash = (((long)tx) << 32) | (ty & 0xffffffffL);
-			btdat.put(hash, (TBuildingTile)obj);
+			if(!(obj instanceof TFloorTile))
+				btdat.put(hash, (TBuildingTile)obj);
+			else fdat.put(hash, (TFloorTile)obj);
 		}
 		odat.add(obj);
 	}
@@ -172,8 +177,9 @@ public final class TChunk {
 	        			final int tx    = Math.round(o.getActualX() / TTerrain.TILE_WIDTH);
 	        			final int ty    = Math.round(o.getActualY() / TTerrain.TILE_HEIGHT);
 	        			final long hash = (((long)tx) << 32) | (ty & 0xffffffffL);
-	        			System.out.println("Removing hash " + Long.toHexString(hash));
-	        			btdat.remove(hash);
+	        			if(!(o instanceof TFloorTile))
+	        					btdat.remove(hash);
+	        			else fdat.remove(hash);
 	        		}
 				}
 				if (o.getPhysicalBody() != null)
@@ -250,6 +256,21 @@ public final class TChunk {
 		long hash = (((long)tileX) << 32) | (tileY & 0xffffffffL);
 		if(btdat.containsKey(hash))
 			return btdat.get(hash);
+		else return null;
+	}
+	
+	/**
+	 * Returns the {@link TFloorTile} that the {@link TPlayer} placed in the chunk given tile coordinates. 
+	 * Returns null if no building tile is there.
+	 * @param tileX the tile x coordinate.
+	 * @param tileY the tile y coordinate.
+	 */
+	public TFloorTile getFloorTileDataAt(int tileX, int tileY) {
+		if(!contains(tileX, tileY)) 
+			return null;
+		long hash = (((long)tileX) << 32) | (tileY & 0xffffffffL);
+		if(fdat.containsKey(hash))
+			return fdat.get(hash);
 		else return null;
 	}
 

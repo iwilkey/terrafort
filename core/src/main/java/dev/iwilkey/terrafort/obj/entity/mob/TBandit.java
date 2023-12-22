@@ -3,12 +3,15 @@ package dev.iwilkey.terrafort.obj.entity.mob;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.anim.TLifeformAnimationArray;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
+import dev.iwilkey.terrafort.obj.particulate.TParticle;
+import dev.iwilkey.terrafort.obj.particulate.TTurretProjectile;
 import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
@@ -46,6 +49,16 @@ public final class TBandit extends TMob {
 	}
 	
 	float attackTimer = 0.0f;
+	
+	@Override
+	public void task(float dt) {
+		super.task(dt);
+		// play fair and take damage from turrets...
+		final Array<TObject> manifold = getCollisionManifold();
+		for(final TObject o : manifold)
+			if(o instanceof TTurretProjectile)
+				hurt(1);
+	}
 
 	@Override
 	public boolean requestAttack() {
@@ -107,12 +120,15 @@ public final class TBandit extends TMob {
 		// bandits can't hurt themselves.
 		if(interactee instanceof TBandit)
 			return;
+		// Players can deal [1, 4] damage.
 		hurt(ThreadLocalRandom.current().nextInt(1, 4));
 	}
 
 	@Override
 	public void die() {
-
+		world.getPlayer().giveCurrency(ThreadLocalRandom.current().nextInt(1000, 10000));
+		for(int i = 0; i < 32; i++)
+			world.addObject(new TParticle(world, getActualX(), getActualY(), Color.RED.cpy()));
 	}
 	
 }

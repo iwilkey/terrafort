@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
+import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
 import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
@@ -17,7 +18,7 @@ public abstract class TBuildingTile extends TEntity {
 	private int   tx;
 	private int   ty;
 	
-	public TBuildingTile(TWorld world, TItem item, int tileX, int tileY, int maxHP) {
+	public TBuildingTile(TWorld world, TItem item, int tileX, int tileY, int width, int height, int maxHP) {
 		super(world, 
 			  false, 
 			  tileX * TTerrain.TILE_WIDTH, 
@@ -25,8 +26,8 @@ public abstract class TBuildingTile extends TEntity {
 			  0,
 			  TTerrain.TILE_WIDTH, 
 			  TTerrain.TILE_HEIGHT, 
-			  TTerrain.TILE_WIDTH / 2f, 
-			  TTerrain.TILE_HEIGHT / 2f, 
+			  width, 
+			  height, 
 			  item.is().getIcon().getDataOffsetX(), 
 			  item.is().getIcon().getDataOffsetY(),
 			  item.is().getIcon().getDataSelectionWidth(), 
@@ -62,7 +63,7 @@ public abstract class TBuildingTile extends TEntity {
 
 	@Override
 	public void die() {
-
+		world.addObject(new TItemDrop(world, getActualX(), getActualY(), item));
 	}	
 
 }

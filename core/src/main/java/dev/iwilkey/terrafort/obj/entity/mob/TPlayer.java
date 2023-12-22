@@ -3,9 +3,11 @@ package dev.iwilkey.terrafort.obj.entity.mob;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.TInput;
@@ -22,6 +24,8 @@ import dev.iwilkey.terrafort.math.TInterpolator;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
+import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
+import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TBuilding;
 import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
@@ -207,6 +211,8 @@ public final class TPlayer extends TMob {
 	public void spawn() {
 		// give the abstract inventory.
 		inventory = new TItemStackCollection(4);
+		for(int i = 0; i < 4; i++)
+			giveItem(TItem.BASIC_TURRET);
 		currency  = new TInterpolator(5000);
 		// give a way to see and interact with the inventory.
 		inventoryInterface = new THUDInterface(this);
@@ -223,12 +229,23 @@ public final class TPlayer extends TMob {
 	float   ht = 0.0f;
 	float   et = 0.0f;
 	boolean f  = false;
+	
+	private boolean isDragging = false;
+	private Vector2 dragStart = new Vector2();
+	private Vector2 dragEnd = new Vector2();
 
 	@Override
 	public void task(float dt) {
 		super.task(dt);
 		focusCamera();
 		currency.update();
+		
+		// check for items to pick up...
+		final Array<TObject> manifold = getCollisionManifold();
+		for(final TObject o : manifold)
+			if(o instanceof TItemDrop)
+				((TItemDrop)o).transferTo(this);
+
 		// you cannot open or close the Forger while a drag is going on because that can cause an item dupe glitch.
 		if(Gdx.input.isKeyJustPressed(Keys.F) && !THUDInterface.dragMutex()) {
 			f = !f;
@@ -250,7 +267,7 @@ public final class TPlayer extends TMob {
 		}
 		energyRepletionTime = BASE_ENERGY_REPL - ((BASE_ENERGY_REPL / 1.25f) * ((float)hunger / PLAYER_MAX_HUNGER));
 		if(equipped != null) {
-			if(equipped.getItem().is().getFunction() == TItemFunction.BULD) {
+			if(equipped.getItem().is().getFunction() == TItemFunction.FORT) {
 				// Render a square based on the the tile the player is looking at.
 				final TRect   rect = new TRect(0, 0, TTerrain.TILE_WIDTH, TTerrain.TILE_HEIGHT);
 				final TCircle circ = new TCircle(0, 0, TTerrain.TILE_WIDTH * 4.1f);
@@ -265,8 +282,8 @@ public final class TPlayer extends TMob {
 				rect.setCY(ay);
 				circ.setCX(getActualX());
 				circ.setCY(getActualY());
-				if(TBuilding.canPlaceAt(this, TBuilding.cursorTileSelection(this))) {
-					TGraphics.draw(equipped.getItem().is().getIcon(), ax, ay, ax, ay, 0, TTerrain.TILE_WIDTH, TTerrain.TILE_HEIGHT, new Color().set(0xffffff99), true);
+				if(TBuilding.canPlaceAt(this, TBuilding.getTypeOfFortFunction(equipped.getItem()), TBuilding.cursorTileSelection(this))) {
+					TGraphics.draw(equipped.getItem().is().getIcon(), ax, ay, ax, ay, 0, TTerrain.TILE_WIDTH, TTerrain.TILE_HEIGHT, new Color().set(0xffffff99), false);
 					TGraphics.draw(rect, false);
 					circ.setColor(new Color().set(0xffffffff));
 				} else circ.setColor(new Color().set(0x5D6855ff));
@@ -361,8 +378,8 @@ public final class TPlayer extends TMob {
 	
 	@Override
 	public void onInteraction(TMob interactee) {
-		if(interactee instanceof TBandit)
-			hurt(ThreadLocalRandom.current().nextInt(1, 16));
+		if(interactee instanceof TBandit) 
+			hurt(ThreadLocalRandom.current().nextInt(1, 16));	
 	}
 	
 	@Override
@@ -381,6 +398,8 @@ public final class TPlayer extends TMob {
 
 	@Override
 	public void die() {
+		for(int i = 0; i < 128; i++)
+			world.addObject(new TParticle(world, getActualX(), getActualY(), Color.RED.cpy()));
 		TUserInterface.freecon(inventoryInterface);
 		TUserInterface.freecon(minimapInterface);
 		TUserInterface.freecon(shopInterface);

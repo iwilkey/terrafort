@@ -8,8 +8,10 @@ import dev.iwilkey.terrafort.item.TItemFunction;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.entity.tile.TBuildingTile;
+import dev.iwilkey.terrafort.obj.entity.tile.TFloorTile;
 import dev.iwilkey.terrafort.obj.entity.tile.TLightTile;
-import dev.iwilkey.terrafort.obj.entity.tile.TWoodTile;
+import dev.iwilkey.terrafort.obj.entity.tile.TTurretTile;
+import dev.iwilkey.terrafort.obj.entity.tile.TWallTile;
 
 /**
  * A {@link TWorld} utility to streamline the process of doing tile building calculations.
@@ -17,8 +19,11 @@ import dev.iwilkey.terrafort.obj.entity.tile.TWoodTile;
  */
 public final class TBuilding {
 	
-	public enum TMaterial {
-		WOOD,
+	public enum TType {
+		NULL,
+		WALL,
+		FLOOR,
+		TURRET,
 		LIGHT
 	}
 	
@@ -28,20 +33,27 @@ public final class TBuilding {
 	 * Requests to place a {@link TBuildingTile} in the {@link TWorld} from the cursors perspective. 
 	 * Returns the location the tile was placed, in world space.
 	 */
-	public static Vector2 place(TPlayer player, TItem tile, TMaterial material, int strength) {
-		if(tile.is().getFunction() != TItemFunction.BULD)
+	public static Vector2 place(TPlayer player, TItem tile, int strength) {
+		if(tile.is().getFunction() != TItemFunction.FORT)
 			return null;
 		final Vector2 tileLoc = cursorTileSelection(player);
 		if(tileLoc != null) {
-			if(!canPlaceAt(player, tileLoc))
+			if(!canPlaceAt(player, getTypeOfFortFunction(tile), tileLoc))
 				return null;
-			switch(material) {
-				case WOOD:
-					player.getWorld().addObject(new TWoodTile(player.getWorld(), tile, (int)tileLoc.x, (int)tileLoc.y, strength));
+			switch(getTypeOfFortFunction(tile)) {
+				case WALL:
+					player.getWorld().addObject(new TWallTile(player.getWorld(), tile, (int)tileLoc.x, (int)tileLoc.y, strength));
+					break;
+				case FLOOR:
+					player.getWorld().addObject(new TFloorTile(player.getWorld(), tile, (int)tileLoc.x, (int)tileLoc.y, strength));
 					break;
 				case LIGHT:
 					player.getWorld().addObject(new TLightTile(player.getWorld(), tile, (int)tileLoc.x, (int)tileLoc.y, strength));
 					break;
+				case TURRET:
+					player.getWorld().addObject(new TTurretTile(player.getWorld(), tile, (int)tileLoc.x, (int)tileLoc.y, strength));
+					break;
+				default: return null;
 			}
 			return new Vector2((int)tileLoc.x * TTerrain.TILE_WIDTH, (int)tileLoc.y * TTerrain.TILE_HEIGHT);
 		}
@@ -51,11 +63,16 @@ public final class TBuilding {
 	/**
 	 * Query to see if the {@link TPlayer} can place a tile where their build cursor is.
 	 */
-	public static boolean canPlaceAt(TPlayer player, Vector2 tileLocation) {
+	public static boolean canPlaceAt(TPlayer player, TType type, Vector2 tileLocation) {
 		if(tileLocation == null)
 			return false;
-		if(player.getWorld().checkBuildingTileAt((int)tileLocation.x, (int)tileLocation.y) != null)
-			return false;
+		if(type != TType.FLOOR) {
+			if(player.getWorld().checkBuildingTileAt((int)tileLocation.x, (int)tileLocation.y) != null)
+				return false;
+		} else {
+			if(player.getWorld().checkFloorTileAt((int)tileLocation.x, (int)tileLocation.y) != null)
+				return false;
+		}
 		return true;
 	}
 	
@@ -78,4 +95,30 @@ public final class TBuilding {
 			return new Vector2(tx, ty);
 		return null;
 	}
+	
+	/**
+	 * Maps a {@link TItem} with the fort function to it's respective construction type. 
+	 */
+	public static TType getTypeOfFortFunction(TItem item) {
+		if(item.is().getFunction() != TItemFunction.FORT)
+			return TType.NULL;
+		switch(item) {
+			case WOOD_WALL_T1:
+				return TType.WALL;
+			case WOOD_WALL_T2:
+				return TType.WALL;
+			case WOOD_WALL_T3:
+				return TType.WALL;
+			case WOOD_FLOOR:
+				return TType.FLOOR;
+			case BROWN_CARPET:
+				return TType.FLOOR;
+			case BASIC_TURRET:
+				return TType.TURRET;
+			case TORCH:
+				return TType.LIGHT;
+			default: return TType.NULL;
+		}
+	}
+	
 }

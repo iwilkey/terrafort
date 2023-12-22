@@ -3,6 +3,7 @@ package dev.iwilkey.terrafort.obj.entity.tile;
 import com.badlogic.gdx.graphics.Color;
 
 import box2dLight.Light;
+import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.world.TTerrain;
@@ -14,13 +15,13 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public final class TLightTile extends TBuildingTile {
 	
-	public static final float TORCH_BASE_EMISSION_DISTANCE = 32.0f;
+	public static final float TORCH_BASE_EMISSION_DISTANCE = 64.0f;
 	
 	private final float distance;
 	private final Light light;
 	
 	public TLightTile(TWorld world, TItem item, int tileX, int tileY, int maxHP) {
-		super(world, item, tileX, tileY, maxHP);
+		super(world, item, tileX, tileY, TTerrain.TILE_WIDTH / 2, TTerrain.TILE_HEIGHT / 2, maxHP);
 		switch(item) {
 			case TORCH:
 				distance = TORCH_BASE_EMISSION_DISTANCE;
@@ -28,10 +29,12 @@ public final class TLightTile extends TBuildingTile {
 									tileY * TTerrain.TILE_HEIGHT, 
 									distance, 
 									new Color().set(0xFFDF8E77));
+				setAsSensor();
 				break;
 			default:
 				throw new IllegalArgumentException("You cannot create a " + item.is().getName() + " tile that emits light.");
 		}
+		light.setContactFilter(TGraphics.BLOCKS_LIGHT, (short)0, TGraphics.BLOCKS_LIGHT);
 	}
 	
 	float time = 0.0f;

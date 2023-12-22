@@ -10,7 +10,6 @@ import dev.iwilkey.terrafort.item.canonical.TItemDefinition;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TBuilding;
-import dev.iwilkey.terrafort.obj.world.TBuilding.TMaterial;
 
 /**
  * A slightly structurally diminished building material.
@@ -29,14 +28,14 @@ public final class TWoodWallT2 extends TItemDefinition {
 			  + "shelter from [RED]Bandits[]. Requires " + STRENGTH + " hits to break.",
 			  256,
 			  new TFrame(4, 2, 1, 1), 
-			  TItemFunction.BULD,
-			  65,
-			  88);
+			  TItemFunction.FORT,
+			  30,
+			  43);
 	}
 
 	@Override
 	public boolean use(TPlayer player) {
-		final Vector2 placed = TBuilding.place(player, TItem.WORN_WOOD, TMaterial.WOOD, STRENGTH);
+		final Vector2 placed = TBuilding.place(player, TItem.WOOD_WALL_T2, STRENGTH);
 	    if(placed != null) {
 	    	for(int i = 0; i < 6; i++)
 	    		player.getWorld().addObject(new TParticle(player.getWorld(), placed.x, placed.y, Color.BROWN));

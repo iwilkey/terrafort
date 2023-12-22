@@ -14,6 +14,7 @@ import dev.iwilkey.terrafort.math.TCollisionManifold;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
+import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.particulate.TParticulate;
 import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
@@ -151,6 +152,13 @@ public abstract class TMob extends TEntity {
 	
 	public final void moveDown() {
 		movementVector.add(0, -actualMoveSpeed);
+	}
+	
+	@Override
+	public void hurt(int amt) {
+		super.hurt(amt);
+		for(int i = 0; i < ThreadLocalRandom.current().nextInt(8, 16); i++)
+			world.addObject(new TParticle(world, getActualX(), getActualY(), Color.RED.cpy()));
 	}
 	
 	TObject rr; // memory that is referenced by the callback below.

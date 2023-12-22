@@ -24,6 +24,7 @@ import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.mob.TBandit;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.entity.tile.TBuildingTile;
+import dev.iwilkey.terrafort.obj.entity.tile.TFloorTile;
 import dev.iwilkey.terrafort.state.TMainMenuState;
 
 /**
@@ -35,7 +36,7 @@ public final class TWorld implements Disposable {
 
 	public static final short           LIGHTING_RAYS           = 16;
 	public static final short           CHUNK_CULLING_THRESHOLD = 4;
-	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 5.0f * 60.0f;
+	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 60.0f;
 
 	private final World              	world;
 	private final long                  seed;
@@ -73,7 +74,7 @@ public final class TWorld implements Disposable {
 		dusk                            = false;
 		night                           = false;
 		dawn                            = false;
-		wave                            = 0;
+		wave                            = 16;
 		dormantChunks                   = 0;
 		lightRenderer.setAmbientLight(0.1f, 0.1f, 0.1f, 0.5f);
 		world.setContactListener(new TCollisionManifold());
@@ -124,7 +125,7 @@ public final class TWorld implements Disposable {
 	 * Runs Terrafort's spatial partitioning algorithm given a center chunk to provide efficient infinite terrain generation.
 	 */
 	private void infinity(float dt, int pcx, int pcy) {
-		world.step(dt, 4, 8);
+		world.step(1 / 60f, 4, 8);
 		updateDayNightCycle(dt);
 		// Optimization: since the chunks are hashed by position, I don't need to search through the entire list of loaded chunks
 		// to find what chunks are closest to the player...
@@ -243,6 +244,19 @@ public final class TWorld implements Disposable {
 			return requestChunkThatContains(tileX, tileY).getBuildingTileDataAt(tileX, tileY);
 		return null;
 	}
+	
+	/**
+	 * Checks for a {@link TFloorTile} at a given tile coordinate. If the chunk that contains it isn't loaded yet, 
+	 * null is returned.
+	 */
+	public TFloorTile checkFloorTileAt(int tileX, int tileY) {
+		final int chunkX     = tileX / TChunk.CHUNK_SIZE;
+		final int chunkY     = tileY / TChunk.CHUNK_SIZE;
+		final long chunkHash = (((long)chunkX) << 32) | (chunkY & 0xffffffffL);
+		if(calloc.containsKey(chunkHash))
+			return requestChunkThatContains(tileX, tileY).getFloorTileDataAt(tileX, tileY);
+		return null;
+	}
 
 	/**
 	 * Updates the world terrain data at given tile coordinates to a given height.
@@ -353,7 +367,7 @@ public final class TWorld implements Disposable {
 		    if(Math.abs(worldTime - (DAY_NIGHT_CYCLE_PERIOD / 2f)) <= 0.5f && wavechecl) {
 		    	wave++;
 		    	for(int i = 0; i < wave; i++) {
-		    	    double angle = 2 * Math.PI * i / wave;
+		    	    double angle = 2 * Math.PI * (ThreadLocalRandom.current().nextInt(0, (int)wave)) / wave;
 		    	    int cx = clientPlayer.getCurrentTileX();
 		    	    int cy = clientPlayer.getCurrentTileY();
 		    	    int r = ThreadLocalRandom.current().nextInt(TTerrain.TILE_WIDTH * 4, TTerrain.TILE_WIDTH * 8);

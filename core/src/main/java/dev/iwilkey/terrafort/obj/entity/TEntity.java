@@ -1,11 +1,13 @@
 package dev.iwilkey.terrafort.obj.entity;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.utils.Array;
 
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.anim.TAnimationController;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
+import dev.iwilkey.terrafort.obj.particulate.TProjectile;
 import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
 
@@ -94,6 +96,19 @@ public abstract class TEntity extends TObject {
 	 * Called every engine frame that the entity is alive.
 	 */
 	public void tick(float dt) {
+		
+		// listen for projectiles...
+		final Array<TObject> manifold = getCollisionManifold();
+		for(final TObject o : manifold) {
+			if(o instanceof TProjectile) {
+				final TProjectile proj = ((TProjectile)o);
+				if(proj.shouldHurt()) {
+					hurt(proj.getCollisionDamage());
+					proj.setDone();
+				}
+			}
+		}
+		
 		animationController.tick(dt);
 		// Animates the event of a {@link TEntity} getting hurt or healed...
 		if(hurtTimer < HURT_HEAL_ANIMATION_TIMER) {

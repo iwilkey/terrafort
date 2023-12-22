@@ -3,6 +3,7 @@ package dev.iwilkey.terrafort.item;
 import dev.iwilkey.terrafort.item.canonical.TItemDefinition;
 import dev.iwilkey.terrafort.item.canonical.structure.*;
 import dev.iwilkey.terrafort.item.canonical.lighting.*;
+import dev.iwilkey.terrafort.item.canonical.turret.*;
 import dev.iwilkey.terrafort.item.canonical.natural.*;
 import dev.iwilkey.terrafort.item.canonical.food.*;
 
@@ -23,15 +24,23 @@ public enum TItem {
 	// STRUCTURE
 	///////////////////////////////////////////////////////////////////////////
 	
-	FLIMSY_WOOD(new TWoodWallT1()),
-	WORN_WOOD(new TWoodWallT2()),
-	HEALTHY_WOOD(new TWoodWallT3()),
+	WOOD_WALL_T1(new TWoodWallT1()),
+	WOOD_WALL_T2(new TWoodWallT2()),
+	WOOD_WALL_T3(new TWoodWallT3()),
+	WOOD_FLOOR(new TWoodFloor()),
+	BROWN_CARPET(new TBrownCarpet()),
 		
 	///////////////////////////////////////////////////////////////////////////
 	// LIGHTING
 	///////////////////////////////////////////////////////////////////////////
 	
 	TORCH(new TTorch()),
+	
+	///////////////////////////////////////////////////////////////////////////
+	// TURRETS
+	///////////////////////////////////////////////////////////////////////////
+	
+	BASIC_TURRET(new TBasicTurret()),
 	
 	///////////////////////////////////////////////////////////////////////////
 	// FOOD

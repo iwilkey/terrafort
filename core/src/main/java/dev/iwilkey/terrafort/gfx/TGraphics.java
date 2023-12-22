@@ -46,6 +46,8 @@ public final class TGraphics implements Disposable {
 	public static final int                        MAX_RENDERABLES       = 8191;
 	public static final int                        DATA_WIDTH            = 16;
 	public static final int                        DATA_HEIGHT           = 16;
+	public static final short                      LIGHT_PASSTHROUGH     = 0b1;
+	public static final short                      BLOCKS_LIGHT          = 0b10;
 	public static final float                      PIXELS_PER_METER      = 1f;
 	
 	public static final  Texture                   DATA                  = new Texture(Gdx.files.internal("dat.png"));

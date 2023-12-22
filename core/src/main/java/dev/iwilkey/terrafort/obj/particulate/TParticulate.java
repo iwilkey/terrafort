@@ -3,6 +3,7 @@ package dev.iwilkey.terrafort.obj.particulate;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 
+import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.world.TWorld;
@@ -44,6 +45,9 @@ public abstract class TParticulate extends TObject {
 			// all {@link TParticulates}s shall be very light, unless overriden.
 		    getPhysicalFixture().setDensity(0.01f);
 			getPhysicalBody().resetMassData();
+			// particulates shouldn't block light.
+			getPhysicalFixture().getFilterData().categoryBits = TGraphics.LIGHT_PASSTHROUGH;
+			getPhysicalFixture().getFilterData().maskBits     = TGraphics.BLOCKS_LIGHT | TGraphics.LIGHT_PASSTHROUGH; 
 	}
 	
 	/**

@@ -16,7 +16,7 @@ public enum TItemFunction {
 	 */
 	FOOD,
 	
-	BULD,
+	FORT,
 	
 	TOOL,
 	
