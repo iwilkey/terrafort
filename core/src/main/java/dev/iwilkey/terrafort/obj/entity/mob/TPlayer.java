@@ -3,7 +3,6 @@ package dev.iwilkey.terrafort.obj.entity.mob;
 import java.util.concurrent.ThreadLocalRandom;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
@@ -210,9 +209,7 @@ public final class TPlayer extends TMob {
 	@Override
 	public void spawn() {
 		// give the abstract inventory.
-		inventory = new TItemStackCollection(4);
-		for(int i = 0; i < 4; i++)
-			giveItem(TItem.BASIC_TURRET);
+		inventory = new TItemStackCollection(5);
 		currency  = new TInterpolator(5000);
 		// give a way to see and interact with the inventory.
 		inventoryInterface = new THUDInterface(this);
@@ -229,10 +226,6 @@ public final class TPlayer extends TMob {
 	float   ht = 0.0f;
 	float   et = 0.0f;
 	boolean f  = false;
-	
-	private boolean isDragging = false;
-	private Vector2 dragStart = new Vector2();
-	private Vector2 dragEnd = new Vector2();
 
 	@Override
 	public void task(float dt) {
@@ -336,7 +329,6 @@ public final class TPlayer extends TMob {
 				}
 			}
 		}
-
 	}
 	
 	@Override

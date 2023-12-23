@@ -30,7 +30,7 @@ import dev.iwilkey.terrafort.ui.widgets.TItemStackSlotWidget;
  */
 public final class THUDInterface extends TContainer {
 	
-	public static final int   COLUMNS      = 4;
+	public static final int   COLUMNS      = 5;
 	public static final int   BACK_COLOR   = 0x333333ff;
 	public static final int   HEALTH_COLOR = 0xff0000ff;
 	public static final int   HUNGER_COLOR = 0xfec293ff;

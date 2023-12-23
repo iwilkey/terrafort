@@ -24,7 +24,7 @@ import dev.iwilkey.terrafort.ui.TUserInterface;
  */
 public final class TEngine extends ApplicationAdapter {
 	
-	public static final String VERSION = "0.0.0.13";
+	public static final String VERSION = "0.0.0.14";
 	
 	// engine metrics (updated internally, even though they are public!) do NOT manually change them!
 	
@@ -81,9 +81,9 @@ public final class TEngine extends ApplicationAdapter {
     	multiplexer.addProcessor(TUserInterface.getMom());
     	multiplexer.addProcessor(input);
     	Gdx.input.setInputProcessor(multiplexer);
-    	// setState(new TTessellationLogoState());
+    	setState(new TTessellationLogoState());
     	// setState(new TMainMenuState());
-        setState(new TDemoState());
+        // setState(new TDemoState());
     }
 
     @Override

@@ -36,7 +36,7 @@ public final class TWorld implements Disposable {
 
 	public static final short           LIGHTING_RAYS           = 16;
 	public static final short           CHUNK_CULLING_THRESHOLD = 4;
-	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 60.0f;
+	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 5.0f * 60.0f;
 
 	private final World              	world;
 	private final long                  seed;
@@ -74,7 +74,7 @@ public final class TWorld implements Disposable {
 		dusk                            = false;
 		night                           = false;
 		dawn                            = false;
-		wave                            = 16;
+		wave                            = 0;
 		dormantChunks                   = 0;
 		lightRenderer.setAmbientLight(0.1f, 0.1f, 0.1f, 0.5f);
 		world.setContactListener(new TCollisionManifold());
