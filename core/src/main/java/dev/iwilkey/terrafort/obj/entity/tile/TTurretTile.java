@@ -9,7 +9,9 @@ import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.shape.TCircle;
 import dev.iwilkey.terrafort.item.TItem;
-import dev.iwilkey.terrafort.item.canonical.turret.TBasicTurret;
+import dev.iwilkey.terrafort.item.canonical.weapon.TGoldenTurretItem;
+import dev.iwilkey.terrafort.item.canonical.weapon.TRustyTurretItem;
+import dev.iwilkey.terrafort.item.canonical.weapon.TSilverTurretItem;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.mob.TBandit;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
@@ -30,10 +32,10 @@ public final class TTurretTile extends TBuildingTile {
 	private final RayCastCallback cb = new RayCastCallback() {
 	    @Override
 	    public float reportRayFixture(Fixture fixture, Vector2 point, Vector2 normal, float fraction) {
-	    	// turret only aims for mobs :)
+	    	// turrets only aim for bandits
 	    	if(!((TObject)fixture.getBody().getUserData() instanceof TBandit))
 	    		return -1;
-	    	target = (TMob)fixture.getBody().getUserData();
+	    	target = (TBandit)fixture.getBody().getUserData();
 	        return 0;
 	    }
 	};
@@ -41,8 +43,10 @@ public final class TTurretTile extends TBuildingTile {
 	private final Vector2 magnitude;
 	private final Vector2 barrel;
 	private final TCircle rangeIndication;
+	private final TCircle rangeIndicationOutline;
 
-	private TMob    target;
+	private TBandit target;
+	private Color   theme;
 	private long    roundValue;
 	private float   range;
 	private float   sweepSpeed;
@@ -53,11 +57,26 @@ public final class TTurretTile extends TBuildingTile {
 	public TTurretTile(TWorld world, TItem item, int tileX, int tileY, int maxHP) {
 		super(world, item, tileX, tileY, TTerrain.TILE_WIDTH / 2, TTerrain.TILE_HEIGHT / 2, maxHP);
 		switch(item) {
-			case BASIC_TURRET:
-				range      = TBasicTurret.RANGE;
-				sweepSpeed = TBasicTurret.SWEEP_SPEED;
-				fireRate   = TBasicTurret.FIRE_RATE;
-				roundValue = TBasicTurret.ROUND_VALUE;
+			case RUSTY_TURRET:
+				range      = TRustyTurretItem.RANGE;
+				sweepSpeed = TRustyTurretItem.SWEEP_SPEED;
+				fireRate   = TRustyTurretItem.FIRE_RATE;
+				roundValue = TRustyTurretItem.ROUND_VALUE;
+				theme      = Color.ORANGE.cpy();
+				break;
+			case SILVER_TURRET:
+				range      = TSilverTurretItem.RANGE;
+				sweepSpeed = TSilverTurretItem.SWEEP_SPEED;
+				fireRate   = TSilverTurretItem.FIRE_RATE;
+				roundValue = TSilverTurretItem.ROUND_VALUE;
+				theme      = Color.GRAY.cpy();
+				break;
+			case GOLDEN_TURRET:
+				range      = TGoldenTurretItem.RANGE;
+				sweepSpeed = TGoldenTurretItem.SWEEP_SPEED;
+				fireRate   = TGoldenTurretItem.FIRE_RATE;
+				roundValue = TGoldenTurretItem.ROUND_VALUE;
+				theme      = Color.GOLD.cpy();
 				break;
 			default: throw new IllegalArgumentException("You cannot give a " + item.is().getName() + " tile turret properties!");
 		}
@@ -69,14 +88,16 @@ public final class TTurretTile extends TBuildingTile {
 		barrel            = new Vector2(0, 0);
 		// rendLine          = new TLine();
 		rangeIndication = new TCircle((int)origin.x, (int)origin.y, range);
-		rangeIndication.setColor(new Color().set(0xffffff33));
+		rangeIndication.setColor(new Color().set(theme.cpy().add(0, 0, 0, -0.95f)));
 		rangeIndication.setFilled(true);
+		rangeIndicationOutline = new TCircle((int)origin.x, (int)origin.y, range);
+		rangeIndicationOutline.setColor(new Color().set(theme));
+		rangeIndicationOutline.setFilled(false);
 		setManualRotation();
 	}
 	
 	@Override
 	public void task(float dt) {
-		super.task(dt);
 		// make sure the barrel matches the graphical representation...
 		barrel.set(magnitude.cpy().rotateAroundRad(origin, rotationInRadians + ((float)Math.PI / 4f)));
 		if(!lockedOn) {
@@ -114,8 +135,8 @@ public final class TTurretTile extends TBuildingTile {
 		        		world.getPlayer().takeCurrency(roundValue);
 	        			final float dx = (float) Math.cos(rotationInRadians + ((float)Math.PI / 2f));
 		        	    final float dy = (float) Math.sin(rotationInRadians + ((float)Math.PI / 2f));
-		        		world.addObject(new TTurretProjectile(world, origin.x, origin.y, dx, dy));
-		        		world.addObject(new TParticle(world, getActualX(), getActualY(), Color.GRAY));
+		        		world.addObject(new TTurretProjectile(world, origin.x, origin.y, dx, dy, theme));
+		        		world.addObject(new TParticle(world, getActualX(), getActualY(), theme));
 		        		setRenderTint(Color.WHITE);
 	        		} else {
 	        			// blink it red because there's not enough money to shoot!
@@ -129,7 +150,8 @@ public final class TTurretTile extends TBuildingTile {
 	            lockedOn = false;
 	        }
 		}
-		TGraphics.draw(rangeIndication, false);
+		// TGraphics.draw(rangeIndication, false);
+		TGraphics.draw(rangeIndicationOutline, false);
 	}
 
 	@Override

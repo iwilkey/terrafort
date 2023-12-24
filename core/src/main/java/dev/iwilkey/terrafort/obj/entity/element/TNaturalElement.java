@@ -55,7 +55,9 @@ public abstract class TNaturalElement extends TEntity {
 	@Override
 	public void onInteraction(TMob interactee) {
 		lastInteractee = interactee;
-		hurt(1);
+		if(interactee instanceof TBandit)
+			hurt(65536);
+		else hurt(1);
 	}
 	
 	@Override

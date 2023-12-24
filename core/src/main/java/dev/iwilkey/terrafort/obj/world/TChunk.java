@@ -241,6 +241,8 @@ public final class TChunk {
 			if(element != null)
 				register(element);
 		}
+		if(getFloorTileDataAt(tileX, tileY) != null || getBuildingTileDataAt(tileX, tileY) != null)
+			return TTerrain.BUILDING_TILE;
 		return tdat.get(hash);
 	}
 	

@@ -11,26 +11,26 @@ import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TBuilding;
 
-public final class TWoodWallT1 extends TItemDefinition {
+public final class TBrownCarpetItem extends TItemDefinition {
 	
 	public static final int STRENGTH = 1;
-	
-	public TWoodWallT1() {
-		super("Wood Wall T1", 
-			  "A cheap, flimsy building material.\n\n"
-			  + "[YELLOW][ACTION][]\n"
-			  + "Can be placed in the world to provide\n"
-			  + "shelter from [RED]Bandits[]. Requires " + STRENGTH + " hit to break.",
-			  256,
-			  new TFrame(3, 2, 1, 1), 
-			  TItemFunction.FORT,
-			  14,
-			  20);
-	}
 
+	public TBrownCarpetItem() {
+		super("Brown Carpet", 
+			  "Basic brown carpet.\n\n"
+			  + "[YELLOW][ACTION][]\n"
+			  + "Can be placed to provide flooring for forts. Requires " + STRENGTH + " hits to break.\n\n"
+			  + "To break, you must hold [PURPLE][CURSOR 2][] and attack simultaneously.",
+			  256,
+			  new TFrame(4, 12, 1, 1), 
+			  TItemFunction.FORT,
+			  5,
+			  10);
+	}
+	
 	@Override
 	public boolean use(TPlayer player) {
-		final Vector2 placed = TBuilding.place(player, TItem.WOOD_WALL_T1, STRENGTH);
+		final Vector2 placed = TBuilding.place(player, TItem.BROWN_CARPET, STRENGTH);
 	    if(placed != null) {
 	    	for(int i = 0; i < 4; i++)
 	    		player.getWorld().addObject(new TParticle(player.getWorld(), placed.x, placed.y, Color.BROWN));
@@ -38,5 +38,5 @@ public final class TWoodWallT1 extends TItemDefinition {
 	    }
 		return false;
 	}
-
+	
 }

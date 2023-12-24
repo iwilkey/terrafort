@@ -6,23 +6,23 @@ import dev.iwilkey.terrafort.item.canonical.TItemDefinition;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 
 /**
- * A "food".
+ * A savory chicken wing.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TEscargotItem extends TItemDefinition {
+public final class TChickenWingItem extends TItemDefinition {
 	
-	public static final int NUTRITION_RESTORATION = 8;
+	public static final int NUTRITION_RESTORATION = 9;
 	
-	public TEscargotItem() {
-		super("Escargot", 
-			  "A \"[ORANGE]food[]\".\n\n"
+	public TChickenWingItem() {
+		super("Chicken Wing", 
+			  "A savory chicken wing.\n\n"
 			  + "[YELLOW][ACTION][]\n"
 			  + "Restores " + NUTRITION_RESTORATION + " [ORANGE]nutrition[].", 
 			  256,
-			  new TFrame(7, 6, 1, 1), 
+			  new TFrame(5, 11, 1, 1), 
 			  TItemFunction.FOOD,
-			  100,
-			  200);
+			  200,
+			  250);
 	}
 
 	@Override

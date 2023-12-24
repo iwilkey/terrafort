@@ -3,7 +3,6 @@ package dev.iwilkey.terrafort.obj.entity;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.utils.Array;
 
-import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.anim.TAnimationController;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
@@ -18,14 +17,15 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
 public abstract class TEntity extends TObject {
 	
 	public static final float      HURT_HEAL_ANIMATION_TIMER = 0.1f;
+	public static final Color      HURT_TINT                 = new Color().set(0xC41E3Aff);
 	
 	protected TAnimationController animationController;
-	
 	private boolean                alive;
 	private int                    maxHP;
 	private int                    currentHP;
 	private float                  hurtTimer;
 	private float                  healTimer;
+	private Color                  originalRenderTint;
 	
 	public TEntity(TWorld   world, 
 			       boolean isDynamic, 
@@ -61,6 +61,7 @@ public abstract class TEntity extends TObject {
 		alive               = true;
 		hurtTimer           = HURT_HEAL_ANIMATION_TIMER;
 		healTimer           = HURT_HEAL_ANIMATION_TIMER;
+		originalRenderTint  = renderTint.cpy();
 		animationController = new TAnimationController(this);
 		initAnimations(animationController);
 		spawn();
@@ -96,7 +97,6 @@ public abstract class TEntity extends TObject {
 	 * Called every engine frame that the entity is alive.
 	 */
 	public void tick(float dt) {
-		
 		// listen for projectiles...
 		final Array<TObject> manifold = getCollisionManifold();
 		for(final TObject o : manifold) {
@@ -108,30 +108,19 @@ public abstract class TEntity extends TObject {
 				}
 			}
 		}
-		
 		animationController.tick(dt);
 		// Animates the event of a {@link TEntity} getting hurt or healed...
 		if(hurtTimer < HURT_HEAL_ANIMATION_TIMER) {
-			setRenderTint(new Color().set(0xC41E3Aff));
+			setRenderTint(HURT_TINT);
 			hurtTimer += dt;
 		} else if(healTimer < HURT_HEAL_ANIMATION_TIMER) {
 			healTimer += dt;
 		} else {
-			setRenderTint(Color.WHITE.cpy());
+			setRenderTint(originalRenderTint);
 			hurtTimer = HURT_HEAL_ANIMATION_TIMER;
 			healTimer = HURT_HEAL_ANIMATION_TIMER;
 		}
 		task(dt);
-	}
-	
-	/**
-	 * Called from the entity's {@link TAnimationController}.
-	 */
-	public void updateRenderingSprite(final TFrame frame) {
-		dataOffsetX               = frame.getDataOffsetX();
-		dataOffsetY               = frame.getDataOffsetY();
-		dataSelectionSquareWidth  = frame.getDataSelectionWidth();
-		dataSelectionSquareHeight = frame.getDataSelectionHeight();
 	}
 	
 	@Override

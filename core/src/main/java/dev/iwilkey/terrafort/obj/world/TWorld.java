@@ -36,7 +36,7 @@ public final class TWorld implements Disposable {
 
 	public static final short           LIGHTING_RAYS           = 16;
 	public static final short           CHUNK_CULLING_THRESHOLD = 4;
-	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 5.0f * 60.0f;
+	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 7.5f * 60.0f;
 
 	private final World              	world;
 	private final long                  seed;
@@ -373,7 +373,7 @@ public final class TWorld implements Disposable {
 		    	    int r = ThreadLocalRandom.current().nextInt(TTerrain.TILE_WIDTH * 4, TTerrain.TILE_WIDTH * 8);
 		    	    int spawnXPos = cx + (int)(r * Math.cos(angle));
 		    	    int spawnYPos = cy + (int)(r * Math.sin(angle));
-		    	    addObject(new TBandit(this, spawnXPos, spawnYPos));
+		    	    addObject(new TBandit(this, spawnXPos, spawnYPos, (float)ThreadLocalRandom.current().nextDouble(1.0f, (float)wave + 0.01f)));
 		    	}
 		    	wavechecl = false;
 		    }

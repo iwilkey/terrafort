@@ -157,7 +157,7 @@ public abstract class TMob extends TEntity {
 	@Override
 	public void hurt(int amt) {
 		super.hurt(amt);
-		for(int i = 0; i < ThreadLocalRandom.current().nextInt(8, 16); i++)
+		for(int i = 0; i < ThreadLocalRandom.current().nextInt(1, 2); i++)
 			world.addObject(new TParticle(world, getActualX(), getActualY(), Color.RED.cpy()));
 	}
 	
@@ -268,7 +268,7 @@ public abstract class TMob extends TEntity {
         	set = false;
         }
         // Facilitates fair attack requesting...
-    	if(requestAttack() && attackTimer == attackCooldownAmt && !isInWater) {
+    	if(requestAttack() && attackTimer == attackCooldownAmt) {
     		attackProcedure();
     		attackTimer = 0.0f;
     	}

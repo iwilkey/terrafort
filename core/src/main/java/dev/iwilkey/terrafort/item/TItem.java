@@ -2,8 +2,8 @@ package dev.iwilkey.terrafort.item;
 
 import dev.iwilkey.terrafort.item.canonical.TItemDefinition;
 import dev.iwilkey.terrafort.item.canonical.structure.*;
+import dev.iwilkey.terrafort.item.canonical.weapon.*;
 import dev.iwilkey.terrafort.item.canonical.lighting.*;
-import dev.iwilkey.terrafort.item.canonical.turret.*;
 import dev.iwilkey.terrafort.item.canonical.natural.*;
 import dev.iwilkey.terrafort.item.canonical.food.*;
 
@@ -17,36 +17,45 @@ public enum TItem {
 	// NATURAL
 	///////////////////////////////////////////////////////////////////////////
 	
-	SHELL(new TShellItem()),
+	SHELL(new TShellItemItem()),
 	LOG(new TLogItem()),
+	COAL(new TCoalItem()),
+	ROCK(new TRockItem()),
+	COPPER(new TCopperItem()),
+	SILVER(new TSilverItem()),
+	GOLD(new TGoldItem()),
 	
 	///////////////////////////////////////////////////////////////////////////
 	// STRUCTURE
 	///////////////////////////////////////////////////////////////////////////
 	
-	WOOD_WALL_T1(new TWoodWallT1()),
-	WOOD_WALL_T2(new TWoodWallT2()),
-	WOOD_WALL_T3(new TWoodWallT3()),
-	WOOD_FLOOR(new TWoodFloor()),
-	BROWN_CARPET(new TBrownCarpet()),
+	WOOD_WALL(new TWoodWallItem()),
+	STONE_WALL(new TStoneWallItem()),
+	WOOD_FLOOR(new TWoodFloorItem()),
+	STONE_TILE_FLOOR(new TStoneFloorItem()),
+	BROWN_CARPET(new TBrownCarpetItem()),
 		
 	///////////////////////////////////////////////////////////////////////////
 	// LIGHTING
 	///////////////////////////////////////////////////////////////////////////
 	
-	TORCH(new TTorch()),
+	TORCH(new TTorchItem()),
 	
 	///////////////////////////////////////////////////////////////////////////
-	// TURRETS
+	// TURRETS / WEAPONS
 	///////////////////////////////////////////////////////////////////////////
 	
-	BASIC_TURRET(new TBasicTurret()),
+	RUSTY_TURRET(new TRustyTurretItem()),
+	SILVER_TURRET(new TSilverTurretItem()),
+	GOLDEN_TURRET(new TGoldenTurretItem()),
+	THROWING_AXE(new TThrowingAxeItem()),
 	
 	///////////////////////////////////////////////////////////////////////////
 	// FOOD
 	///////////////////////////////////////////////////////////////////////////
 	
-	ESCARGOT(new TEscargotItem());
+	ESCARGOT(new TEscargotItem()),
+	CHICKEN_WING(new TChickenWingItem());
 	
 	///////////////////////////////////////////////////////////////////////////
 	// ENUM STRUCTURE (DO NOT MODIFY)

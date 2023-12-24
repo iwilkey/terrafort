@@ -12,36 +12,34 @@ import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TBuilding;
 
 /**
- * A slightly structurally diminished building material.
+ * A decent building material. Forged from logs.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TWoodWallT2 extends TItemDefinition {
+public final class TWoodWallItem extends TItemDefinition {
 	
-	public static final int STRENGTH = 4;
+	public static final int STRENGTH = 8;
 	
-	public TWoodWallT2() {
-		super("Wood Wall T2", 
-			  "A slightly structurally diminished building"
-			  + "\nmaterial.\n\n"
+	public TWoodWallItem() {
+		super("Wood Wall", 
+			  "A decent building material.\n\n"
 			  + "[YELLOW][ACTION][]\n"
-			  + "Can be placed in the world to provide\n"
-			  + "shelter from [RED]Bandits[]. Requires " + STRENGTH + " hits to break.",
+			  + "Can be placed in the world to provide shelter from [RED]Bandits[]. Requires " + STRENGTH + " hits to break.",
 			  256,
-			  new TFrame(4, 2, 1, 1), 
+			  new TFrame(5, 2, 1, 1), 
 			  TItemFunction.FORT,
-			  30,
-			  43);
+			  35,
+			  50);
 	}
 
 	@Override
 	public boolean use(TPlayer player) {
-		final Vector2 placed = TBuilding.place(player, TItem.WOOD_WALL_T2, STRENGTH);
+		final Vector2 placed = TBuilding.place(player, TItem.WOOD_WALL, STRENGTH);
 	    if(placed != null) {
-	    	for(int i = 0; i < 6; i++)
+	    	for(int i = 0; i < 8; i++)
 	    		player.getWorld().addObject(new TParticle(player.getWorld(), placed.x, placed.y, Color.BROWN));
 			return true;
 	    }
 		return false;
 	}
-	
+
 }

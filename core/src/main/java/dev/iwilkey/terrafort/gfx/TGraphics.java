@@ -245,7 +245,7 @@ public final class TGraphics implements Disposable {
      */
 	public static void requestCameraZoomChange(boolean in) {
 		int suggested = (!in) ? currentZoomTwoFactor + 1 : currentZoomTwoFactor - 1;
-		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -3.0f, -2.0f));
+		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -4.0f, -2.0f));
 		if(suggested == currentZoomTwoFactor) {
 			fadeOutIn(6.0f);
 			zoomRequest = true;

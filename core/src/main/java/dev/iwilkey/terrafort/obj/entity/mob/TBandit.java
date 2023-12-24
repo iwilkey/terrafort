@@ -21,12 +21,15 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public final class TBandit extends TMob {
 	
-	public static final int   BANDIT_MAX_HP     = 8;
-	public static final float BANDIT_SPEED      = 48.0f;
-	public static final float BANDIT_WIDTH      = 16.0f;
-	public static final float BANDIT_HEIGHT     = 32.0f;
-
-	public TBandit(TWorld world, float tileX, float tileY) {
+	public static final float MAX_POWER_MULTIPLIER = 10.0f;
+	public static final float BASE_HP              = 8.0f;
+	public static final float BANDIT_SPEED         = 48.0f;
+	public static final float BANDIT_WIDTH         = 16.0f;
+	public static final float BANDIT_HEIGHT        = 32.0f;
+	
+	private float powerMultiplier;
+	
+	public TBandit(TWorld world, float tileX, float tileY, float powerMultiplier) {
 		super(world,
 			  true,
 			  tileX * TTerrain.TILE_WIDTH,
@@ -40,12 +43,14 @@ public final class TBandit extends TMob {
 			  0,
 			  1,
 			  2,
-			  Color.GREEN.cpy(),
-			  BANDIT_MAX_HP,
+			  Color.WHITE.cpy().add(powerMultiplier / MAX_POWER_MULTIPLIER, 
+					  -(powerMultiplier / MAX_POWER_MULTIPLIER), 
+					  -(powerMultiplier / MAX_POWER_MULTIPLIER), 0),
+			  (int)Math.ceil(BASE_HP * Math.min(powerMultiplier, MAX_POWER_MULTIPLIER)),
 			  new TLifeformAnimationArray(new TFrame(8, 0, 1, 2), new TFrame(11, 0, 1, 2)));
+		this.powerMultiplier = Math.min(powerMultiplier, MAX_POWER_MULTIPLIER);
 		setGraphicsColliderOffset(-1, 8);
-		setMoveSpeed(BANDIT_SPEED);
-		setAttackCooldownTime(0.16f);
+		setMoveSpeed(BANDIT_SPEED + (this.powerMultiplier * 4));
 	}
 	
 	float attackTimer = 0.0f;
@@ -62,8 +67,8 @@ public final class TBandit extends TMob {
 
 	@Override
 	public boolean requestAttack() {
-		attackTimer += TClock.dt();
-		if(attackTimer > 0.5f) {
+		attackTimer += TClock.dt() * (powerMultiplier * 3);
+		if(attackTimer > 1.0f) {
 			attackTimer = 0.0f;
 			return true;
 		}
@@ -75,10 +80,10 @@ public final class TBandit extends TMob {
 		final TObject hit;
 		hit = sense(6f, (float)Math.PI / 8f, 2);
 		if(hit != null) {
-			// we've hit something, check what it is.
 			if(hit instanceof TEntity) {
 				final TEntity e = (TEntity)hit;
-				e.onInteraction(this);
+				for(int i = 0; i < ThreadLocalRandom.current().nextInt(1, (int)Math.ceil(powerMultiplier)); i++)
+					e.onInteraction(this);
 			}
 		}
 	}
@@ -95,14 +100,14 @@ public final class TBandit extends TMob {
 	    float deltaX = playerX - myX;
 	    float deltaY = playerY - myY;
 	    if (Math.abs(deltaX) > tolerance) {
-	        if (deltaX > 0) {
+	        if(deltaX > 0) {
 	            moveRight();
 	        } else {
 	            moveLeft();
 	        }
 	    }
 	    if (Math.abs(deltaY) > tolerance) {
-	        if (deltaY > 0) {
+	        if(deltaY > 0) {
 	            moveUp();
 	        } else {
 	            moveDown();
@@ -126,8 +131,8 @@ public final class TBandit extends TMob {
 
 	@Override
 	public void die() {
-		world.getPlayer().giveCurrency(ThreadLocalRandom.current().nextInt(1000, 10000));
-		for(int i = 0; i < 32; i++)
+		world.getPlayer().giveCurrency(ThreadLocalRandom.current().nextInt((int)(1000 * powerMultiplier), (int)(10000 * powerMultiplier)));
+		for(int i = 0; i < 16; i++)
 			world.addObject(new TParticle(world, getActualX(), getActualY(), Color.RED.cpy()));
 	}
 	

@@ -16,11 +16,11 @@ import dev.iwilkey.terrafort.obj.world.TBuilding;
  * @author 12176
  *
  */
-public final class TTorch extends TItemDefinition {
+public final class TTorchItem extends TItemDefinition {
 
-	public TTorch() {
+	public TTorchItem() {
 		super("Torch", 
-			  "Emits light for those\ndark, cold nights.\n\n"
+			  "Emits light for those dark, cold nights.\n\n"
 			  + "[YELLOW][ACTION][]\n"
 			  + "Can be placed to emit a dull, radial light.", 
 			  256,

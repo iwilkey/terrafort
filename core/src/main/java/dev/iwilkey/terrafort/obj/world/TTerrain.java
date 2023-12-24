@@ -28,7 +28,7 @@ public final class TTerrain {
 	public static final int    TERRAIN_LEVELS                   = 7;
 	public static final int    TRANSITION_THICKNESS_FACTOR      = 6; // higher value = thinner transition borders.
 	public static final int    TERRAIN_VIEWPORT_CULLING_PADDING = 16;
-
+	
 	public static final int    STONE_HIGH_TILE                  = 0;
 	public static final int    STONE_MEDIUM_TILE                = 1;
 	public static final int    STONE_LOW_TILE                   = 2;
@@ -36,6 +36,7 @@ public final class TTerrain {
 	public static final int    GRASS_TILE                       = 4;
 	public static final int    SAND_TILE                        = 5;
 	public static final int    WATER_TILE                       = 6;
+	public static final int    BUILDING_TILE                    = 7;
 	
 	public static final TFrame STONE_HIGH                       = new TFrame(6, 0, 1, 1);
 	public static final TFrame STONE_MEDIUM                     = new TFrame(5, 0, 1, 1);
@@ -44,9 +45,10 @@ public final class TTerrain {
 	public static final TFrame GRASS                            = new TFrame(4, 1, 1, 1);
 	public static final TFrame SAND                             = new TFrame(5, 1, 1, 1);
 	public static final TFrame WATER                            = new TFrame(6, 1, 1, 1);
+	public static final TFrame DIRT                             = new TFrame(6, 2, 1, 1);
 	
 	public static final TFrame LEVELS[]                         = new TFrame[TERRAIN_LEVELS];
-	public static final Color  TRANSITION_COLORS[]              = new Color[TERRAIN_LEVELS - 1];
+	public static final Color  TRANSITION_COLORS[]              = new Color[TERRAIN_LEVELS];
 	
 	static {
 		LEVELS[STONE_HIGH_TILE]                                 = STONE_HIGH;
@@ -62,6 +64,7 @@ public final class TTerrain {
 		TRANSITION_COLORS[3]                                    = new Color().set(0x605650ff);
 		TRANSITION_COLORS[4]                                    = new Color().set(0x3D823Dff);
 		TRANSITION_COLORS[5]                                    = new Color().set(0x998649ff);
+		TRANSITION_COLORS[6]                                    = new Color().set(0x18E0D3ff);
 	}
 	
 	/**
@@ -79,6 +82,12 @@ public final class TTerrain {
 	    for (int i = xs; i <= xe; i++) {
 	        for (int j = ys; j <= ye; j++) {
                 final int vq = world.getOrGenerateTileHeightAt(i, j);
+                if(vq == BUILDING_TILE) {
+                	final int xx = i * TILE_WIDTH;
+    	        	final int yy = j * TILE_HEIGHT;
+                	TGraphics.draw(DIRT, xx, yy, xx, yy, vq, TILE_WIDTH, TILE_HEIGHT, Color.WHITE.cpy(), true);
+                	continue;
+                }
 	        	for(int d = 0; d < 8; d++) {
 	        		final int dx  = TMath.DX[d];
 	        		final int dy  = TMath.DY[d];

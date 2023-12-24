@@ -11,16 +11,20 @@ import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TBuilding;
 
-public final class TWoodFloor extends TItemDefinition {
+/**
+ * Simple wood flooring.
+ * @author Ian Wilkey (iwilkey)
+ */
+public final class TWoodFloorItem extends TItemDefinition {
 	
 	public static final int STRENGTH = 1;
 
-	public TWoodFloor() {
-		super("Wood Floor", 
-			  "Basic wood flooring.\n\n"
+	public TWoodFloorItem() {
+		super("Wood Plank Floor", 
+			  "Basic wood plank flooring.\n\n"
 			  + "[YELLOW][ACTION][]\n"
-			  + "Can be placed to provide flooring for forts.\n"
-			  + "Requires " + STRENGTH + " hit to break.",
+			  + "Can be placed to provide flooring for forts. Requires " + STRENGTH + " hits to break.\n\n"
+			  + "To break, you must hold [PURPLE][CURSOR 2][] and attack simultaneously.",
 			  256,
 			  new TFrame(3, 12, 1, 1), 
 			  TItemFunction.FORT,

@@ -6,7 +6,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.graphics.Color;
 
-import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
@@ -21,9 +20,8 @@ public class TFloorTile extends TBuildingTile {
 
 	public TFloorTile(TWorld world, TItem item, int tileX, int tileY, int maxHP) {
 		super(world, item, tileX, tileY, TTerrain.TILE_WIDTH / 3, TTerrain.TILE_HEIGHT / 3, maxHP);
-		this.z = 2;
-		this.getPhysicalFixture().getFilterData().categoryBits = TGraphics.LIGHT_PASSTHROUGH;
-		this.getPhysicalFixture().getFilterData().maskBits     = TGraphics.BLOCKS_LIGHT;
+		// floors should render first.
+		z = 2;
 		setAsSensor();
 	}
 	
@@ -37,5 +35,10 @@ public class TFloorTile extends TBuildingTile {
 						                                      getTileY() * TTerrain.TILE_HEIGHT, 
 						                                      Color.BROWN));
 		}
+	}
+
+	@Override
+	public void task(float dt) {
+		// TODO Auto-generated method stub
 	}
 }

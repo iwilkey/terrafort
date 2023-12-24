@@ -1,9 +1,14 @@
 package dev.iwilkey.terrafort.obj.entity.element;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import com.badlogic.gdx.graphics.Color;
 
+import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.math.TMath;
+import dev.iwilkey.terrafort.obj.entity.mob.TBandit;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
+import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TTerrain;
 import dev.iwilkey.terrafort.obj.world.TWorld;
@@ -14,7 +19,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public final class TBoulder extends TNaturalElement {
 	
-	public static final int MAX_HP = 8;
+	public static final int MAX_HP = 16;
 
 	public TBoulder(TWorld world, int tileX, int tileY) {
 		super(world, 
@@ -39,6 +44,21 @@ public final class TBoulder extends TNaturalElement {
 	public void drops() {
 		for(int i = 0; i < 8; i++)
 			world.addObject(new TParticle(world, x, y, Color.GRAY));
+		// there's a 20% chance the rock will spawn some valuable metal or mineral.
+		if(Math.random() > 0.80f) {
+			if(Math.random() > 0.5f)
+				world.addObject(new TItemDrop(world, x, y, TItem.COAL));
+			if(Math.random() > 0.25f)
+				world.addObject(new TItemDrop(world, x, y, TItem.COPPER));
+			if(Math.random() > 0.08f)
+				world.addObject(new TItemDrop(world, x, y, TItem.SILVER));
+			if(Math.random() > 0.01f)
+				world.addObject(new TItemDrop(world, x, y, TItem.GOLD));
+			
+		}
+		// otherwise, boulder just drop a lot of rocks.
+		for(int i = 0; i < ThreadLocalRandom.current().nextInt(1, 8); i++)
+			world.addObject(new TItemDrop(world, x, y, TItem.ROCK));
 	}
 
 	@Override
@@ -50,11 +70,22 @@ public final class TBoulder extends TNaturalElement {
 	public void task(float dt) {
 
 	}
+	
+	@Override
+	public void hurt(int amt) {
+		super.hurt(amt);
+		if(lastInteractee instanceof TBandit)
+			return;
+		for(int i = 0; i < 8; i++)
+			world.addObject(new TParticle(world, x, y, Color.GRAY));
+	}
 
 	@Override
 	public void onInteraction(TMob interactee) {
 		super.onInteraction(interactee);
-		for(int i = 0; i < 2; i++)
+		if(interactee instanceof TBandit)
+			return;
+		for(int i = 0; i < 8; i++)
 			world.addObject(new TParticle(world, x, y, Color.GRAY));
 	}
 

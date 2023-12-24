@@ -70,8 +70,7 @@ public final class THUDInterface extends TContainer {
 					long d = vos / 100;
 					long c = vos % 100;
 					String rend = String.format("$%,d.%02d", d, c);
-					TUserInterface.mallocpop("[YELLOW]Sell[]", "Sell [YELLOW]" + over.getAmount() + " " + over.getItem().is().getName() + "[] for"
-							+ "\n+" + rend);
+					TUserInterface.mallocpop("[YELLOW]Sell[]", "Sell [YELLOW]" + over.getAmount() + " " + over.getItem().is().getName() + "[] for" + " +" + rend);
 					sellUp = true;
 				}
 				return true;

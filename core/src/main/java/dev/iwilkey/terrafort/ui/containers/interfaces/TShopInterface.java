@@ -27,6 +27,7 @@ import com.kotcrab.vis.ui.widget.VisWindow;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
+import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
 import dev.iwilkey.terrafort.ui.TAnchor;
 import dev.iwilkey.terrafort.ui.TDrawable;
 import dev.iwilkey.terrafort.ui.TUserInterface;
@@ -131,8 +132,12 @@ public final class TShopInterface extends TContainer {
 			@Override
 			public void clicked(InputEvent event, float x, float y) {
 				player.takeCurrency(item.is().getBaseBuyValuePerUnit() * amt);
-				for(int i = 0; i < amt; i++) 
-					player.giveItem(item);
+				for(int i = 0; i < amt; i++) {
+					if(!player.giveItem(item)) {
+						// drop it because there's not enough room in the inventory...
+						player.getWorld().addObject(new TItemDrop(player.getWorld(), player.getActualX(), player.getActualY(), item));
+					}
+				}
 			}
 		};
 	}
@@ -205,7 +210,7 @@ public final class TShopInterface extends TContainer {
 	/**
 	 * Converts a currency value to a renderable String.
 	 */
-	private String currencyToString(long currency) {
+	public static String currencyToString(long currency) {
 		long vos = currency;
 		long d   = vos / 100;
 		long c   = vos % 100;

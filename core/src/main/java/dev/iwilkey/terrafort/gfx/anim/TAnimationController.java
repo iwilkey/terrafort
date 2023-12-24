@@ -88,7 +88,7 @@ public final class TAnimationController {
 	 */
 	public void tick(float dt) {
 		if(animations.size <= 0 || targetAnimation == -1) {
-			targetEntity.updateRenderingSprite(nullFrame);
+			targetEntity.setSprite(nullFrame);
 			return;
 		}
 		time += dt;
@@ -97,7 +97,7 @@ public final class TAnimationController {
 			currentFrame %= animations.get(targetAnimation).getLength();
 			time = 0;
 		}
-		targetEntity.updateRenderingSprite(animations.get(targetAnimation).getFrame(currentFrame));
+		targetEntity.setSprite(animations.get(targetAnimation).getFrame(currentFrame));
 	}
 	
 }

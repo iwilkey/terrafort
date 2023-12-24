@@ -16,10 +16,14 @@ public enum TItemFunction {
 	 */
 	FOOD,
 	
+	/**
+	 * This item is used in the construction of forts.
+	 */
 	FORT,
 	
-	TOOL,
-	
+	/**
+	 * This item is used to deal a great amount of damage to the item it targets/collides with.
+	 */
 	WPON;
 	
 }

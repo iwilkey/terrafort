@@ -64,8 +64,8 @@ public final class TPlayer extends TMob {
 	public TPlayer(TWorld world) {
 		super(world,
 			  true,
-			  0.0f,
-			  0.0f,
+			  ThreadLocalRandom.current().nextInt(-65536, 65536),
+			  ThreadLocalRandom.current().nextInt(-65536, 65536),
 			  0,
 			  PLAYER_WIDTH,
 			  PLAYER_HEIGHT,
@@ -81,6 +81,7 @@ public final class TPlayer extends TMob {
 		setGraphicsColliderOffset(-1, 8);
 		setMoveSpeed(PLAYER_WALK_SPEED);
 		setAttackCooldownTime(0.16f);
+		TGraphics.forceCameraPosition(getActualX(), getActualY());
 		hunger              = PLAYER_MAX_HUNGER;
 		energy              = PLAYER_MAX_ENERGY;
 		hungerDepletionTime = REST_HUNGER_DEPL;
@@ -202,6 +203,12 @@ public final class TPlayer extends TMob {
 	 * Attempts to place a {@link TItem} in the players inventory, returns false if the action cannot be completed.
 	 */
 	public boolean giveItem(TItem item) {
+		// try to add to equipped item stack...
+		if(equipped != null) 
+			if(equipped.getItem() == item) 
+				if(equipped.inc())
+					return true;
+		// otherwise, try to add to the inventory.
 		boolean ret = inventory.addItem(item);
 		return ret;
 	}
@@ -210,7 +217,7 @@ public final class TPlayer extends TMob {
 	public void spawn() {
 		// give the abstract inventory.
 		inventory = new TItemStackCollection(5);
-		currency  = new TInterpolator(5000);
+		currency  = new TInterpolator(0);
 		// give a way to see and interact with the inventory.
 		inventoryInterface = new THUDInterface(this);
 		inventoryInterface.init();
@@ -232,21 +239,16 @@ public final class TPlayer extends TMob {
 		super.task(dt);
 		focusCamera();
 		currency.update();
-		
 		// check for items to pick up...
 		final Array<TObject> manifold = getCollisionManifold();
 		for(final TObject o : manifold)
 			if(o instanceof TItemDrop)
 				((TItemDrop)o).transferTo(this);
-
-		// you cannot open or close the Forger while a drag is going on because that can cause an item dupe glitch.
+		// you cannot open or close the shop while a drag is going on because that can cause an item dupe glitch.
 		if(Gdx.input.isKeyJustPressed(Keys.F) && !THUDInterface.dragMutex()) {
 			f = !f;
-			if(f) {
-				TUserInterface.mallocon(shopInterface);
-			} else {
-				TUserInterface.freecon(shopInterface);
-			}
+			if(f) TUserInterface.mallocon(shopInterface);
+			else TUserInterface.freecon(shopInterface);
 		}
 		// get hungry =3.
 		ht += dt;
@@ -359,7 +361,7 @@ public final class TPlayer extends TMob {
 	@Override
 	public void attackProcedure() {
 		final TObject hit;
-		hit = sense(6f, (float)Math.PI / 32f, 2);
+		hit = sense(8f, (float)Math.PI / 32f, 4);
 		if(hit != null) {
 			if(hit instanceof TEntity) {
 				final TEntity e = (TEntity)hit;
@@ -400,9 +402,7 @@ public final class TPlayer extends TMob {
 	
 	public void resize(int nw, int nh) {
 		TUserInterface.freecon(shopInterface);
-		if(f) {
-			TUserInterface.mallocon(shopInterface);
-		}
+		if(f) TUserInterface.mallocon(shopInterface);
 		inventoryInterface.resize(nw, nh);
 	}
 

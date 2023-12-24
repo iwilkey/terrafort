@@ -8,36 +8,35 @@ import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.particulate.TProjectile;
 
 /**
- * Dropped naturally from bushes or trees. Can be thrown.
- * @author Ian Wilkey (iwilkey)
+ * You can throw it. I'd sell it. You will also be able to use it for machines and generators later.
+ * @author Ian Wilkey (iwilkey).
  */
-public final class TLogItem extends TItemDefinition {
+public final class TCoalItem extends TItemDefinition {
 	
 	public static final int   ENERGY_TO_THROW  = 1;
 	public static final int   THROWING_FORCE   = 64;
-	public static final int   COLLISION_DAMAGE = 1;
+	public static final int   COLLISION_DAMAGE = 2;
 	public static final float DENSITY          = 1.0f;
 	public static final int   ANGLE_SPREAD     = 30;
 	
-	public TLogItem() {
-		super("Log", 
-			  "Dropped naturally from\nbushes and trees.\n\n"
+	public TCoalItem() {
+		super("Coal", 
+			  "Found naturally in the debris of rock in mountainous regions.\n\n"
 			  + "[YELLOW][ACTION][]\n"
-			  + "Can be thrown. Hits deal " + COLLISION_DAMAGE + " [PINK]damage[]. Requires " + ENERGY_TO_THROW + " [YELLOW]energy[] to throw.", 
+			  + "Can be thrown. Hits deal " + COLLISION_DAMAGE + " [PINK]damage[]. Requires " + ENERGY_TO_THROW + " [YELLOW]energy[] to throw.",
 			  256,
-			  new TFrame(3, 11, 1, 1), 
+			  new TFrame(7, 7, 1, 1), 
 			  TItemFunction.NTRL,
-			  10,
-			  20);
+			  400,
+			  450);
 	}
 	
 	@Override
 	public boolean use(TPlayer player) {
-		// it takes ENERGY_TO_THROW amount of energy to actually throw the projectile.
 		if(player.getEnergyPoints() >= ENERGY_TO_THROW) {
 			player.getWorld().addObject(new TProjectile(player.getWorld(), 
 														player, 
-														TItem.LOG, 
+														TItem.COAL, 
 														THROWING_FORCE, 
 														COLLISION_DAMAGE,
 														DENSITY, 

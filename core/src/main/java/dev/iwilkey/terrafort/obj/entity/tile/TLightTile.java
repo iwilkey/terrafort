@@ -41,7 +41,6 @@ public final class TLightTile extends TBuildingTile {
 	
 	@Override
 	public void task(float dt) {
-		super.task(dt);
 		time += dt;
 		time %= 2 * Math.PI;
 		light.setDistance(distance + (8.0f * (float)Math.sin(time)));

@@ -2,6 +2,7 @@ package dev.iwilkey.terrafort.obj.particulate;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 
 import dev.iwilkey.terrafort.obj.world.TWorld;
@@ -12,13 +13,14 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public final class TTurretProjectile extends TParticulate {
 	
-	public TTurretProjectile(TWorld world, float originX, float originY, float dirX, float dirY) {
+	public TTurretProjectile(TWorld world, float originX, float originY, float dirX, float dirY, Color color) {
 		super(world, 
 				originX + dirX, 
 				originY + dirY, 
 				ThreadLocalRandom.current().nextInt(1, 2), 
 				ThreadLocalRandom.current().nextInt(1, 2), 
-				2.0f);
+				10.0f);
+		setRenderTint(color);
 		this.dataOffsetX               = 3;
 		this.dataOffsetY               = 1;
 		this.dataSelectionSquareWidth  = 1;

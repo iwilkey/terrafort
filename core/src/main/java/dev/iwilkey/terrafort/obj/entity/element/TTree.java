@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 
 import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.math.TMath;
+import dev.iwilkey.terrafort.obj.entity.mob.TBandit;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.particulate.TItemDrop;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
@@ -18,7 +19,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public final class TTree extends TNaturalElement {
 	
-	public static final int MAX_HP = 4;
+	public static final int MAX_HP = 8;
 
 	public TTree(TWorld world, int tileX, int tileY) {
 		super(world, 
@@ -52,6 +53,8 @@ public final class TTree extends TNaturalElement {
 	@Override
 	public void onInteraction(TMob interactee) {
 		super.onInteraction(interactee);
+		if(interactee instanceof TBandit)
+			return;
 		world.addObject(new TParticle(world, x, y, Color.BROWN));
 	}
 

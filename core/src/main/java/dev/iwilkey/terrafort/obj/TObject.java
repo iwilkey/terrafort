@@ -9,6 +9,7 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.utils.Array;
 
+import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.TRenderableSprite;
 import dev.iwilkey.terrafort.math.TCollisionManifold;
@@ -102,8 +103,14 @@ public abstract class TObject implements TRenderableSprite {
 		body.createFixture(fixtureDef);
 		shape.dispose();
 		getPhysicalFixture().setSensor(isSensor);
-		getPhysicalFixture().getFilterData().categoryBits = TGraphics.BLOCKS_LIGHT;
-		getPhysicalFixture().getFilterData().maskBits     = TGraphics.BLOCKS_LIGHT | TGraphics.LIGHT_PASSTHROUGH;
+		if(!isSensor) {
+			getPhysicalFixture().getFilterData().categoryBits = TGraphics.BLOCKS_LIGHT;
+			getPhysicalFixture().getFilterData().maskBits     = TGraphics.BLOCKS_LIGHT | TGraphics.LIGHT_PASSTHROUGH;
+		} else {
+			// sensors shouldn't block light.
+			getPhysicalFixture().getFilterData().categoryBits = TGraphics.LIGHT_PASSTHROUGH;
+			getPhysicalFixture().getFilterData().maskBits     = TGraphics.BLOCKS_LIGHT | TGraphics.LIGHT_PASSTHROUGH;
+		}
 	}
 	
 	/**
@@ -219,6 +226,8 @@ public abstract class TObject implements TRenderableSprite {
 			return;
 		isSensor = true;
 		getPhysicalFixture().setSensor(true);
+		getPhysicalFixture().getFilterData().categoryBits = TGraphics.LIGHT_PASSTHROUGH;
+		getPhysicalFixture().getFilterData().maskBits     = TGraphics.BLOCKS_LIGHT | TGraphics.LIGHT_PASSTHROUGH;
 	}
 	
 	public final void setManualRotation() {
@@ -241,6 +250,20 @@ public abstract class TObject implements TRenderableSprite {
 		getPhysicalFixture().setSensor(false);
 	}
 	
+	/**
+	 * Manually specifies the region of the spritesheet to render as the sprite for the {@link TObject}. Keep in mind, a {@link TEntity}'s {@link TAnimationController} may override
+	 * Sprites set here.
+	 */
+	public final void setSprite(TFrame sprite) {
+		dataOffsetX               = sprite.getDataOffsetX();
+		dataOffsetY               = sprite.getDataOffsetY();
+		dataSelectionSquareWidth  = sprite.getDataSelectionWidth();
+		dataSelectionSquareHeight = sprite.getDataSelectionHeight();
+	}
+	
+	/**
+	 * Set the tint of the {@link TObject}.
+	 */
 	public final void setRenderTint(Color color) {
 		if(!enabled)
 			return;

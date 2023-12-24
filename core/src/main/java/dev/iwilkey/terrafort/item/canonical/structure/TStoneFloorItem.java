@@ -12,35 +12,35 @@ import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.world.TBuilding;
 
 /**
- * A decent building material. Forged from logs.
+ * Simple stone flooring.
  * @author Ian Wilkey (iwilkey)
  */
-public final class TWoodWallT3 extends TItemDefinition {
+public final class TStoneFloorItem extends TItemDefinition {
 	
-	public static final int STRENGTH = 8;
-	
-	public TWoodWallT3() {
-		super("Wood Wall T3", 
-			  "A decent building material.\n\n"
+	public static final int STRENGTH = 4;
+
+	public TStoneFloorItem() {
+		super("Stone Tile Floor", 
+			  "Basic stone flooring, arranged in neat tiles.\n\n"
 			  + "[YELLOW][ACTION][]\n"
-			  + "Can be placed in the world to provide\n"
-			  + "shelter from [RED]Bandits[]. Requires " + STRENGTH + " hits to break.",
+			  + "Can be placed to provide flooring for forts. Requires " + STRENGTH + " hits to break.\n\n"
+			  + "To break, you must hold [PURPLE][CURSOR 2][] and attack simultaneously.",
 			  256,
-			  new TFrame(5, 2, 1, 1), 
+			  new TFrame(3, 13, 1, 1), 
 			  TItemFunction.FORT,
-			  35,
+			  25,
 			  50);
 	}
-
+	
 	@Override
 	public boolean use(TPlayer player) {
-		final Vector2 placed = TBuilding.place(player, TItem.WOOD_WALL_T3, STRENGTH);
+		final Vector2 placed = TBuilding.place(player, TItem.STONE_TILE_FLOOR, STRENGTH);
 	    if(placed != null) {
-	    	for(int i = 0; i < 8; i++)
+	    	for(int i = 0; i < 4; i++)
 	    		player.getWorld().addObject(new TParticle(player.getWorld(), placed.x, placed.y, Color.BROWN));
 			return true;
 	    }
 		return false;
 	}
-
+	
 }

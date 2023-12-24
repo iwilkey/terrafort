@@ -103,17 +103,21 @@ public final class TBuilding {
 		if(item.is().getFunction() != TItemFunction.FORT)
 			return TType.NULL;
 		switch(item) {
-			case WOOD_WALL_T1:
+			case WOOD_WALL:
 				return TType.WALL;
-			case WOOD_WALL_T2:
-				return TType.WALL;
-			case WOOD_WALL_T3:
+			case STONE_WALL:
 				return TType.WALL;
 			case WOOD_FLOOR:
 				return TType.FLOOR;
+			case STONE_TILE_FLOOR:
+				return TType.FLOOR;
 			case BROWN_CARPET:
 				return TType.FLOOR;
-			case BASIC_TURRET:
+			case RUSTY_TURRET:
+				return TType.TURRET;
+			case SILVER_TURRET:
+				return TType.TURRET;
+			case GOLDEN_TURRET:
 				return TType.TURRET;
 			case TORCH:
 				return TType.LIGHT;

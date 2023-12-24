@@ -47,7 +47,8 @@ public final class TPopup implements Disposable {
 		desc.setAlignment(Align.left);
 		desc.setStyle(TUserInterface.LABEL_STYLE);
 		desc.setFontScale(0.16f);
-		table.add(desc).expand().fill();
+		desc.setWrap(true);
+		table.add(desc).prefWidth(256);
 		window.add(table).expand().fill().pad(8);
 		window.pack();
 		window.setTouchable(Touchable.disabled);
