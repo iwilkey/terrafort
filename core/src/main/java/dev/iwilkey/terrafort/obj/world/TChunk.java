@@ -53,6 +53,7 @@ public final class TChunk {
 		odat                    = new Array<>();
 		odatGC                  = new Array<>();
 		dormant                 = false;
+		// create a new chunk file for the world.
 	}
 	
 	public int getChunkX() {

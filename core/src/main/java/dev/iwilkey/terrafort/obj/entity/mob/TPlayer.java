@@ -42,6 +42,7 @@ public final class TPlayer extends TMob {
 	public static final int   PLAYER_MAX_HP     = 128;
 	public static final int   PLAYER_MAX_HUNGER = 128;
 	public static final int   PLAYER_MAX_ENERGY = 128;
+	
 	public static final float REST_HUNGER_DEPL  = 10.0f; // at rest, how long does it take for hunger points to deplete?
 	public static final float BASE_ENERGY_REPL  = 1.0f;  // without any effect from nutrition, how long does it take to get an energy point?
 	public static final float PLAYER_WALK_SPEED = 32.0f;

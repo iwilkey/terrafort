@@ -43,6 +43,7 @@ public final class TShopInterface extends TContainer {
 	public static final int      BULK_LEVELS  = 5;
 	public static final int      WIDTH        = 16;
 	public static final int      HEIGHT       = 9;
+	
 	public static final Drawable WINDOW_BG    = TDrawable.solid(0x444444ff, WIDTH, HEIGHT);
 	public static final Drawable BLACK_BG     = TDrawable.solid(0x000000ff, WIDTH, HEIGHT);
 	public static final Drawable GRAY_BG      = TDrawable.solid(0x111111ff, WIDTH, HEIGHT);

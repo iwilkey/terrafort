@@ -5,7 +5,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.state.TDemoState;
+import dev.iwilkey.terrafort.math.TEncryption;
+import dev.iwilkey.terrafort.state.TSinglePlayerState;
 import dev.iwilkey.terrafort.ui.TUserInterface;
 
 /**
@@ -81,7 +82,7 @@ public final class TEngine extends ApplicationAdapter {
     	Gdx.input.setInputProcessor(multiplexer);
     	// setState(new TTessellationLogoState());
     	// setState(new TMainMenuState());
-        setState(new TDemoState());
+        setState(new TSinglePlayerState());
     }
 
     @Override
@@ -111,5 +112,7 @@ public final class TEngine extends ApplicationAdapter {
     	setState(null);
     	renderer.dispose();
     }
+    
+    
     
 }

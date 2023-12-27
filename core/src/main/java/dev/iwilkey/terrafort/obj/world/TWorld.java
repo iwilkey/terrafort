@@ -15,6 +15,7 @@ import com.badlogic.gdx.utils.Disposable;
 
 import box2dLight.PointLight;
 import box2dLight.RayHandler;
+
 import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.TEngine;
 import dev.iwilkey.terrafort.gfx.TGraphics;
@@ -29,7 +30,7 @@ import dev.iwilkey.terrafort.state.TMainMenuState;
 
 /**
  * A physical space that efficiently manages {@link TChunk}s, global and local forces, and dynamic lighting all active 
- * within a Single-player game of Terrafort.
+ * within a single-player game of Terrafort.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TWorld implements Disposable {
@@ -37,45 +38,52 @@ public final class TWorld implements Disposable {
 	public static final short           LIGHTING_RAYS           = 16;
 	public static final short           CHUNK_CULLING_THRESHOLD = 4;
 	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 7.5f * 60.0f;
-
-	private final World              	world;
-	private final long                  seed;
 	
-	private final HashMap<Long, TChunk> calloc;  // chunk allocation
-	private final Set<Long>             acalloc; // active chunk allocation
-	private final Set<Long>             ucalloc; // indeterminate chunk allocation
-
-	private final Box2DDebugRenderer    debugRenderer;
-	private final RayHandler            lightRenderer;
+	private final long                  seed;                   // METADATA
+	private final World              	world                   = new World(new Vector2(0, 0), false);
+	private final HashMap<Long, TChunk> calloc                  = new HashMap<>();  // chunk allocation
+	private final Set<Long>             acalloc                 = new HashSet<>();  // active chunk allocation
+	private final Set<Long>             ucalloc                 = new HashSet<>();  // indeterminate chunk allocation
+	private final Box2DDebugRenderer    debugRenderer           = new Box2DDebugRenderer();
+	private final RayHandler            lightRenderer           = new RayHandler(world);
 	
-	private TPlayer                     clientPlayer;
+	private TPlayer                     clientPlayer            = null;
+	private boolean                     debug                   = false;
+	private boolean                     day                     = false;
+	private boolean                     dusk                    = false;
+	private boolean                     night                   = false;
+	private boolean                     dawn                    = false;
+	private int                         dormantChunks           = 0;
+	private float                       worldTime;			    // METADATA
+	private long                        wave;                   // METADATA
 	
-	private boolean                     debug;
-	private float                       worldTime;
-	private long                        wave;
-	private boolean                     day;
-	private boolean                     dusk;
-	private boolean                     night;
-	private boolean                     dawn;
-	private int                         dormantChunks;
-	
+	/**
+	 * New game.
+	 * @param seed given seed.
+	 */
 	public TWorld(long seed) {
-		this.seed                       = seed;
-		world                           = new World(new Vector2(0, 0), false);
-		calloc                          = new HashMap<>();
-		acalloc                         = new HashSet<>();
-		ucalloc                         = new HashSet<>();
-		lightRenderer                   = new RayHandler(world);
-		debugRenderer                   = new Box2DDebugRenderer();
-		debug                           = false;
-		clientPlayer                    = null;
-		worldTime                       = DAY_NIGHT_CYCLE_PERIOD;
-		day                             = true;
-		dusk                            = false;
-		night                           = false;
-		dawn                            = false;
-		wave                            = 0;
-		dormantChunks                   = 0;
+		this.seed = seed;
+		worldTime = DAY_NIGHT_CYCLE_PERIOD; // a new world always starts out at high noon...
+		wave      = 0;
+		generalInit();
+	}
+	
+	/**
+	 * Load an existing world from a save name.
+	 * @param directory world directory.
+	 */
+	public TWorld(String directory) {
+		this.seed = 0;
+		// seed?
+		// worldTime?
+		// wave?
+		generalInit();
+	}
+	
+	/**
+	 * Initialization of variables that has to happen no matter loading or creating a {@link TWorld}.
+	 */
+	private void generalInit() {
 		lightRenderer.setAmbientLight(0.1f, 0.1f, 0.1f, 0.5f);
 		world.setContactListener(new TCollisionManifold());
 	}

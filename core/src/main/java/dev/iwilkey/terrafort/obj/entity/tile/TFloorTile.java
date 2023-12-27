@@ -19,7 +19,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
 public class TFloorTile extends TBuildingTile {
 
 	public TFloorTile(TWorld world, TItem item, int tileX, int tileY, int maxHP) {
-		super(world, item, tileX, tileY, TTerrain.TILE_WIDTH / 3, TTerrain.TILE_HEIGHT / 3, maxHP);
+		super(world, item, tileX, tileY, TTerrain.TILE_WIDTH / 5, TTerrain.TILE_HEIGHT / 5, maxHP);
 		// floors should render first.
 		z = 2;
 		setAsSensor();

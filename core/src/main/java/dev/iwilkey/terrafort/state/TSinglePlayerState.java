@@ -13,7 +13,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  * A single-player game of Terrafort.
  * @author Ian Wilkey (iwilkey)
  */
-public class TDemoState implements TState {
+public class TSinglePlayerState implements TState {
 	
 	TPlayer player;
 	TWorld  world;

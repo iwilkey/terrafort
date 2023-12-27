@@ -13,7 +13,7 @@ import com.kotcrab.vis.ui.widget.VisWindow;
 import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.TEngine;
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.state.TDemoState;
+import dev.iwilkey.terrafort.state.TSinglePlayerState;
 import dev.iwilkey.terrafort.ui.TAnchor;
 import dev.iwilkey.terrafort.ui.TDrawable;
 import dev.iwilkey.terrafort.ui.TUserInterface;
@@ -97,7 +97,7 @@ public class TMainMenuInterface extends TContainer {
 				switch(target) {
 					case PLAY:
 						TGraphics.forceCameraPosition(0, 0);
-						TEngine.setState(new TDemoState());
+						TEngine.setState(new TSinglePlayerState());
 						break;
 					case EXIT:
 						System.exit(0);

@@ -57,7 +57,7 @@ public final class TBoulder extends TNaturalElement {
 			
 		}
 		// otherwise, boulder just drop a lot of rocks.
-		for(int i = 0; i < ThreadLocalRandom.current().nextInt(1, 8); i++)
+		for(int i = 0; i < ThreadLocalRandom.current().nextInt(8, 16); i++)
 			world.addObject(new TItemDrop(world, x, y, TItem.ROCK));
 	}
 
