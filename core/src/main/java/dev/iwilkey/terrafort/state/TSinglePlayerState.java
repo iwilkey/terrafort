@@ -15,15 +15,22 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  */
 public class TSinglePlayerState implements TState {
 	
-	TPlayer player;
-	TWorld  world;
+	private final String worldName;
+	private TPlayer      player;
+	private TWorld       world;
+	
+	public TSinglePlayerState(String worldName) {
+		this.worldName = worldName;
+	}
 
 	@Override
 	public void start() {
+		
 		TGraphics.setGlLineWidth(2.0f);
 		TGraphics.setCameraSpeedToTarget(4.0f);
-		TGraphics.POST_PROCESSING.addEffect(TGraphics.POST_FXAA);
-		world = new TWorld(ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE - 1));
+		// TGraphics.POST_PROCESSING.addEffect(TGraphics.POST_FXAA);
+		
+		world = new TWorld(worldName, ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE - 1));
 		player = (TPlayer)world.addObject(new TPlayer(world));
 		TGraphics.fadeIn(0.5f);
 	}

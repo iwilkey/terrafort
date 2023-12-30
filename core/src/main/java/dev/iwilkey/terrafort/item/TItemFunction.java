@@ -1,10 +1,12 @@
 package dev.iwilkey.terrafort.item;
 
+import java.io.Serializable;
+
 /**
  * Enumerates every possible function that a {@link TItem} might serve in Terrafort.
  * @author Ian Wilkey (iwilkey)
  */
-public enum TItemFunction {
+public enum TItemFunction implements Serializable {
 	
 	/**
 	 * This item is fundamental and found in nature.

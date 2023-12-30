@@ -97,7 +97,7 @@ public class TMainMenuInterface extends TContainer {
 				switch(target) {
 					case PLAY:
 						TGraphics.forceCameraPosition(0, 0);
-						TEngine.setState(new TSinglePlayerState());
+						TEngine.setState(new TSinglePlayerState("world"));
 						break;
 					case EXIT:
 						System.exit(0);

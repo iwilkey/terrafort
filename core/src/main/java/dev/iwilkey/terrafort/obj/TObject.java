@@ -24,7 +24,7 @@ public abstract class TObject implements TRenderableSprite {
 
 	public boolean                     shouldDraw = true;
 
-	protected final TWorld world;
+	protected final TWorld             world;
 	protected final Array<TObject>     collisionManifold;
 	
 	protected Body                     body;

@@ -26,6 +26,8 @@ import dev.iwilkey.terrafort.obj.entity.mob.TBandit;
 import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.entity.tile.TBuildingTile;
 import dev.iwilkey.terrafort.obj.entity.tile.TFloorTile;
+import dev.iwilkey.terrafort.persistent.TPersistent;
+import dev.iwilkey.terrafort.persistent.proxy.TSerializableWorldProxy;
 import dev.iwilkey.terrafort.state.TMainMenuState;
 
 /**
@@ -34,12 +36,12 @@ import dev.iwilkey.terrafort.state.TMainMenuState;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TWorld implements Disposable {
-
+	
 	public static final short           LIGHTING_RAYS           = 16;
 	public static final short           CHUNK_CULLING_THRESHOLD = 4;
 	public static final float           DAY_NIGHT_CYCLE_PERIOD  = 7.5f * 60.0f;
 	
-	private final long                  seed;                   // METADATA
+	private final String                worldName;              // METADATA
 	private final World              	world                   = new World(new Vector2(0, 0), false);
 	private final HashMap<Long, TChunk> calloc                  = new HashMap<>();  // chunk allocation
 	private final Set<Long>             acalloc                 = new HashSet<>();  // active chunk allocation
@@ -54,6 +56,7 @@ public final class TWorld implements Disposable {
 	private boolean                     night                   = false;
 	private boolean                     dawn                    = false;
 	private int                         dormantChunks           = 0;
+	private long                        seed;                   // METADATA
 	private float                       worldTime;			    // METADATA
 	private long                        wave;                   // METADATA
 	
@@ -61,25 +64,38 @@ public final class TWorld implements Disposable {
 	 * New game.
 	 * @param seed given seed.
 	 */
-	public TWorld(long seed) {
-		this.seed = seed;
-		worldTime = DAY_NIGHT_CYCLE_PERIOD; // a new world always starts out at high noon...
-		wave      = 0;
+	public TWorld(String worldName, long seed) {
+		this.worldName = worldName;
+		this.seed      = seed;
+		worldTime      = DAY_NIGHT_CYCLE_PERIOD;
+		wave           = 0;
 		generalInit();
+		if(!worldName.equals("main-menu")) {
+			// create a persistent directory for world to save data in (not for the main menu world though.
+			TPersistent.establish(worldName, false);
+			System.out.println("Creating world \"" + worldName + "\" entry in persistent memory.");
+		}
 	}
 	
 	/**
-	 * Load an existing world from a save name.
-	 * @param directory world directory.
+	 * Constructs a world object from an object proxy, likely from persistent memory (like a save file.)
 	 */
-	public TWorld(String directory) {
-		this.seed = 0;
-		// seed?
-		// worldTime?
-		// wave?
+	public TWorld(TSerializableWorldProxy proxy) {
+		worldName = proxy.getWorldName();
 		generalInit();
+		updateFromProxy(proxy);
 	}
 	
+	/**
+	 * Updates the state of a {@link TWorld} using a given {@link TSerializableWorldProxy}.
+	 */
+	public void updateFromProxy(TSerializableWorldProxy proxy) {
+		seed      = proxy.getSeed();
+		worldTime = proxy.getWorldTime();
+		wave      = proxy.getWave();
+		
+	}
+
 	/**
 	 * Initialization of variables that has to happen no matter loading or creating a {@link TWorld}.
 	 */
@@ -298,8 +314,16 @@ public final class TWorld implements Disposable {
 		return calloc.get(hash);
 	}
 	
+	public String getWorldName() {
+		return worldName;
+	}
+	
 	public long getSeed() {
 		return seed;
+	}
+	
+	public float getWorldTime() {
+		return worldTime;
 	}
 	
 	public HashMap<Long, TChunk> getChunkMemory() {
@@ -414,6 +438,7 @@ public final class TWorld implements Disposable {
 	
 	@Override
 	public void dispose() {
+		// TPersistent.save(this, worldName);
 		clearAllActiveObjectsAndBodies();
 		calloc.clear();
 		lightRenderer.removeAll();

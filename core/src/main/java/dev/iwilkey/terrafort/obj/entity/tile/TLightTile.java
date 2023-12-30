@@ -14,7 +14,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TLightTile extends TBuildingTile {
-	
+
 	public static final float TORCH_BASE_EMISSION_DISTANCE = 64.0f;
 	
 	private final float distance;

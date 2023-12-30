@@ -1,6 +1,6 @@
 package dev.iwilkey.terrafort.gfx.anim;
 
-import com.badlogic.gdx.utils.Array;
+import java.util.ArrayList;
 
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.obj.entity.TEntity;
@@ -15,12 +15,12 @@ public final class TAnimationController {
 	private int               targetAnimation;
 	private float             targetFrameRate;
 	private TFrame            nullFrame;
-	private Array<TAnimation> animations;
+	private ArrayList<TAnimation> animations;
 	private int               currentFrame;
 	private float             time;
 
 	public TAnimationController(TEntity entity) {
-		animations      = new Array<>();
+		animations      = new ArrayList<>();
 		targetAnimation = -1;
 		targetEntity    = entity;
 		nullFrame       = new TFrame(entity.getDataSelectionOffsetX(), 
@@ -57,7 +57,7 @@ public final class TAnimationController {
 	public void setAnimation(final String label) {
 		// currentFrame = 0;
 		//time         = 0.0f;
-		for(int i = 0; i < animations.size; i++) {
+		for(int i = 0; i < animations.size(); i++) {
 			final String alab = animations.get(i).getLabel();
 			if(alab.equals(label)) {
 				targetAnimation = i;
@@ -87,7 +87,7 @@ public final class TAnimationController {
 	 * Updates the animation controller. Should be called every frame.
 	 */
 	public void tick(float dt) {
-		if(animations.size <= 0 || targetAnimation == -1) {
+		if(animations.size() <= 0 || targetAnimation == -1) {
 			targetEntity.setSprite(nullFrame);
 			return;
 		}

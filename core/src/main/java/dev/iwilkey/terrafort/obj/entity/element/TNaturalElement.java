@@ -12,7 +12,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  * @author Ian Wilkey (iwilkey)
  */
 public abstract class TNaturalElement extends TEntity {
-
+	
 	protected TMob lastInteractee;
 	
 	public TNaturalElement(TWorld  world, 

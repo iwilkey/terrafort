@@ -12,7 +12,7 @@ import dev.iwilkey.terrafort.obj.world.TWorld;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TTurretProjectile extends TParticulate {
-	
+
 	public TTurretProjectile(TWorld world, float originX, float originY, float dirX, float dirY, Color color) {
 		super(world, 
 				originX + dirX, 

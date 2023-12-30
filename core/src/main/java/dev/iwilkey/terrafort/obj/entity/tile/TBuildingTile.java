@@ -59,6 +59,6 @@ public abstract class TBuildingTile extends TEntity {
 	@Override
 	public void die() {
 		world.addObject(new TItemDrop(world, getActualX(), getActualY(), item));
-	}	
+	}
 
 }

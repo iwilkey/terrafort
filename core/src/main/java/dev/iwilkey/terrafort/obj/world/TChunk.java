@@ -14,6 +14,7 @@ import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.entity.tile.TBuildingTile;
 import dev.iwilkey.terrafort.obj.entity.tile.TFloorTile;
 import dev.iwilkey.terrafort.obj.particulate.TParticulate;
+import dev.iwilkey.terrafort.persistent.proxy.TSerializableChunkProxy;
 
 /**
  * Spatial partition of the infinite world of Terrafort. Caches known tile heights and hashes terraform requests for a chunk of a given
@@ -21,19 +22,16 @@ import dev.iwilkey.terrafort.obj.particulate.TParticulate;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TChunk {
-	
+
 	public static final int   CHUNK_SIZE        = 16;
-	public static final int   TREE_ELEMENT      = 0;
-	public static final int   FLOWER_ELEMENT    = 1;
-	public static final int   BUSH_ELEMENT      = 2;
 	
 	private final TWorld                         world;
 	
-	private final HashMap<Long, Integer>         tdat;
-	private final HashMap<Long, TBuildingTile>   btdat;
-	private final HashMap<Long, TFloorTile>      fdat;
-	private final Array<TObject>                 odat;
-	private final Array<TObject>                 odatGC;
+	private final HashMap<Long, Integer>         tdat   = new HashMap<>();
+	private final HashMap<Long, TBuildingTile>   btdat  = new HashMap<>();
+	private final HashMap<Long, TFloorTile>      fdat   = new HashMap<>();
+	private final Array<TObject>                 odat   = new Array<>();
+	private final Array<TObject>                 odatGC = new Array<>();
 	
 	private final int                            chunkX;
 	private final int                            chunkY;
@@ -44,16 +42,26 @@ public final class TChunk {
 	 * Create a new chunk with no previous data; a "clean" chunk.
 	 */
 	public TChunk(TWorld world, int chunkX, int chunkY) {
-		this.world              = world;
-		this.chunkX             = chunkX;
-		this.chunkY             = chunkY;
-		tdat                    = new HashMap<>();
-		btdat                   = new HashMap<>();
-		fdat                    = new HashMap<>();
-		odat                    = new Array<>();
-		odatGC                  = new Array<>();
-		dormant                 = false;
-		// create a new chunk file for the world.
+		this.world  = world;
+		this.chunkX = chunkX;
+		this.chunkY = chunkY;
+		dormant     = false;
+	}
+	
+	/**
+	 * Load a chunk from a serialized chunk proxy.
+	 */
+	public TChunk(TWorld world, TSerializableChunkProxy proxy) {
+		this.world = world;
+		chunkX     = proxy.getChunkX();
+		chunkY     = proxy.getChunkY();
+		dormant    = false;
+		
+		// Load in the terrain data hash map...
+		
+		// Load in all the objects from the object array...
+		// This one is gonna take forever.
+		
 	}
 	
 	public int getChunkX() {
@@ -62,6 +70,22 @@ public final class TChunk {
 	
 	public int getChunkY() {
 		return chunkY;
+	}
+	
+	public HashMap<Long, Integer> getTerrainDataMap() {
+		return tdat;
+	}
+	
+	public HashMap<Long, TBuildingTile> getBuildingTileMap() {
+		return btdat;
+	}
+	
+	public HashMap<Long, TFloorTile> getFloorTileMap() {
+		return fdat;
+	}
+	
+	public Array<TObject> getActiveObjects() {
+		return odat;
 	}
 	
 	/**

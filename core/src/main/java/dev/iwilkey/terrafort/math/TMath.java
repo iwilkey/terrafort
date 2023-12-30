@@ -96,7 +96,7 @@ public final class TMath {
 		ret.y = Math.round(ret.y / TTerrain.TILE_HEIGHT);
 		return ret;
 	}
-	
+	  
 	/**
 	 * This function will return an integer between 0 and levels - 1, indicating the partition region of the input value.
 	 * <p>

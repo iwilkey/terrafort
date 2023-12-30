@@ -5,8 +5,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.math.TEncryption;
+import dev.iwilkey.terrafort.persistent.TPersistent;
 import dev.iwilkey.terrafort.state.TSinglePlayerState;
+import dev.iwilkey.terrafort.state.TTessellationLogoState;
 import dev.iwilkey.terrafort.ui.TUserInterface;
 
 /**
@@ -42,6 +43,7 @@ public final class TEngine extends ApplicationAdapter {
 
 	private static TState           state             = null;
 	private static InputMultiplexer multiplexer       = null;
+	private static TPersistent      persistent        = null;
 	private static TInput 		    input             = null;
 	private static TClock           clock             = null;
 	private static TGraphics        renderer          = null;
@@ -71,18 +73,21 @@ public final class TEngine extends ApplicationAdapter {
 	
     @Override
     public void create() {
-    	clock    = new TClock();
-    	input    = new TInput();
-    	renderer = new TGraphics();
-    	audio    = new TAudio();
-    	ui       = new TUserInterface();
+    	System.out.println(this.getClass().getSimpleName());
+    	
+    	persistent  = new TPersistent();
+    	clock       = new TClock();
+    	input       = new TInput();
+    	renderer    = new TGraphics();
+    	audio       = new TAudio();
+    	ui          = new TUserInterface();
     	multiplexer = new InputMultiplexer();
     	multiplexer.addProcessor(TUserInterface.getMom());
     	multiplexer.addProcessor(input);
     	Gdx.input.setInputProcessor(multiplexer);
-    	// setState(new TTessellationLogoState());
+    	setState(new TTessellationLogoState());
     	// setState(new TMainMenuState());
-        setState(new TSinglePlayerState());
+        // setState(new TSinglePlayerState("world"));
     }
 
     @Override

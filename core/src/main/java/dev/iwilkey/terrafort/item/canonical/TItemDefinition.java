@@ -1,5 +1,7 @@
 package dev.iwilkey.terrafort.item.canonical;
 
+import java.io.Serializable;
+
 import dev.iwilkey.terrafort.gfx.TFrame;
 import dev.iwilkey.terrafort.item.TItem;
 import dev.iwilkey.terrafort.item.TItemFunction;
@@ -8,7 +10,9 @@ import dev.iwilkey.terrafort.item.TItemFunction;
  * A canonical definition (or blueprint) for a Terrafort item.
  * @author Ian Wilkey (iwilkey)
  */
-public abstract class TItemDefinition implements TItemAction {
+public abstract class TItemDefinition implements TItemAction, Serializable {
+
+	private static final long serialVersionUID = 744704057104255660L;
 	
 	private final String        canonicalName;
 	private final String        canonicalDescription;

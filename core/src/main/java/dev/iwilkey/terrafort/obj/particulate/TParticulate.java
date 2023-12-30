@@ -3,7 +3,6 @@ package dev.iwilkey.terrafort.obj.particulate;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 
-import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.world.TWorld;
@@ -139,6 +138,10 @@ public abstract class TParticulate extends TObject {
 	 */
 	public final float getAge() {
 		return aliveTime / lifespan;
+	}
+	
+	public final float getAliveTime() {
+		return aliveTime;
 	}
 
 }

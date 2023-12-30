@@ -55,6 +55,10 @@ public final class TBandit extends TMob {
 	
 	float attackTimer = 0.0f;
 	
+	public float getPowerMultipler() {
+		return powerMultiplier;
+	}
+	
 	@Override
 	public void task(float dt) {
 		super.task(dt);

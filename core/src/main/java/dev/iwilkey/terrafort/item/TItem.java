@@ -1,5 +1,7 @@
 package dev.iwilkey.terrafort.item;
 
+import java.io.Serializable;
+
 import dev.iwilkey.terrafort.item.canonical.TItemDefinition;
 import dev.iwilkey.terrafort.item.canonical.structure.*;
 import dev.iwilkey.terrafort.item.canonical.weapon.*;
@@ -11,7 +13,7 @@ import dev.iwilkey.terrafort.item.canonical.food.*;
  * An enumeration of every possible item, resource, or material that can be collected, crafted and/or utilized in-game.
  * @author Ian Wilkey (iwilkey)
  */
-public enum TItem {
+public enum TItem implements Serializable {
 		
 	///////////////////////////////////////////////////////////////////////////
 	// NATURAL

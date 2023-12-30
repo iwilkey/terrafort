@@ -38,7 +38,7 @@ public final class TMainMenuState implements TState {
 		TGraphics.POST_PROCESSING.removeAllEffects();
 		TGraphics.POST_GAUSSIAN_BLUR.setPasses(16);
 		TGraphics.POST_PROCESSING.addEffect(TGraphics.POST_GAUSSIAN_BLUR);
-		world = new TWorld(ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE - 1));
+		world = new TWorld("main-menu", ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE - 1));
 		locSwitch();
 		menu = new TMainMenuInterface();
 		menu.init();

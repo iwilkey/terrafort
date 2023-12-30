@@ -78,4 +78,8 @@ public final class TItemDrop extends TParticulate {
 			dimTimer = 0.0f;
 	}
 	
+	public TItem getItem() {
+		return item;
+	}
+	
 }
