@@ -13,6 +13,8 @@ import dev.iwilkey.terrafort.obj.particulate.TProjectile;
  */
 public final class TRockItem extends TItemDefinition {
 	
+	private static final long serialVersionUID = -4747675666879313009L;
+	
 	public static final int   ENERGY_TO_THROW  = 2;
 	public static final int   THROWING_FORCE   = 64;
 	public static final int   COLLISION_DAMAGE = 4;

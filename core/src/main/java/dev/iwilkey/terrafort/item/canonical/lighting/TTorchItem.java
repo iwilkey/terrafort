@@ -18,6 +18,8 @@ import dev.iwilkey.terrafort.obj.world.TBuilding;
  */
 public final class TTorchItem extends TItemDefinition {
 
+	private static final long serialVersionUID = -8320729843165513925L;
+
 	public TTorchItem() {
 		super("Torch", 
 			  "Emits light for those dark, cold nights.\n\n"

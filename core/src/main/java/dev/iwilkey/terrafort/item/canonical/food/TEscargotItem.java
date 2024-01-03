@@ -11,6 +11,8 @@ import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
  */
 public final class TEscargotItem extends TItemDefinition {
 	
+	private static final long serialVersionUID = 7854047815670961728L;
+	
 	public static final int NUTRITION_RESTORATION = 8;
 	
 	public TEscargotItem() {

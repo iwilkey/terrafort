@@ -13,6 +13,8 @@ import dev.iwilkey.terrafort.obj.world.TBuilding;
 
 public class TStoneWallItem extends TItemDefinition {
 	
+	private static final long serialVersionUID = -4826721491245465317L;
+	
 	public static final int STRENGTH = 20;
 	
 	public TStoneWallItem() {

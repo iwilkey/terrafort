@@ -13,6 +13,8 @@ import dev.iwilkey.terrafort.obj.particulate.TProjectile;
  */
 public final class TThrowingAxeItem extends TItemDefinition {
 	
+	private static final long serialVersionUID = -8839652419075886018L;
+	
 	public static final int   ENERGY_TO_THROW  = 10;
 	public static final int   THROWING_FORCE   = 64;
 	public static final int   COLLISION_DAMAGE = 16;

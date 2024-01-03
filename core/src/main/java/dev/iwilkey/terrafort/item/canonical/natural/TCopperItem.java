@@ -12,6 +12,8 @@ import dev.iwilkey.terrafort.obj.particulate.TProjectile;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TCopperItem extends TItemDefinition {
+
+	private static final long serialVersionUID = -5829917655237796057L;
 	
 	public static final int   ENERGY_TO_THROW  = 2;
 	public static final int   THROWING_FORCE   = 64;

@@ -13,6 +13,8 @@ import dev.iwilkey.terrafort.obj.particulate.TProjectile;
  */
 public final class TShellItemItem extends TItemDefinition {
 	
+	private static final long serialVersionUID = -339140449258280549L;
+	
 	public static final int   ENERGY_TO_THROW  = 1;
 	public static final int   THROWING_FORCE   = 128;
 	public static final int   COLLISION_DAMAGE = 2;

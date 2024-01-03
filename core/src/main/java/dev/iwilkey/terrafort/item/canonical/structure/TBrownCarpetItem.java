@@ -13,6 +13,8 @@ import dev.iwilkey.terrafort.obj.world.TBuilding;
 
 public final class TBrownCarpetItem extends TItemDefinition {
 	
+	private static final long serialVersionUID = -2915645383596588157L;
+	
 	public static final int STRENGTH = 1;
 
 	public TBrownCarpetItem() {

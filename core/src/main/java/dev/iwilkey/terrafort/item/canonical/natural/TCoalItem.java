@@ -12,6 +12,8 @@ import dev.iwilkey.terrafort.obj.particulate.TProjectile;
  * @author Ian Wilkey (iwilkey).
  */
 public final class TCoalItem extends TItemDefinition {
+
+	private static final long serialVersionUID = 166646299729208327L;
 	
 	public static final int   ENERGY_TO_THROW  = 1;
 	public static final int   THROWING_FORCE   = 64;

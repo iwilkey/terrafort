@@ -16,6 +16,8 @@ import dev.iwilkey.terrafort.obj.world.TBuilding;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TStoneFloorItem extends TItemDefinition {
+
+	private static final long serialVersionUID = 6923405631468237494L;
 	
 	public static final int STRENGTH = 4;
 

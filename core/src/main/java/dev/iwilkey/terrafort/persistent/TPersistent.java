@@ -15,7 +15,7 @@ import com.badlogic.gdx.files.FileHandle;
  */
 public final class TPersistent {
 	
-	public static final String ROOT = "./persistent/";
+	public static final String ROOT = "./TerrafortPersistent/";
 	
 	/**
 	 * Should be called at the invocation of the application. Creates the persistent directory if it does not exist.

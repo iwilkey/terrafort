@@ -14,6 +14,8 @@ import dev.iwilkey.terrafort.ui.containers.interfaces.TShopInterface;
 
 public final class TGoldenTurretItem extends TItemDefinition {
 	
+	private static final long serialVersionUID = -5582036593257932772L;
+	
 	public static final int   STRENGTH    = 32;
 	public static final float RANGE       = 250.0f; // the range, in world units.
 	public static final float SWEEP_SPEED = 4.0f; // the sweep speed of the turret in rad/sec

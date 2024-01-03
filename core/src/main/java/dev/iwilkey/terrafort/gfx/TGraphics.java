@@ -1,18 +1,25 @@
 package dev.iwilkey.terrafort.gfx;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Pixmap.Format;
+import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.Disposable;
-
+import com.badlogic.gdx.utils.ScreenUtils;
 import com.crashinvaders.vfx.VfxManager;
 import com.crashinvaders.vfx.effects.BloomEffect;
 import com.crashinvaders.vfx.effects.ChromaticAberrationEffect;
@@ -34,6 +41,7 @@ import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.TObject;
 import dev.iwilkey.terrafort.obj.entity.mob.TMob;
 import dev.iwilkey.terrafort.obj.entity.tile.TBuildingTile;
+import dev.iwilkey.terrafort.persistent.TPersistent;
 import dev.iwilkey.terrafort.ui.TUserInterface;
 
 /**
@@ -171,6 +179,30 @@ public final class TGraphics implements Disposable {
 			@Override
 			public float getActualY() 					{ return ay; 							 }
 		});
+	}
+	
+	/**
+	 * Writes a snapshot of the frame buffer to the Terrafort screenshot directory.
+	 */
+	public static void takeScreenshot() {
+		try {
+	        final int width     = Gdx.graphics.getWidth();
+	        final int height    = Gdx.graphics.getHeight();
+	        final byte[] pixels = ScreenUtils.getFrameBufferPixels(0, 0, width, height, true);
+	        for (int i = 4; i < pixels.length; i += 4)
+	            pixels[i - 1] = (byte) 255;
+	        final Pixmap pixmap = new Pixmap(width, height, Format.RGBA8888);
+	        BufferUtils.copy(pixels, 0, pixmap.getPixels(), pixels.length);
+	        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+	        final String dateTimeString       = LocalDateTime.now().format(formatter);
+	        final String filename             = dateTimeString + ".png";
+	        final FileHandle file             = Gdx.files.local(TPersistent.ROOT + "/screenshots/" + filename);
+	        PixmapIO.writePNG(file, pixmap);
+	        System.out.println("[Terrafort Game Engine] Saved screenshot to " + file.path());
+	        pixmap.dispose();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
 	}
 	
 	/**

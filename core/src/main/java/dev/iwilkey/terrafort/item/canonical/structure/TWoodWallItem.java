@@ -17,6 +17,8 @@ import dev.iwilkey.terrafort.obj.world.TBuilding;
  */
 public final class TWoodWallItem extends TItemDefinition {
 	
+	private static final long serialVersionUID = 6050882456974775060L;
+	
 	public static final int STRENGTH = 8;
 	
 	public TWoodWallItem() {

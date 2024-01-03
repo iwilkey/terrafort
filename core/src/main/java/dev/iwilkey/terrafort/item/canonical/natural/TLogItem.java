@@ -13,6 +13,8 @@ import dev.iwilkey.terrafort.obj.particulate.TProjectile;
  */
 public final class TLogItem extends TItemDefinition {
 	
+	private static final long serialVersionUID = -5357867658270372181L;
+	
 	public static final int   ENERGY_TO_THROW  = 1;
 	public static final int   THROWING_FORCE   = 64;
 	public static final int   COLLISION_DAMAGE = 1;

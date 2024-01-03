@@ -10,6 +10,8 @@ import dev.iwilkey.terrafort.obj.entity.mob.TPlayer;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TChickenWingItem extends TItemDefinition {
+
+	private static final long serialVersionUID = -5046271105070265868L;
 	
 	public static final int NUTRITION_RESTORATION = 9;
 	
