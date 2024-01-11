@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
@@ -49,19 +50,17 @@ public final class TPersistent {
 	}
 	
 	/**
-	 * Returns whether or not a specified subdirectory exists in the Terrafort persistent file structure.
+	 * Returns whether or not a specified path exists in the Terrafort persistent file structure.
 	 */
-	public static boolean directoryExists(String subdir) {
-		if(subdir.charAt(subdir.length() - 1) != '/')
-			subdir += '/';
-		final FileHandle handle = Gdx.files.local(ROOT + subdir);
+	public static boolean pathExists(String path) {
+		final FileHandle handle = Gdx.files.local(ROOT + path);
 		return handle.exists();
 	}
 	
 	/**
 	 * Save a {@link TSerializable} object to the persistent data directory with path given.
 	 */
-	public static void save(TSerializable object, String path) {
+	public static void save(Serializable object, String path) {
 		try(final ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ROOT + path))) {
 	        oos.writeObject(object);
 	    } catch (FileNotFoundException e) {
@@ -74,10 +73,10 @@ public final class TPersistent {
 	/**
 	 * Load a {@link TSerializable} object from persistent memory with path given.
 	 */
-	public static TSerializable load(String path) {
+	public static Serializable load(String path) {
 		try(final ObjectInputStream ois = new ObjectInputStream(new FileInputStream(ROOT + path))) {
 	        try {
-				return (TSerializable)ois.readObject();
+				return (Serializable)ois.readObject();
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			}

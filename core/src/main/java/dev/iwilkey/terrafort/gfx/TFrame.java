@@ -1,14 +1,10 @@
 package dev.iwilkey.terrafort.gfx;
 
-import java.io.Serializable;
-
 /**
  * Specific selection on the Sprite Sheet.
  * @author Ian Wilkey (iwilkey)
  */
-public class TFrame implements Serializable {
-
-	private static final long serialVersionUID = -8489115798728072588L;
+public class TFrame {
 	
 	private int x;
 	private int y;

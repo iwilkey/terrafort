@@ -2,6 +2,7 @@ package dev.iwilkey.terrafort.gfx;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
@@ -12,99 +13,62 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Interpolation;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.crashinvaders.vfx.VfxManager;
-import com.crashinvaders.vfx.effects.BloomEffect;
-import com.crashinvaders.vfx.effects.ChromaticAberrationEffect;
-import com.crashinvaders.vfx.effects.CrtEffect;
-import com.crashinvaders.vfx.effects.FilmGrainEffect;
-import com.crashinvaders.vfx.effects.FxaaEffect;
-import com.crashinvaders.vfx.effects.GaussianBlurEffect;
-import com.crashinvaders.vfx.effects.LevelsEffect;
-import com.crashinvaders.vfx.effects.MotionBlurEffect;
-import com.crashinvaders.vfx.effects.RadialBlurEffect;
-import com.crashinvaders.vfx.effects.RadialDistortionEffect;
-import com.crashinvaders.vfx.effects.WaterDistortionEffect;
-import com.crashinvaders.vfx.effects.util.MixEffect;
 
-import dev.iwilkey.terrafort.TEngine;
-import dev.iwilkey.terrafort.gfx.shape.TRect;
+import dev.iwilkey.terrafort.TClock;
+import dev.iwilkey.terrafort.TInput;
+import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.math.TInterpolator;
 import dev.iwilkey.terrafort.math.TMath;
-import dev.iwilkey.terrafort.obj.TObject;
-import dev.iwilkey.terrafort.obj.entity.mob.TMob;
-import dev.iwilkey.terrafort.obj.entity.tile.TBuildingTile;
 import dev.iwilkey.terrafort.persistent.TPersistent;
-import dev.iwilkey.terrafort.ui.TUserInterface;
 
 /**
- * The TGraphics class is the central rendering module for the Terrafort game engine. This module follows a static API design, 
+ * The central rendering module for the Terrafort game engine. This module follows a static API design, 
  * allowing it to be accessed from anywhere within the engine.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TGraphics implements Disposable {
+
+	public static final  int                           MAX_RENDERABLES      = 8191;
+	public static final  int                           DATA_WIDTH           = 16;
+	public static final  int                           DATA_HEIGHT          = 16;
+	public static final  HashMap<String, TSpriteSheet> SPRITE_SHEETS        = new HashMap<>();
+	public static final  OrthographicCamera            WORLD_PROJ_MAT       = new OrthographicCamera();
+	public static final  OrthographicCamera            SCREEN_PROJ_MAT      = new OrthographicCamera();
+	public static final  TInterpolator                 CAMERA_X             = new TInterpolator(0);
+	public static final  TInterpolator                 CAMERA_Y             = new TInterpolator(0);
+	public static final  TInterpolator                 CAMERA_ZOOM          = new TInterpolator(1);
 	
-	public static final int                        MAX_RENDERABLES       = 8191;
-	public static final int                        DATA_WIDTH            = 16;
-	public static final int                        DATA_HEIGHT           = 16;
-	public static final short                      LIGHT_PASSTHROUGH     = 0b1;
-	public static final short                      BLOCKS_LIGHT          = 0b10;
-	public static final float                      PIXELS_PER_METER      = 1f;
+	private static final Array<TRenderableSprite>      SPRITE_REQUESTS      = new Array<>();
+	private static final Array<TRenderableShape>       GEOMETRIC_REQUESTS   = new Array<>();
+	private static final Array<TRenderable>            RENDER_REQUESTS      = new Array<>();
+	private static final Array<SpriteBatch>            SPRITE_BATCH_POOL    = new Array<>();
+	private static final SpriteBatch                   UI_BATCH             = new SpriteBatch();
+	public  static final ShapeRenderer                 GEOMETRIC_RENDERER   = new ShapeRenderer();
+	private static final Box2DDebugRenderer            PHYSICS_RENDERER     = new Box2DDebugRenderer();
 	
-	public static final  Texture                   DATA                  = new Texture(Gdx.files.internal("dat.png"));
-	public static final  OrthographicCamera        CAMERA                = new OrthographicCamera();
+	private static       World                         physicsDebugRender   = null;
+	private static       int                           currentZoomTwoFactor = 1;
 	
-	private static final TInterpolator             CAMERA_X              = new TInterpolator(0);
-	private static final TInterpolator             CAMERA_Y              = new TInterpolator(0);
-	private static final TInterpolator             CAMERA_ZOOM           = new TInterpolator(1);
-	private static final Array<TRenderableRaw>     RAW_TEX_RENDERABLES   = new Array<>();
-	private static final Array<TRenderableSprite>  OBJECT_RENDERABLES    = new Array<>();
-	private static final Array<TRenderableSprite>  TRANS_OBJ_RENDERABLES = new Array<>();
-	private static final Array<TRenderableSprite>  TILE_RENDERABLES      = new Array<>();
-	private static final Array<TRenderableShape>   OL_GEO_RENDERABLES    = new Array<>();
-	private static final Array<TRenderableShape>   TL_GEO_RENDERABLES    = new Array<>();
-	private static final SpriteBatch               OBJECT_BATCH          = new SpriteBatch(MAX_RENDERABLES);
-	private static final SpriteBatch               TRANS_OBJ_OVERLAY     = new SpriteBatch(MAX_RENDERABLES);
-	private static final SpriteBatch               RAW_BATCH             = new SpriteBatch(MAX_RENDERABLES);
-	private static final Array<SpriteBatch>        TILE_BATCH_POOL       = new Array<>();
-	private static final ShapeRenderer             GEOMETRIC_RENDERER    = new ShapeRenderer();
-	
-	public static final  VfxManager                POST_PROCESSING       = new VfxManager(Pixmap.Format.RGBA8888);
-	public static final  FxaaEffect                POST_FXAA             = new FxaaEffect();
-	public static final  BloomEffect               POST_BLOOM            = new BloomEffect();
-	public static final  GaussianBlurEffect        POST_GAUSSIAN_BLUR    = new GaussianBlurEffect();
-	public static final  RadialBlurEffect          POST_RADIAL_BLUR      = new RadialBlurEffect(16);
-	public static final  ChromaticAberrationEffect POST_CHROME_ABER      = new ChromaticAberrationEffect(16);
-	public static final  CrtEffect                 POST_CRT              = new CrtEffect();
-	public static final  FilmGrainEffect           POST_FILM_GRAIN       = new FilmGrainEffect();
-	public static final  MotionBlurEffect          POST_MOTION_BLUR      = new MotionBlurEffect(Pixmap.Format.RGBA8888, MixEffect.Method.MIX, 0.80f);
-	public static final  LevelsEffect              POST_LEVELS           = new LevelsEffect();
-	public static final  WaterDistortionEffect     POST_WATER_DISTORT    = new WaterDistortionEffect(1.0f, 1.0f);
-	public static final  RadialDistortionEffect    POST_RADIAL_DISTORT   = new RadialDistortionEffect();
-	
-	private static       int                       currentZoomTwoFactor  = -2;
-	private static       TInterpolator             screenFade            = new TInterpolator(0.0f);
-	private static       TRect                     fadeRect              = new TRect(0, 0, 0, 0);
-	private static       boolean                   zoomRequest           = false;
-    private static       boolean                   fadingDown            = false;
-	
-	public TGraphics() {
-		DATA.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
-		CAMERA.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+	static {
 		CAMERA_X.setEquation(Interpolation.linear);
 		CAMERA_Y.setEquation(Interpolation.linear);
 		CAMERA_ZOOM.setEquation(Interpolation.linear);
 		CAMERA_ZOOM.setSpeed(2.0f);
-		POST_PROCESSING.addEffect(POST_FXAA);
-		POST_PROCESSING.addEffect(POST_LEVELS);
-		CAMERA_ZOOM.set((float)Math.pow(2, currentZoomTwoFactor));
+	}
+	
+	public TGraphics() {
+		mAllocSpriteSheet("sheets/natural.png");
+		mAllocSpriteSheet("sheets/items-icons.png");
+		mAllocSpriteSheet("sheets/mob.png");
 	}
 	
 	///////////////////////////////////////////////////////
@@ -112,33 +76,39 @@ public final class TGraphics implements Disposable {
 	///////////////////////////////////////////////////////
 	
 	/**
-	 * Adds a {@link TRenderableShape} to the geometric render queue.
-	 * @param renderable the {@link TRenderableShape} to be rendered.
-	 * @param objectLevel whether or not the shape should be drawn before (false) or after (true) object renderables.
+	 * Allocates memory for a {@link TSpriteSheet} with given name and internal path. Name must be unique.
 	 */
-	public static void draw(final TRenderableShape renderable, boolean objectLevel) {
-		if(objectLevel) OL_GEO_RENDERABLES.add(renderable);
-		else TL_GEO_RENDERABLES.add(renderable);
+	public static void mAllocSpriteSheet(String internalPath) {
+		// check if the sheet is already registered, ignore if so.
+		if(SPRITE_SHEETS.containsKey(internalPath))
+			return;
+		SPRITE_SHEETS.put(internalPath, new TSpriteSheet(internalPath));
 	}
 	
 	/**
+	 * Returns a {@link TSpriteSheet} texture. Must be registered.
+	 */
+	public static Texture getSheetGLTex(String internalPath) {
+		if(!SPRITE_SHEETS.containsKey(internalPath))
+			throw new IllegalArgumentException("[Terrafort Game Engine] Trying to reference a sprite sheet that hasn't been registered for bliting: " + internalPath + ". Use TGraphics.mAllocSpriteSheet(path) to register a sheet.");
+		return SPRITE_SHEETS.get(internalPath).get();
+	}
+		
+	/**
      * Adds a {@link TRenderableSprite} object to the sprite render queue.
-     * If the queue exceeds MAX_RENDERABLES, the oldest renderable is removed.
-     * @param renderable The {@link TRenderableSprite} object to be rendered.
      */
-	public static void draw(final TRenderableSprite renderable) {
-		if(renderable instanceof TRenderableRaw) {
-			RAW_TEX_RENDERABLES.add((TRenderableRaw)renderable);
+	public static void draw(TRenderableSprite renderable) {
+		// Do not add it to the render request queue if it shouldn't be rendered.
+		if(renderable.shouldCull(WORLD_PROJ_MAT))
 			return;
-		}
-		if(renderable instanceof TObject)
-			if(!((TObject)renderable).shouldDraw)
-				return;
-		if(renderable instanceof TMob)
-			TRANS_OBJ_RENDERABLES.add(renderable);
-		if(renderable instanceof TBuildingTile) {
-			TILE_RENDERABLES.add(renderable);
-		} else OBJECT_RENDERABLES.add(renderable);
+		SPRITE_REQUESTS.add(renderable);
+	}
+	
+	/**
+	 * Add a {@link TRenderableShape} to the render queue.
+	 */
+	public static void draw(TRenderableShape renderable) {
+		GEOMETRIC_REQUESTS.add(renderable);
 	}
 	
 	/**
@@ -149,17 +119,18 @@ public final class TGraphics implements Disposable {
 	 * @param width the world width.
 	 * @param height the world height.
 	 */
-	public static void draw(final TFrame frame, int x, int y, int ax, int ay, int z, int width, int height, Color tint, boolean tile) {
-		Array<TRenderableSprite> to = tile ? TILE_RENDERABLES : OBJECT_RENDERABLES;
-		to.add(new TRenderableSprite() {
+	public static void draw(String sheet, TFrame frame, float x, float y, int z, float width, float height, Color tint) {
+		draw(new TRenderableSprite() {
 			@Override
-			public float getRenderX()                   { return x;                         	 }
+			public String getSpriteSheet()              { return sheet;                          }
 			@Override
-			public float getRenderY()                   { return y; 							 }
+			public float getX()                         { return x;                         	 }
 			@Override
-			public float getRenderWidth()               { return width; 						 }
+			public float getY()                         { return y; 							 }
 			@Override
-			public float getRenderHeight()              { return height; 						 }
+			public float getWidth()                     { return width; 						 }
+			@Override
+			public float getHeight()                    { return height; 						 }
 			@Override
 			public float getRotationInRadians()         { return 0; 							 }
 			@Override
@@ -175,28 +146,35 @@ public final class TGraphics implements Disposable {
 			@Override
 			public Color getRenderTint() 				{ return tint;                           }
 			@Override
-			public float getActualX() 					{ return ax; 							 }
+			public float getGraphicalX()                { return x; }
 			@Override
-			public float getActualY() 					{ return ay; 							 }
+			public float getGraphicalY()                { return y; }
 		});
+	}
+	
+	/**
+	 * Render the debug state of the physics engine, as it exists in the given world.
+	 */
+	public static void setDebug(World world) {
+		physicsDebugRender = world;
 	}
 	
 	/**
 	 * Writes a snapshot of the frame buffer to the Terrafort screenshot directory.
 	 */
-	public static void takeScreenshot() {
+	public static void screenshot() {
 		try {
-	        final int width     = Gdx.graphics.getWidth();
-	        final int height    = Gdx.graphics.getHeight();
+	        final int    width  = Gdx.graphics.getWidth();
+	        final int    height = Gdx.graphics.getHeight();
 	        final byte[] pixels = ScreenUtils.getFrameBufferPixels(0, 0, width, height, true);
 	        for (int i = 4; i < pixels.length; i += 4)
-	            pixels[i - 1] = (byte) 255;
+	            pixels[i - 1] = (byte)255;
 	        final Pixmap pixmap = new Pixmap(width, height, Format.RGBA8888);
 	        BufferUtils.copy(pixels, 0, pixmap.getPixels(), pixels.length);
-	        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
-	        final String dateTimeString       = LocalDateTime.now().format(formatter);
-	        final String filename             = dateTimeString + ".png";
-	        final FileHandle file             = Gdx.files.local(TPersistent.ROOT + "/screenshots/" + filename);
+	        final DateTimeFormatter formatter      = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+	        final String            dateTimeString = LocalDateTime.now().format(formatter);
+	        final String            filename       = dateTimeString + ".png";
+	        final FileHandle        file           = Gdx.files.local(TPersistent.ROOT + "/screenshots/" + filename);
 	        PixmapIO.writePNG(file, pixmap);
 	        System.out.println("[Terrafort Game Engine] Saved screenshot to " + file.path());
 	        pixmap.dispose();
@@ -206,46 +184,7 @@ public final class TGraphics implements Disposable {
 	}
 	
 	/**
-	 * Gradually fades the screen to black then back in.
-	 * @param timeFactor the time factor of the fade; smaller = longer.
-	 */
-	public static void fadeOutIn(float timeFactor) {
-		screenFade.setSpeed(timeFactor);
-		screenFade.set(1.0f);
-		fadingDown = true;
-	}
-	
-	/**
-	 * Forces the screen directly to black and fades in naturally over time.
-	 * @param timeFactor the time factor of the fade; smaller = longer.
-	 */
-	public static void fadeIn(float timeFactor) {
-		screenFade.setSpeed(timeFactor);
-		screenFade.force(1.0f);
-		screenFade.set(0.0f);
-	}
-	
-	/**
-	 * Fade the screen to black with given time factor.
-	 * @param timeFactor the time factor of the fade; smaller = longer.
-	 */
-	public static void fadeOut(float timeFactor) {
-		screenFade.setSpeed(timeFactor);
-		screenFade.set(1.0f);
-	}
-	
-	/**
-	 * Resets the fade system. Ideal when switching states to ensure there are no dangling fade state issues.
-	 */
-	public static void resetFade() {
-		screenFade.force(0.0f);
-		fadingDown = false;
-	}
-	
-	/**
      * Sets the target position for the camera to smoothly transition to.
-     * @param x The target X coordinate.
-     * @param y The target Y coordinate.
      */
 	public static void setCameraTargetPosition(float x, float y) {
 		CAMERA_X.set(x);
@@ -253,9 +192,14 @@ public final class TGraphics implements Disposable {
 	}
 	
 	/**
+	 * Force moves the camera it's current target position in the given direction.
+	 */
+	public static void forceMoveCameraTargetPosition(float dx, float dy) {
+		forceCameraPosition(CAMERA_X.getTarget() + dx, CAMERA_Y.getTarget() + dy);
+	}
+	
+	/**
      * Immediately sets the camera's position to the specified coordinates.
-     * @param x The X coordinate to set.
-     * @param y The Y coordinate to set.
      */
 	public static void forceCameraPosition(float x, float y) {
 		CAMERA_X.force(x);
@@ -264,7 +208,6 @@ public final class TGraphics implements Disposable {
 	
 	/**
      * Sets the speed of the camera's movement towards its target position and zoom.
-     * @param speed The speed of the camera movement.
      */
 	public static void setCameraSpeedToTarget(float speed) {
 		CAMERA_X.setSpeed(speed);
@@ -272,92 +215,128 @@ public final class TGraphics implements Disposable {
 	}
 	
 	/**
-     * Sets the target zoom level for the camera to smoothly transition to. Will be a power of two.
-     * @param target The target zoom level.
-     */
-	public static void requestCameraZoomChange(boolean in) {
-		int suggested = (!in) ? currentZoomTwoFactor + 1 : currentZoomTwoFactor - 1;
-		currentZoomTwoFactor = Math.round(TMath.clamp(suggested, -4.0f, -2.0f));
-		if(suggested == currentZoomTwoFactor) {
-			fadeOutIn(6.0f);
-			zoomRequest = true;
-		}
-	}
-	
-	/**
-	 * Set the OpenGL line width.
+	 * Requests to zoom the camera to a factor of 2^level.
 	 */
-	public static void setGlLineWidth(float width) {
-		Gdx.gl.glLineWidth(width);
+	public static void setZoomLevel(int level) {
+		if(currentZoomTwoFactor == level)
+			return;
+		currentZoomTwoFactor = level;
+		final float val      = ((level < 0) ? (1f / (1 << Math.abs(level))) : (1 << level));
+		CAMERA_ZOOM.set(val);
 	}
 	
 	///////////////////////////////////////////////////////
 	// END API
 	///////////////////////////////////////////////////////
 	
-	/**
-	 * Calculates the screens fade effect and handles zoom requests.
-	 */
-	private void calculateFadeAndZoom() {
-		screenFade.update();
-		int a = (int)(screenFade.get() * 0xff);
-		fadeRect.setCX(CAMERA.position.x);
-        fadeRect.setCY(CAMERA.position.y);
-        fadeRect.setWidth(Gdx.graphics.getWidth());
-        fadeRect.setHeight(Gdx.graphics.getHeight());
-		fadeRect.setColor(new Color().set(a));
-		if(fadingDown && screenFade.getProgress() > 0.7f) {
-			screenFade.set(0.0f);
-			if(zoomRequest) {
-				CAMERA_ZOOM.set((float)Math.pow(2, currentZoomTwoFactor));
-				zoomRequest = false;
+	public void render(TUserInterface ui, float dt) {
+		// pre-render...
+		sortAndCombineRenderRequests();
+		calculateTileBatchPool();
+		calculatePerspective();
+		clearScreen();
+		// render...
+		if(RENDER_REQUESTS.size != 0) {
+			int                      batch         = 0;
+	        int                      tileIDInBatch = 0;
+			TRenderable.TRendererType renderer      = null;
+			for(final TRenderable renderable : RENDER_REQUESTS) {
+				// handle switching the rendering context...
+				if(renderable.type != renderer) {
+					// we have to switch the rendering context...
+					switch(renderable.type) {
+						case SPRITE:
+							// switch from shape renderer to sprite renderer...
+							if(renderer != null) {
+								GEOMETRIC_RENDERER.end();
+								Gdx.gl.glDisable(GL20.GL_BLEND);
+							}
+							SPRITE_BATCH_POOL.get(batch).begin();
+							Gdx.gl.glEnable(GL20.GL_BLEND);
+							Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+							break;
+						case SHAPE:
+							// switch from sprite renderer to shape renderer...
+							if(renderer != null) {
+								SPRITE_BATCH_POOL.get(batch).end();
+								Gdx.gl.glDisable(GL20.GL_BLEND);
+							}
+							GEOMETRIC_RENDERER.begin(ShapeRenderer.ShapeType.Filled);
+							GEOMETRIC_RENDERER.setAutoShapeType(true);
+					        GEOMETRIC_RENDERER.setProjectionMatrix(WORLD_PROJ_MAT.combined);
+					        Gdx.gl.glEnable(GL20.GL_BLEND);
+							Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+							break;
+					}
+				}
+				// here, the rendering context should be correct for the renderables type...
+				switch(renderable.type) {
+					case SPRITE:
+						if(tileIDInBatch >= MAX_RENDERABLES) {
+			        		SPRITE_BATCH_POOL.get(batch).end();
+			        		batch++;
+			        		tileIDInBatch = 0;
+			        		SPRITE_BATCH_POOL.get(batch).setProjectionMatrix(WORLD_PROJ_MAT.combined);
+			        		SPRITE_BATCH_POOL.get(batch).begin();
+			        	}
+						boolean worldMat = renderable.sprite.useWorldProjectionMatrix();
+						SPRITE_BATCH_POOL.get(batch).setProjectionMatrix((worldMat) 
+								? WORLD_PROJ_MAT.combined : SCREEN_PROJ_MAT.combined);
+						renderable.sprite.render((worldMat) 
+								? WORLD_PROJ_MAT : SCREEN_PROJ_MAT, SPRITE_BATCH_POOL.get(batch));
+			        	tileIDInBatch++;
+						break;
+					case SHAPE:
+						// draw 2 times (filled and line)...
+						GEOMETRIC_RENDERER.set(ShapeRenderer.ShapeType.Filled);
+						renderable.shape.drawFilled(WORLD_PROJ_MAT, GEOMETRIC_RENDERER);
+						GEOMETRIC_RENDERER.set(ShapeRenderer.ShapeType.Line);
+						renderable.shape.drawLined(WORLD_PROJ_MAT, GEOMETRIC_RENDERER);
+						break;
+				}
+				renderer = renderable.type;
 			}
-			fadingDown = false;
+			if(renderer == TRenderable.TRendererType.SPRITE)
+				SPRITE_BATCH_POOL.get(batch).end();
+			else GEOMETRIC_RENDERER.end();
+			Gdx.gl.glDisable(GL20.GL_BLEND);
+			// render the physics engine if debug is on...
+			if(physicsDebugRender != null)
+				PHYSICS_RENDERER.render(physicsDebugRender, WORLD_PROJ_MAT.combined);
 		}
+		// render and update UI modules...
+		ui.render(dt);
+		if(TInput.focused && Gdx.input.isCursorCatched()) {
+			// render cursor and other special UI items (special)...
+			UI_BATCH.begin();
+			UI_BATCH.setProjectionMatrix(SCREEN_PROJ_MAT.combined);
+			TInput.cursor.render(SCREEN_PROJ_MAT, UI_BATCH);
+			UI_BATCH.end();
+		}
+		// post-render...
+		flush();
 	}
 	
 	/**
-	 * Calculates the dynamic allocation (or deallocation) of sprite batches according to the number of tile render requests.
+	 * Called when the client resizes their screen.
 	 */
-	private void calculateTileBatchPool() {
-		final int requestedTiles  = TILE_RENDERABLES.size;
-		final int neededBatches   = (int)Math.ceil((float)requestedTiles / MAX_RENDERABLES);
-		// if no batches are needed we know we can dispose of every available batch...
-		if(neededBatches == 0) {
-			for(final SpriteBatch batch : TILE_BATCH_POOL)
-				batch.dispose();
-			TILE_BATCH_POOL.clear();
-			return;
-		}
-		final int currentPoolSize = TILE_BATCH_POOL.size;
-		// we either need to allocate or deallocate memory here...
-		if(currentPoolSize != neededBatches) {
-			final int difference = neededBatches - currentPoolSize;
-			if(difference < 0) {
-				// destory only batches that will not be used next frame...
-				int amt = Math.abs(difference);
-				for(int i = currentPoolSize - 1; i > (currentPoolSize - 1) - amt; i--) {
-					TILE_BATCH_POOL.get(i).dispose();
-					TILE_BATCH_POOL.pop();
-				}
-			} else {
-				// create new batches that are needed next frame...
-				for(int i = 0; i < difference; i++)
-					TILE_BATCH_POOL.add(new SpriteBatch(MAX_RENDERABLES));
-			}
-		}
-		TEngine.mTileBatches = neededBatches;
-	}
+	public void resize(int newWidth, int newHeight) {
+		WORLD_PROJ_MAT.setToOrtho(false, newWidth, newHeight);
+		SCREEN_PROJ_MAT.setToOrtho(false, newWidth, newHeight);
+		WORLD_PROJ_MAT.update();
+		SCREEN_PROJ_MAT.update();
+    }
 	
 	/**
 	 * Calculates the perspective of the camera based on the desired position and zoom. This method also minimizes the amount of visual artifacts that arise from 
 	 * tile position rounding errors.
 	 */
 	private void calculatePerspective() {
-		CAMERA_X.update();
-	    CAMERA_Y.update();
+		float dt = (float)TClock.dt();
+		CAMERA_X.update(dt);
+	    CAMERA_Y.update(dt);
 	    float z                            = CAMERA_ZOOM.getTarget();
-	    float effectivePixelsPerUnit       = PIXELS_PER_METER / z;
+	    float effectivePixelsPerUnit       = 1f / z;
 	    float screenWidthInWorldUnits      = Gdx.graphics.getWidth() / effectivePixelsPerUnit;
 	    float screenHeightInWorldUnits     = Gdx.graphics.getHeight() / effectivePixelsPerUnit;
 	    float halfScreenWidthInWorldUnits  = screenWidthInWorldUnits / 2f;
@@ -366,189 +345,98 @@ public final class TGraphics implements Disposable {
 	    float y                            = CAMERA_Y.get();
 	    float rx                           = TMath.roundTo(x + halfScreenWidthInWorldUnits, effectivePixelsPerUnit) - halfScreenWidthInWorldUnits;
 	    float ry                           = TMath.roundTo(y + halfScreenHeightInWorldUnits, effectivePixelsPerUnit) - halfScreenHeightInWorldUnits;
-	    CAMERA.position.set(rx, ry, 0);
-	    CAMERA.zoom = z;
-	    CAMERA.update();
+	    WORLD_PROJ_MAT.position.set(rx, ry, 0);
+	    WORLD_PROJ_MAT.zoom = z;
+	    WORLD_PROJ_MAT.update();
+	}
+	
+	/**
+	 * Calculates the dynamic allocation (or deallocation) of sprite batches according to the number of tile render requests.
+	 */
+	private void calculateTileBatchPool() {
+		final int requestedSprites = SPRITE_REQUESTS.size;
+		final int neededBatches    = (int)Math.ceil((float)requestedSprites / MAX_RENDERABLES);
+		// if no batches are needed we know we can dispose of every available batch...
+		if(neededBatches == 0) {
+			for(final SpriteBatch batch : SPRITE_BATCH_POOL)
+				batch.dispose();
+			SPRITE_BATCH_POOL.clear();
+			return;
+		}
+		final int currentPoolSize = SPRITE_BATCH_POOL.size;
+		// we either need to allocate or deallocate memory here...
+		if(currentPoolSize != neededBatches) {
+			final int difference = neededBatches - currentPoolSize;
+			if(difference < 0) {
+				// destory only batches that will not be used next frame...
+				int amt = Math.abs(difference);
+				for(int i = currentPoolSize - 1; i > (currentPoolSize - 1) - amt; i--) {
+					SPRITE_BATCH_POOL.get(i).dispose();
+					SPRITE_BATCH_POOL.pop();
+				}
+			} else {
+				// create new batches that are needed next frame...
+				for(int i = 0; i < difference; i++)
+					SPRITE_BATCH_POOL.add(new SpriteBatch(MAX_RENDERABLES));
+			}
+		}
+		// TEngine.mTileBatches = neededBatches;
+	}
+	
+	/**
+	 * Sorts the sprite requests by y, combines both shape and sprites, then sorts all by depth.
+	 */
+	private void sortAndCombineRenderRequests() {
+		SPRITE_REQUESTS.sort((r1, r2) -> Float.compare(r2.getGraphicalY(), r1.getGraphicalY()));
+		for(final TRenderableSprite sprite : SPRITE_REQUESTS)
+	        RENDER_REQUESTS.add(new TRenderable(sprite));
+	    for(final TRenderableShape shape : GEOMETRIC_REQUESTS)
+	    	RENDER_REQUESTS.add(new TRenderable(shape));
+	    RENDER_REQUESTS.sort(((r1, r2) -> Integer.compare(r2.getDepth(), r1.getDepth())));
 	}
 	
 	/**
 	 * Clears the screen, only OpenGL color buffer should be cleared.
 	 */
-	private void cls() {
+	private void clearScreen() {
 		Gdx.gl.glClearColor(0.15f, 0.15f, 0.2f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 	}
 	
 	/**
-	 * Sorts {@link TRenderableSprite}s by render Y value; objects with y values closer to the top of the 
-	 * screen are rendered first.
+	 * Clears sprite render requests for the next frame.
 	 */
-	private void sortObjectRenderables() {
-		TILE_RENDERABLES.sort((r1, r2) -> Integer.compare(r2.getDepth(), r1.getDepth()));
-		OBJECT_RENDERABLES.sort((r1, r2) -> Float.compare(r2.getActualY(), r1.getActualY()));
-		OBJECT_RENDERABLES.sort((r1, r2) -> Integer.compare(r2.getDepth(), r1.getDepth()));
+	private static void flush() {
+		SPRITE_REQUESTS.clear();
+		GEOMETRIC_REQUESTS.clear();
+		RENDER_REQUESTS.clear();
 	}
 	
 	/**
-	 * Use the shape renderer to render a given batch of {@link TRenderableShape}s. Allows control over rendering context.
-	 * @param batch the batch to draw.
-	 * @param line whether or not to draw with lines (true) or filled (false).
-	 * @param blend whether or not to enable OpenGL blending. Useful for transparency.
-	 */
-	private void useShapeRenderer(Array<TRenderableShape> batch, boolean line, boolean blend) {
-		if(blend) {
-			Gdx.gl.glEnable(GL20.GL_BLEND);
-			Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-		}
-		GEOMETRIC_RENDERER.begin((!line) ? ShapeRenderer.ShapeType.Filled : ShapeRenderer.ShapeType.Line);
-        GEOMETRIC_RENDERER.setProjectionMatrix(CAMERA.combined);
-        for(final TRenderableShape s : batch) {
-        	if(!line) s.drawFilled(CAMERA, GEOMETRIC_RENDERER);
-        	else s.drawLined(CAMERA, GEOMETRIC_RENDERER);
-        }
-        GEOMETRIC_RENDERER.end();
-        if(blend) Gdx.gl.glDisable(GL20.GL_BLEND);
-	}
-	
-	/**
-	 * Render process of the TGraphics module.
-	 */
-	public void render(TUserInterface ui) {
-		calculateFadeAndZoom();
-		calculateTileBatchPool();
-		calculatePerspective();
-		sortObjectRenderables();
-		cls();
-		POST_PROCESSING.cleanUpBuffers();
-		POST_PROCESSING.beginInputCapture();
-		if(TILE_BATCH_POOL.size >= 1) {
-	        int batch         = 0;
-	        int tileIDInBatch = 0;
-	        TILE_BATCH_POOL.get(batch).setProjectionMatrix(CAMERA.combined);
-	        TILE_BATCH_POOL.get(batch).begin();
-	        for(final TRenderableSprite r : TILE_RENDERABLES) {
-	        	if(tileIDInBatch >= MAX_RENDERABLES) {
-	        		TILE_BATCH_POOL.get(batch).end();
-	        		batch++;
-	        		tileIDInBatch = 0;
-	        		TILE_BATCH_POOL.get(batch).setProjectionMatrix(CAMERA.combined);
-	        		TILE_BATCH_POOL.get(batch).begin();
-	        	}
-	        	r.render(CAMERA, TILE_BATCH_POOL.get(batch));
-	        	tileIDInBatch++;
-	        }
-	        TILE_BATCH_POOL.get(batch).end();
-		}
-		TEngine.mTileDrawCount = TILE_RENDERABLES.size;
-		if(TL_GEO_RENDERABLES.size >= 1) {
-			useShapeRenderer(TL_GEO_RENDERABLES, false, true);
-			useShapeRenderer(TL_GEO_RENDERABLES, true, false);
-		}
-		TEngine.mTileLevelGeometryDrawCount = TL_GEO_RENDERABLES.size;
-		if(OBJECT_RENDERABLES.size >= 1) {
-			OBJECT_BATCH.setProjectionMatrix(CAMERA.combined);
-	        OBJECT_BATCH.begin();
-	        for(final TRenderableSprite r : OBJECT_RENDERABLES)
-	        	r.render(CAMERA, OBJECT_BATCH);
-	        OBJECT_BATCH.end();
-		}
-		if(RAW_TEX_RENDERABLES.size >= 1) {
-			RAW_BATCH.begin();
-	        for(final TRenderableSprite r : RAW_TEX_RENDERABLES)
-	        	r.render(CAMERA, RAW_BATCH);
-	        RAW_BATCH.end();
-		}
-		if(TRANS_OBJ_RENDERABLES.size >= 1) {
-        	TRANS_OBJ_OVERLAY.setProjectionMatrix(CAMERA.combined);
-        	Gdx.gl.glEnable(GL20.GL_BLEND);
-			Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
-        	TRANS_OBJ_OVERLAY.begin();
-        	for(final TRenderableSprite r : TRANS_OBJ_RENDERABLES) {
-	        	r.render(CAMERA, TRANS_OBJ_OVERLAY, true);
-        	}
-        	TRANS_OBJ_OVERLAY.end();
-        	Gdx.gl.glDisable(GL20.GL_BLEND);
-        }
-		TEngine.mObjectDrawCount = OBJECT_RENDERABLES.size + TRANS_OBJ_RENDERABLES.size;
-        OL_GEO_RENDERABLES.add(fadeRect);
-        useShapeRenderer(OL_GEO_RENDERABLES, false, true);
-        useShapeRenderer(OL_GEO_RENDERABLES, true, false);
-        TEngine.mObjectLevelGeometryDrawCount = OL_GEO_RENDERABLES.size;  
-        POST_PROCESSING.endInputCapture();
-        POST_PROCESSING.applyEffects();
-        POST_PROCESSING.renderToScreen();
-        flush();
-	}
-	
-	/**
-	 * Called when the screen is resized.
-	 * @param newWidth the new width of the screen.
-	 * @param newHeight the new height of the screen.
-	 */
-	public void resize(int newWidth, int newHeight) {
-		RAW_BATCH.getProjectionMatrix().setToOrtho2D(0, 0, newWidth, newHeight);
-		CAMERA.setToOrtho(false, newWidth, newHeight);
-		CAMERA.update();
-		POST_PROCESSING.resize(newWidth, newHeight);
-		GEOMETRIC_RENDERER.getProjectionMatrix().setToOrtho2D(0f, 0f, newWidth, newHeight);
-		GEOMETRIC_RENDERER.updateMatrices();
-		TEngine.getState().resize(newWidth, newHeight);
-		TEngine.mScreenWidth = newWidth;
-		TEngine.mScreenHeight = newHeight;
-    }
-	
-	/**
-	 * Called when the engine would like to clear lingering memory in the graphics module. This is NOT the same as disposing!
+	 * The public garbage collection function for the graphics module.
 	 */
 	public static void gc() {
 		flush();
-		TILE_BATCH_POOL.clear();
+		disposeGraphicalBatches();
 	}
-	
-	/**
-	 * Flushes (clears) the render queues.
-	 */
-	private static void flush() {
-		OL_GEO_RENDERABLES.clear();
-		TL_GEO_RENDERABLES.clear();
-	    OBJECT_RENDERABLES.clear();
-	    RAW_TEX_RENDERABLES.clear();
-	    TILE_RENDERABLES.clear();
-	    TRANS_OBJ_RENDERABLES.clear();
-	}
-	
-	/**
-	 * Disposes of all statically allocated rendering batches.
-	 */
-	private void disposeGraphicsBatches() {
-		OBJECT_BATCH.dispose();
-		GEOMETRIC_RENDERER.dispose();
-	}
-	
-	/**
-	 * Disposes of all post processing artifacts.
-	 */
-	private void disposePostProcessing() {
-		POST_FXAA.dispose();
-		POST_BLOOM.dispose();
-		POST_GAUSSIAN_BLUR.dispose();
-		POST_RADIAL_BLUR.dispose();
-		POST_CHROME_ABER.dispose();
-		POST_CRT.dispose();
-		POST_FILM_GRAIN.dispose();
-		POST_MOTION_BLUR.dispose();
-		POST_LEVELS.dispose();
-		POST_WATER_DISTORT.dispose();
-		POST_RADIAL_DISTORT.dispose();
-		POST_PROCESSING.dispose();
-	}
-	
+
 	@Override
 	public void dispose() {
 		gc();
-		disposeGraphicsBatches();
-		disposePostProcessing();
-		DATA.dispose();
+		disposeSpriteSheets();
+		GEOMETRIC_RENDERER.dispose();
 	}
 	
+	private static void disposeGraphicalBatches() {
+		for(SpriteBatch b : SPRITE_BATCH_POOL)
+			b.dispose();
+		SPRITE_BATCH_POOL.clear();
+	}
+	
+	private static void disposeSpriteSheets() {
+		for(final TSpriteSheet s : SPRITE_SHEETS.values())
+			s.dispose();
+		SPRITE_SHEETS.clear();
+	}
+
 }

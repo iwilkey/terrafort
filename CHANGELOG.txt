@@ -1,5 +1,0 @@
-CHANGELOG for Terrafort
-Older contributions can be found on GitHub development repo.
-
-[12 / 5 / 2023]
-- Made the TLifeform more feature-packed out of the box, so new lifeforms can be quickly implemented.

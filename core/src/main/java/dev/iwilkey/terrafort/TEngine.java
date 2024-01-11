@@ -1,14 +1,12 @@
 package dev.iwilkey.terrafort;
 
-import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputMultiplexer;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
+import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.persistent.TPersistent;
-import dev.iwilkey.terrafort.state.TSinglePlayerState;
-import dev.iwilkey.terrafort.state.TTessellationLogoState;
-import dev.iwilkey.terrafort.ui.TUserInterface;
+import dev.iwilkey.terrafort.state.TSinglePlayerWorld;
 
 /**
  * The global interface to the Terrafort game engine. It manages the game's state, input, clock, 
@@ -22,33 +20,16 @@ import dev.iwilkey.terrafort.ui.TUserInterface;
  * </p>
  * @author Ian Wilkey (iwilkey)
  */
-public final class TEngine extends ApplicationAdapter {
+public final class TEngine implements ApplicationListener {
 	
-	public static final String VERSION = "0.0.0.15";
+	public static final String VERSION = "0.0.1.0";
 	
-	// engine metrics (updated internally, even though they are public!) do NOT manually change them!
-	
-	public static float mFrameProcessTime             = 0.0f;
-	public static float mDeltaTime                    = 0.0f;
-	public static int   mScreenWidth                  = 0;
-	public static int   mScreenHeight                 = 0;
-	public static int   mTileBatches                  = 0;
-	public static int   mTileDrawCount                = 0;
-	public static int   mTileLevelGeometryDrawCount   = 0;
-	public static int   mObjectDrawCount              = 0;
-	public static int   mObjectLevelGeometryDrawCount = 0;
-	public static int   mChunksInMemory               = 0;
-	public static int   mChunksDormant                = 0;
-	public static int   mPhysicalBodies               = 0;
-
-	private static TState           state             = null;
-	private static InputMultiplexer multiplexer       = null;
-	private static TPersistent      persistent        = null;
-	private static TInput 		    input             = null;
-	private static TClock           clock             = null;
-	private static TGraphics        renderer          = null;
-	private static TAudio           audio             = null;
-	private static TUserInterface   ui                = null;
+	static TPersistent      persistent;
+	static TGraphics        gfx;
+	static TUserInterface   ui;
+	static TInput           input;
+	static TClock           clk;
+	static TState           state;
 	
 	/**
      * Sets the current state of the game, managing the transition between different states.
@@ -63,61 +44,71 @@ public final class TEngine extends ApplicationAdapter {
 		if(toState == null)
 			return;
 		state = toState;
-		TGraphics.resetFade();
 		state.start();
 	}
 	
+	/**
+	 * Return the current operating state of Terrafort.
+	 */
 	public static TState getState() {
 		return state;
 	}
 	
     @Override
     public void create() {
-    	System.out.println(this.getClass().getSimpleName());
-    	
-    	persistent  = new TPersistent();
-    	clock       = new TClock();
-    	input       = new TInput();
-    	renderer    = new TGraphics();
-    	audio       = new TAudio();
-    	ui          = new TUserInterface();
-    	multiplexer = new InputMultiplexer();
-    	multiplexer.addProcessor(TUserInterface.getMom());
-    	multiplexer.addProcessor(input);
-    	Gdx.input.setInputProcessor(multiplexer);
-    	setState(new TTessellationLogoState());
-    	// setState(new TMainMenuState());
-        // setState(new TSinglePlayerState("world"));
+    	persistent = new TPersistent();
+    	// directory to hold single player world persistent data...
+    	if(!TPersistent.pathExists("world/"))
+    		TPersistent.establish("world", false);
+    	clk        = new TClock();
+    	input      = new TInput();
+    	gfx        = new TGraphics();
+    	ui         = new TUserInterface();
+    	Gdx.input.setInputProcessor(input);
+    	setState(new TSinglePlayerWorld());
     }
 
     @Override
-    public void render() {
-    	clock.tick();
-    	renderer.render(ui);
+    public void resize(int width, int height) {
     	if(state != null)
-    		state.render();
-    	audio.tick();
-    	input.tick();
-    	clock.tock();
-    	ui.render();
-    	mFrameProcessTime = (float)TClock.pt();
-    	mDeltaTime        = (float)TClock.dt();
+    		state.resize(width, height);
+    	ui.resize(width, height);
+    	gfx.resize(width, height);
     }
     
+    float t = 0.0f;
+    
     @Override
-    public void resize(int newWidth, int newHeight) {
-    	renderer.resize(newWidth, newHeight);
-    	ui.resize(newWidth, newHeight);
+    public void render() {
+    	clk.tick();
+    	float dt = (float)TClock.dt();
+    	t += dt;
+    	if(t > 1.0f) {
+    		System.out.println("Fps: " + (1 / dt));
+    		t = 0.0f;
+    	}
+    	if(state != null)
+    		state.render(dt);
+    	input.tick();
+    	gfx.render(ui, dt);
+    	clk.tock();
+    }
+
+    @Override
+    public void pause() {
+    	TInput.focused = false;
+    }
+
+    @Override
+    public void resume() {
+    	TInput.focused = true;
     }
 
     @Override
     public void dispose() {
-    	audio.dispose();
-    	ui.dispose();
     	setState(null);
-    	renderer.dispose();
+    	ui.dispose();
+    	gfx.dispose();
     }
-    
-    
     
 }

@@ -3,9 +3,14 @@ package dev.iwilkey.terrafort.persistent;
 import java.io.Serializable;
 
 /**
- * Any object that can be deconstructed into a stream of bytes, saved in persistent memory or sent over the internet, then reconstructed.
+ * An object that can be represented as a stream of bytes and reconstructed back into a runtime state.
  * @author Ian Wilkey (iwilkey)
  */
-public abstract class TSerializable implements Serializable {
-	private static final long serialVersionUID = 4291467591656537485L;
+public interface TSerializable extends Serializable {
+	
+	/**
+	 * Indicates that the object has been created from it's state and persistent memory and must recreate a valid runtime.
+	 */
+	public void loadFromPersistent();
+	
 }

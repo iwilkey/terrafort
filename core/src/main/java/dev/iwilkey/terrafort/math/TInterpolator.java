@@ -2,8 +2,6 @@ package dev.iwilkey.terrafort.math;
 
 import com.badlogic.gdx.math.Interpolation;
 
-import dev.iwilkey.terrafort.TClock;
-
 /**
  * TInterpolator is a utility class for smooth interpolation between two float values. 
  * It provides a flexible way to interpolate between a current value and a target value 
@@ -106,13 +104,13 @@ public final class TInterpolator {
      * This method should be called regularly, for example in a game loop, to update 
      * the value based on the defined speed and interpolation equation.
      */
-    public void update() {
+    public void update(float dt) {
     	// epsilon for rounding error.
     	if(Math.abs(current - target) <= FLOAT_ROUNDING_EPSILLON) {
     		current = target;
     		return;
     	}
-        prog += ((float)TClock.dt()) * speed;
+        prog += dt * speed;
         current = equ.apply(current, target, prog);
     }
 }

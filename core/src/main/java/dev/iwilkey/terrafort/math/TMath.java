@@ -2,14 +2,14 @@ package dev.iwilkey.terrafort.math;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
 
+import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.gfx.TGraphics;
-import dev.iwilkey.terrafort.obj.world.TTerrain;
 
 /**
- * Quick and efficient mathematical utilities.
+ * Quick and efficient mathematical utilities for Terrafort.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TMath {
@@ -48,6 +48,31 @@ public final class TMath {
 	}
 	
 	/**
+	 * Returns the {@link TInput} cursor projected into world-space.
+	 */
+	public static Vector2 cursorToWorldSpace() {
+		final Vector2 ret = new Vector2(TInput.cursorX, Gdx.graphics.getHeight() - TInput.cursorY);
+		final float cw = Gdx.graphics.getWidth();
+		final float ch = Gdx.graphics.getHeight();
+		final float cx = TGraphics.WORLD_PROJ_MAT.position.x - (cw / 2f);
+		final float cy = TGraphics.WORLD_PROJ_MAT.position.y - (ch / 2f);
+		ret.add(cx, cy);
+		return ret;
+	}
+	
+	/**
+	 * Returns the angle of the {@link TInput} cursor, in degrees, relative to the X-axis intersecting the center of the screen.
+	 */
+	public static float radialAngleOfCursorDeg() {
+		final float cx  = Gdx.graphics.getWidth() / 2f;
+		final float cy  = Gdx.graphics.getHeight() / 2f;
+		float       ang = ((float)Math.atan2(cy - TInput.cursorY, TInput.cursorX - cx)) * (180f / (float)Math.PI);
+		if(ang < 0) 
+			ang += 360;
+		return ang;
+	}
+	
+	/**
 	 * Clamp a floating point number to a lower and upper bound.
 	 * @param in the number to clamp.
 	 * @param min the minimum value.
@@ -58,43 +83,6 @@ public final class TMath {
 		in = Math.max(min, in);
 		in = Math.min(max, in);
 		return in;
-	}
-	
-	/**
-	 * Translates coordinates in screen-space to world-space coordinates by using inverse projection
-	 * of the projection matrix.
-	 * @return a new {@link Vector2} that contains the world-space coordinates.
-	 */
-	public static Vector2 translateScreenToWorldCoordinates(int x, int y) {
-		final Vector3 screenCoords = new Vector3(x, y, 0);
-	    final Vector3 worldCoords  = TGraphics.CAMERA.unproject(screenCoords);
-	    return new Vector2(worldCoords.x, worldCoords.y);
-	}
-	
-	/**
-	 * Returns a coordinate that is the input coordinate rounded to the nearest world tile grid location.
-	 * @param x the x value input coordinate.
-	 * @param y the y value input coordinate.
-	 * @return a rounded {@link Vector2} representing the input coordinates rounded to the nearest tile grid location.
-	 */
-	public static Vector2 roundToWorldTileGrid(float x, float y) {
-		x = Math.round(x / TTerrain.TILE_WIDTH) * TTerrain.TILE_WIDTH;
-		y = Math.round(y / TTerrain.TILE_HEIGHT) * TTerrain.TILE_HEIGHT;
-		return new Vector2(x, y);
-	}
-	
-	/**
-	 * Translates coordinates in screen-space to tile-space coordinates.
-	 * @param x the x value input coordinate.
-	 * @param y the y value input coordinate.
-	 * @return A {@link Vector2} in tile-space coordinates.
-	 */
-	public static Vector2 translateScreenToTileCoordinates(int x, int y) {
-		final Vector2 ret = translateScreenToWorldCoordinates(x, y);
-		ret.set(roundToWorldTileGrid(ret.x, ret.y));
-		ret.x = Math.round(ret.x / TTerrain.TILE_WIDTH);
-		ret.y = Math.round(ret.y / TTerrain.TILE_HEIGHT);
-		return ret;
 	}
 	  
 	/**

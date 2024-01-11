@@ -11,6 +11,16 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 public interface TRenderableShape {
 	
 	/**
+	 * Set the depth level this shape should render at.
+	 */
+	public void setDepth(int depth);
+	
+	/**
+	 * Returns the level it will be drawn on.
+	 */
+	public int getDepth();
+	
+	/**
 	 * Instructs the {@link TGraphics} renderer how to use the {@link ShapeRenderer} to draw
 	 * the shape, or collection of geometry, the implementing class aims to describe. The strategy
 	 * of rendering is with GL20.GL_TRIANGLES, filling the final shape in.
