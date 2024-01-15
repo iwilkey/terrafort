@@ -40,6 +40,7 @@ public final class TGraphics implements Disposable {
 	public static final  int                           MAX_RENDERABLES      = 8191;
 	public static final  int                           DATA_WIDTH           = 16;
 	public static final  int                           DATA_HEIGHT          = 16;
+	public static final  float                         SCREENSHOT_TIME      = 1.0f;
 	public static final  HashMap<String, TSpriteSheet> SPRITE_SHEETS        = new HashMap<>();
 	public static final  OrthographicCamera            WORLD_PROJ_MAT       = new OrthographicCamera();
 	public static final  OrthographicCamera            SCREEN_PROJ_MAT      = new OrthographicCamera();
@@ -159,28 +160,17 @@ public final class TGraphics implements Disposable {
 		physicsDebugRender = world;
 	}
 	
+	static boolean takingShot    = false;
+	static float   screenshotTimer = SCREENSHOT_TIME;
+	
 	/**
-	 * Writes a snapshot of the frame buffer to the Terrafort screenshot directory.
+	 * If accepted, resets the screenshot timer, removes all GUI, and snaps a picture.
 	 */
-	public static void screenshot() {
-		try {
-	        final int    width  = Gdx.graphics.getWidth();
-	        final int    height = Gdx.graphics.getHeight();
-	        final byte[] pixels = ScreenUtils.getFrameBufferPixels(0, 0, width, height, true);
-	        for (int i = 4; i < pixels.length; i += 4)
-	            pixels[i - 1] = (byte)255;
-	        final Pixmap pixmap = new Pixmap(width, height, Format.RGBA8888);
-	        BufferUtils.copy(pixels, 0, pixmap.getPixels(), pixels.length);
-	        final DateTimeFormatter formatter      = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
-	        final String            dateTimeString = LocalDateTime.now().format(formatter);
-	        final String            filename       = dateTimeString + ".png";
-	        final FileHandle        file           = Gdx.files.local(TPersistent.ROOT + "/screenshots/" + filename);
-	        PixmapIO.writePNG(file, pixmap);
-	        System.out.println("[Terrafort Game Engine] Saved screenshot to " + file.path());
-	        pixmap.dispose();
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
+	public static void requestScreenshot() {
+		if(screenshotTimer >= SCREENSHOT_TIME) {
+			screenshotTimer = 0.0f;
+			takingShot      = true;
+		}
 	}
 	
 	/**
@@ -304,14 +294,24 @@ public final class TGraphics implements Disposable {
 			if(physicsDebugRender != null)
 				PHYSICS_RENDERER.render(physicsDebugRender, WORLD_PROJ_MAT.combined);
 		}
-		// render and update UI modules...
-		ui.render(dt);
-		if(TInput.focused && Gdx.input.isCursorCatched()) {
-			// render cursor and other special UI items (special)...
-			UI_BATCH.begin();
-			UI_BATCH.setProjectionMatrix(SCREEN_PROJ_MAT.combined);
-			TInput.cursor.render(SCREEN_PROJ_MAT, UI_BATCH);
-			UI_BATCH.end();
+		// Do not render UI if taking screenshot...
+		if(screenshotTimer < SCREENSHOT_TIME) {
+			screenshotTimer += dt;
+			if(screenshotTimer >= (SCREENSHOT_TIME / 2f) && takingShot) {
+				// actually take the shot...
+				writeFrameBufferToPersistent();
+				takingShot = false;
+			}
+		} else {
+			ui.render(dt);
+			if(TInput.focused && Gdx.input.isCursorCatched()) {
+				// render cursor and other special UI items (special)...
+				UI_BATCH.begin();
+				UI_BATCH.setProjectionMatrix(SCREEN_PROJ_MAT.combined);
+				TInput.cursor.render(SCREEN_PROJ_MAT, UI_BATCH);
+				UI_BATCH.end();
+			}
+			screenshotTimer = SCREENSHOT_TIME;
 		}
 		// post-render...
 		flush();
@@ -326,6 +326,30 @@ public final class TGraphics implements Disposable {
 		WORLD_PROJ_MAT.update();
 		SCREEN_PROJ_MAT.update();
     }
+	
+	/**
+	 * Writes a snapshot of the frame buffer to the Terrafort screenshot directory.
+	 */
+	private void writeFrameBufferToPersistent() {
+		try {
+	        final int    width  = Gdx.graphics.getWidth();
+	        final int    height = Gdx.graphics.getHeight();
+	        final byte[] pixels = ScreenUtils.getFrameBufferPixels(0, 0, width, height, true);
+	        for (int i = 4; i < pixels.length; i += 4)
+	            pixels[i - 1] = (byte)255;
+	        final Pixmap pixmap = new Pixmap(width, height, Format.RGBA8888);
+	        BufferUtils.copy(pixels, 0, pixmap.getPixels(), pixels.length);
+	        final DateTimeFormatter formatter      = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+	        final String            dateTimeString = LocalDateTime.now().format(formatter);
+	        final String            filename       = dateTimeString + ".png";
+	        final FileHandle        file           = Gdx.files.local(TPersistent.ROOT + "/screenshots/" + filename);
+	        PixmapIO.writePNG(file, pixmap);
+	        System.out.println("[Terrafort Game Engine] Saved screenshot to " + file.path());
+	        pixmap.dispose();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
 	
 	/**
 	 * Calculates the perspective of the camera based on the desired position and zoom. This method also minimizes the amount of visual artifacts that arise from 

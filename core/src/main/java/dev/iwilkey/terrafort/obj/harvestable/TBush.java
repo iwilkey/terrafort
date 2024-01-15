@@ -14,7 +14,7 @@ import dev.iwilkey.terrafort.world.TWorld;
  */
 public final class TBush extends THarvestable {
 
-	public transient static final int   MAX_HEALTH        = 0x1;
+	public transient static final int   MAX_HEALTH        = 0x2;
 	public transient static final float HEIGHT            = TWorld.TILE_SIZE * 3;
 	public transient static final float WIDTH             = TWorld.TILE_SIZE * 3;
 	public transient static final float COLLIDER_WIDTH    = TWorld.TILE_SIZE / 1.5f;
@@ -77,6 +77,11 @@ public final class TBush extends THarvestable {
 	@Override
 	public int getParticleCountAtDeath() {
 		return ThreadLocalRandom.current().nextInt(16, 32);
+	}
+
+	@Override
+	public int getValue() {
+		return ThreadLocalRandom.current().nextInt(10, 25);
 	}
 
 }

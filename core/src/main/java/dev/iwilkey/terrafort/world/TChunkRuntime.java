@@ -7,6 +7,7 @@ import com.badlogic.gdx.utils.Disposable;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.obj.runtime.TObjectRuntime;
 import dev.iwilkey.terrafort.obj.type.TEntity;
+import dev.iwilkey.terrafort.obj.type.TMob;
 import dev.iwilkey.terrafort.obj.type.TObject;
 import dev.iwilkey.terrafort.obj.type.TParticulate;
 
@@ -40,7 +41,7 @@ public final class TChunkRuntime implements Disposable {
 			if(r.getAbstract() instanceof TEntity) {
 				// this means we have to monitor this object's health...
 				final TEntity e = (TEntity)r.getAbstract();
-				if(e.currentHealthPoints == 0) {
+				if(e.currentHealthPoints <= 0) {
 					// this thing is dead! notify the abstract chunk, and take care of it on this end.
 					e.death(r);
 					data.removeAbstractObject(e);
@@ -108,6 +109,8 @@ public final class TChunkRuntime implements Disposable {
 	 * Adds an already existing runtime to the chunk runtime's jurisdiction.
 	 */
 	public void addObjectRuntime(TObjectRuntime runtime) {
+		if(runtime.getAbstract() instanceof TMob) 
+			throw new IllegalArgumentException("[Terrafort Game Engine] TMob's aren't managed by TChunks. They can only be managed by a TWorld. Please use TWorld.addObject(TMob) instead.");
 		activeObjects.add(runtime);
 	}
 	

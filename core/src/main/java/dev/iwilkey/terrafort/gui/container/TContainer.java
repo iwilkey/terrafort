@@ -31,6 +31,7 @@ public abstract class TContainer implements Disposable {
 	public TContainer(Object... objReference) {
 		window = new VisWindow(Integer.toString(hashCode()));
 		window.setMovable(false);
+		window.setResizable(false);
 		window.getTitleLabel().remove();
 		window.getTitleTable().remove();
 		window.setBackground(TUserInterface.DEFAULT_BG);

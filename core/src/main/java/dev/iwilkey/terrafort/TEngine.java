@@ -25,6 +25,8 @@ public final class TEngine implements ApplicationListener {
 	public static final String VERSION = "0.0.1.0";
 	
 	static TPersistent      persistent;
+	static TPreferences     preferences;
+	static TAudio           audio;
 	static TGraphics        gfx;
 	static TUserInterface   ui;
 	static TInput           input;
@@ -54,16 +56,31 @@ public final class TEngine implements ApplicationListener {
 		return state;
 	}
 	
+	/**
+     * Get the current engine preferences.
+     */
+    public static TPreferences getPref() {
+    	return preferences;
+    }
+	
     @Override
     public void create() {
     	persistent = new TPersistent();
+    	// load in preferences (or create them.)
+    	if(!TPersistent.pathExists("pref.dat")) {
+    		preferences = new TPreferences();
+    	} else {
+    		System.out.println("Loading engine preferences...");
+    		preferences = (TPreferences)TPersistent.load("pref.dat");
+    	}
     	// directory to hold single player world persistent data...
     	if(!TPersistent.pathExists("world/"))
     		TPersistent.establish("world", false);
-    	clk        = new TClock();
-    	input      = new TInput();
-    	gfx        = new TGraphics();
-    	ui         = new TUserInterface();
+    	clk   = new TClock();
+    	audio = new TAudio();
+    	input = new TInput();
+    	gfx   = new TGraphics();
+    	ui    = new TUserInterface();
     	Gdx.input.setInputProcessor(input);
     	setState(new TSinglePlayerWorld());
     }
@@ -106,7 +123,10 @@ public final class TEngine implements ApplicationListener {
 
     @Override
     public void dispose() {
+    	// save preferences.
+    	TPersistent.save(preferences, "pref.dat");
     	setState(null);
+    	audio.dispose();
     	ui.dispose();
     	gfx.dispose();
     }

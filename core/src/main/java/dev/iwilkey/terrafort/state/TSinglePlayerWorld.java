@@ -6,8 +6,10 @@ import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.TState;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gui.TUserInterface;
+import dev.iwilkey.terrafort.gui.interfaces.TSettingsInterface;
+import dev.iwilkey.terrafort.gui.interfaces.TGameStateInterface;
 import dev.iwilkey.terrafort.gui.interfaces.TKnowledgeBarInterface;
-import dev.iwilkey.terrafort.gui.interfaces.TTechTreeInterface;
+import dev.iwilkey.terrafort.gui.interfaces.TKnowledgeTreeInterface;
 import dev.iwilkey.terrafort.persistent.TPersistent;
 import dev.iwilkey.terrafort.world.TWorld;
 
@@ -17,9 +19,11 @@ import dev.iwilkey.terrafort.world.TWorld;
  */
 public final class TSinglePlayerWorld implements TState {
 	
-	private TKnowledgeBarInterface      knowledgeBar  = null;
-	private TTechTreeInterface knowledgeTree = null;
-	private TWorld             world         = null;
+	private TKnowledgeBarInterface  knowledgeBar  = null;
+	private TKnowledgeTreeInterface knowledgeTree = null;
+	private TGameStateInterface     gameState     = null;
+	private TSettingsInterface      settings      = null;
+	private TWorld                  world         = null;
 	
 	@Override
 	public void start() {
@@ -34,13 +38,17 @@ public final class TSinglePlayerWorld implements TState {
 		}
 		knowledgeBar = new TKnowledgeBarInterface();
 		TUserInterface.mAllocContainer(knowledgeBar);
+		gameState = new TGameStateInterface(world.getClient());
+		TUserInterface.mAllocContainer(gameState);
+		settings = new TSettingsInterface();
+		TUserInterface.mAllocContainer(settings);
 	}
 
 	@Override
 	public void render(float dt) {
 		if(TInput.techTree) {
 			if(knowledgeTree == null) {
-				knowledgeTree = new TTechTreeInterface();
+				knowledgeTree = new TKnowledgeTreeInterface();
 				TUserInterface.mAllocContainer(knowledgeTree);
 			} else {
 				TUserInterface.mFreeContainer(knowledgeTree);
@@ -54,6 +62,8 @@ public final class TSinglePlayerWorld implements TState {
 	@Override
 	public void stop() {
 		TUserInterface.mFreeContainer(knowledgeBar);
+		TUserInterface.mFreeContainer(gameState);
+		TUserInterface.mFreeContainer(settings);
 		if(knowledgeTree != null)
 			TUserInterface.mFreeContainer(knowledgeTree);
 		world.dispose();
@@ -63,9 +73,11 @@ public final class TSinglePlayerWorld implements TState {
 	public void resize(int nw, int nh) {
 		if(knowledgeTree != null) {
 			TUserInterface.mFreeContainer(knowledgeTree);
-			knowledgeTree = new TTechTreeInterface();
+			knowledgeTree = new TKnowledgeTreeInterface();
 			TUserInterface.mAllocContainer(knowledgeTree);
 		}
+		if(!settings.getState())
+			settings.setState(false);
 	}
 
 }

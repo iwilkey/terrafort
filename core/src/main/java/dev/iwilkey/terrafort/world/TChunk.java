@@ -6,13 +6,12 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import com.badlogic.gdx.utils.Disposable;
 
-import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.harvestable.TBush;
 import dev.iwilkey.terrafort.obj.harvestable.TFlowers;
 import dev.iwilkey.terrafort.obj.harvestable.TTree;
-import dev.iwilkey.terrafort.obj.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.runtime.TObjectRuntime;
+import dev.iwilkey.terrafort.obj.type.TMob;
 import dev.iwilkey.terrafort.obj.type.TObject;
 import dev.iwilkey.terrafort.persistent.TSerializable;
 import dev.iwilkey.terrafort.world.terrain.TBiome;
@@ -75,12 +74,8 @@ public final class TChunk implements TSerializable, Disposable {
 		biome    = new TDefaultBiome(this);
 		concrete = new TChunkRuntime(this);
 		// create objects that don't already exist in the concrete state...
-		for(final TObject o : cachedObjectData) {
+		for(final TObject o : cachedObjectData)
 			addObjectRuntime(o);
-			// because we are loading from persistent, then we should force the camera to start at player's last known location.
-			if(o instanceof TPlayer)
-				TGraphics.forceCameraPosition(o.worldX, o.worldY);
-		}
 	}
 	
 	/**
@@ -183,6 +178,8 @@ public final class TChunk implements TSerializable, Disposable {
 	 * Adds a new {@link TObject} to this chunk's jurisdiction.
 	 */
 	public void addObject(TObject object) {
+		if(object instanceof TMob) 
+			throw new IllegalArgumentException("[Terrafort Game Engine] TMob's aren't managed by TChunks. They can only be managed by a TWorld. Please use TWorld.addObject(TMob) instead.");
 		cachedObjectData.add(object);
 		addObjectRuntime(object);
 	}
@@ -199,6 +196,8 @@ public final class TChunk implements TSerializable, Disposable {
 	 * Transfers all data of object and existing runtime to this chunk's jurisdiction without destroying and rebuilding the body.
 	 */
 	public void transferObject(TObject object, TObjectRuntime runtime) {
+		if(object instanceof TMob) 
+			throw new IllegalArgumentException("[Terrafort Game Engine] TMob's aren't managed by TChunks. They can only be managed by a TWorld. Please use TWorld.addObject(TMob) instead.");
 		cachedObjectData.add(object);
 		concrete.addObjectRuntime(runtime);
 	}
@@ -214,6 +213,8 @@ public final class TChunk implements TSerializable, Disposable {
 	 * Register an object runtime with abstract object.
 	 */
 	public void addObjectRuntime(TObject object) {
+		if(object instanceof TMob) 
+			throw new IllegalArgumentException("[Terrafort Game Engine] TMob's aren't managed by TChunks. They can only be managed by a TWorld. Please use TWorld.addObject(TMob) instead.");
 		concrete.createObjectRuntimeFromAbstract(object);
 	}
 	

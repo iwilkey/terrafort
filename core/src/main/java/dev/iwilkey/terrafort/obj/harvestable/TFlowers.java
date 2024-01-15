@@ -74,4 +74,9 @@ public final class TFlowers extends THarvestable {
 		return ThreadLocalRandom.current().nextInt(2, 4);
 	}
 
+	@Override
+	public int getValue() {
+		return ThreadLocalRandom.current().nextInt(5, 8);
+	}
+
 }

@@ -2,6 +2,7 @@ package dev.iwilkey.terrafort.obj.mob;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import dev.iwilkey.terrafort.TAudio;
 import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.math.TMath;
@@ -34,6 +35,8 @@ public final class TPlayer extends TMob {
 	 * The current zoom of the game camera that follows this mob.
 	 */
 	private byte zoomLevel;
+	
+	public long funds;
 	
 	/**
 	 * Creates a new player at (0, 0).
@@ -71,6 +74,8 @@ public final class TPlayer extends TMob {
 		potentialMoveSpeedMultiplier = 1.0f;
 		actionCooldown               = ACTION_COOLDOWN;
 		clothingColor                = ThreadLocalRandom.current().nextInt(0, Integer.MAX_VALUE - 1);
+		// players, in a new game, start with 0 funds.
+		funds                        = 0L;
 	}
 	
 	@Override
@@ -125,8 +130,12 @@ public final class TPlayer extends TMob {
 			// interact.
 			if(obj instanceof TEntity)
 				((TEntity)obj).hurt(1);
-			if(obj instanceof THarvestable) 
+			if(obj instanceof THarvestable) {
 				((THarvestable)obj).shake(concrete);
+				if(((THarvestable)obj).currentHealthPoints <= 0) {
+					giveFunds(((THarvestable)obj).getValue());
+				}
+			}
 		}
 	}
 
@@ -143,6 +152,31 @@ public final class TPlayer extends TMob {
 	@Override
 	public void onPhysicalDivergence(TObject divergingBody) {
 
+	}
+	
+	/**
+	 * Get the amount of funds that belong to this player.
+	 */
+	public long getFunds() {
+		return funds;
+	}
+	
+	/**
+	 * Give this player a certain amount of funds.
+	 */
+	public void giveFunds(long amount) {
+		funds += amount;
+		TAudio.playFx("sound/give_funds.wav", true);
+	}
+	
+	/**
+	 * Tries to take a specified amount of funds from the player. Returns false if insufficient funds.
+	 */
+	public boolean takeFunds(long amount) {
+		if(funds - amount < 0L)
+			return false;
+		funds -= amount;
+		return true;
 	}
 
 }

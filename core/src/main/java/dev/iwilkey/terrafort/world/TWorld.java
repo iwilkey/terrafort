@@ -1,5 +1,6 @@
 package dev.iwilkey.terrafort.world;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -11,11 +12,13 @@ import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.obj.mob.TPlayer;
 import dev.iwilkey.terrafort.obj.runtime.TObjectRuntime;
+import dev.iwilkey.terrafort.obj.type.TMob;
 import dev.iwilkey.terrafort.obj.type.TObject;
 import dev.iwilkey.terrafort.persistent.TPersistent;
 import dev.iwilkey.terrafort.persistent.TSerializable;
@@ -44,7 +47,7 @@ public final class TWorld implements TSerializable, Disposable {
 	/**
 	 * The amount of of tiles to render in all directions, centered where the player is.
 	 */
-	public transient static final int RENDER_DISTANCE  = 23;
+	public transient static final int RENDER_DISTANCE  = 32;
 	
 	/**
 	 * How many tiles should we try to render outside of the camera's viewport?
@@ -56,6 +59,17 @@ public final class TWorld implements TSerializable, Disposable {
 	 */
 	private transient World jniSpace = null;
 	
+	/**
+	 * All active {@link TMob}'s runtimes. 
+	 */
+	private transient Array<TObjectRuntime> mobRuntimes = null;
+	private transient Array<TObjectRuntime> mobRuntimeGarbageCollection = null;
+	
+	/**
+	 * The client.
+	 */
+	private transient TPlayer client;
+	
 	////////////////////////////////
 	// Serializable attributes.
 	////////////////////////////////
@@ -63,17 +77,22 @@ public final class TWorld implements TSerializable, Disposable {
 	private final String                uniqueWorldName;
 	private final long                  seed;
 	private final HashMap<Long, TChunk> chunkData;
+	private final ArrayList<TMob>       mobData;
 	
 	/**
 	 * Creates a new world with given name and seed.
 	 */
 	public TWorld(String uniqueWorldName, long seed) {
-		this.uniqueWorldName = uniqueWorldName;
-		this.seed            = seed;
-		chunkData            = new HashMap<>();
+		this.uniqueWorldName        = uniqueWorldName;
+		this.seed                   = seed;
+		chunkData                   = new HashMap<>();
+		mobData                     = new ArrayList<>();
+		mobRuntimes                 = new Array<>();
+		mobRuntimeGarbageCollection = new Array<>();
 		initializePhysics();
 		// this is a new world, so we need to add a player!
-		addObject(new TPlayer());
+		client = new TPlayer();
+		addObject(client);
 	}
 
 	@Override
@@ -84,6 +103,18 @@ public final class TWorld implements TSerializable, Disposable {
 		// recreate physical chunks...
 		for(final TChunk c : chunkData.values())
 			c.loadFromPersistent();
+		// recreate mobs...
+		mobRuntimes                 = new Array<>();
+		mobRuntimeGarbageCollection = new Array<>();
+		for(final TMob mob : mobData) {
+			if(mob instanceof TPlayer) {
+				client = (TPlayer)mob;
+				// because we are loading from persistent, then we should force the camera to start at player's last known location...
+				TGraphics.forceCameraPosition(mob.worldX, mob.worldY);
+			}
+			// create a new runtime for the mob...
+			mobRuntimes.add(new TObjectRuntime(this, mob));
+		}
 	}
 	
 	/**
@@ -131,6 +162,13 @@ public final class TWorld implements TSerializable, Disposable {
 	}
 	
 	/**
+	 * Get the current client.
+	 */
+	public TPlayer getClient() {
+		return client;
+	}
+	
+	/**
 	 * Get the world's seed.
 	 */
 	public long getWorldSeed() {
@@ -171,6 +209,12 @@ public final class TWorld implements TSerializable, Disposable {
 	 * Adds an object to the world. Uses the objects world position to dictate the chunk it is added to.
 	 */
 	public void addObject(TObject object) {
+		if(object instanceof TMob) {
+			final TMob mob = (TMob)object;
+			mobData.add(mob);
+			mobRuntimes.add(new TObjectRuntime(this, mob));
+			return;
+		}
 		getOrGenerateChunkThatContains((long)(object.worldX / TILE_SIZE), (long)(object.worldY / TILE_SIZE)).addObject(object);
 	}
 	
@@ -178,6 +222,17 @@ public final class TWorld implements TSerializable, Disposable {
 	 * Removes an object from the world. Uses the objects world position to dictate the chunk it is currently in.
 	 */
 	public void removeObject(TObject object) {
+		if(object instanceof TMob) {
+			final TMob mob = (TMob)object;
+			mobData.remove(mob);
+			for(final TObjectRuntime r : mobRuntimes) {
+				if(r.getAbstract().equals(mob)) {
+					mobRuntimeGarbageCollection.add(r);
+					break;
+				}
+			}
+			return;
+		}
 		getOrGenerateChunkThatContains((long)(object.worldX / TILE_SIZE), (long)(object.worldY / TILE_SIZE)).removeObject(object);
 	}
 
@@ -189,11 +244,36 @@ public final class TWorld implements TSerializable, Disposable {
 	}
 	
 	/**
+	 * Manages all active {@link TMob}s within the world.
+	 */
+	public void manageMobs(float dt) {
+		for(final TObjectRuntime ma : mobRuntimes) {
+			ma.tick(dt);
+			final TMob mob = (TMob)ma.getAbstract();
+			if(mob.currentHealthPoints <= 0) {
+				mob.death(ma);
+				removeObject(mob);
+				continue;
+			}
+			TGraphics.draw(ma);
+		}
+		// TMob garbage collection...
+		if(mobRuntimeGarbageCollection.size != 0) {
+			for(final TObjectRuntime r : mobRuntimeGarbageCollection) 
+				getPhysicalWorld().destroyBody(r.getPhysical());
+			mobRuntimes.removeAll(mobRuntimeGarbageCollection, false);
+			mobRuntimeGarbageCollection.clear();
+		}
+	}
+	
+	/**
 	 * Render the world to the screen from the camera's perspective.
 	 */
 	public void render(float dt) {
 		// update state of world...
 		updatePhysics(dt);
+		// mobs are managed at a world level (not chunk) because they always need to be monitored.
+		manageMobs(dt);
 		// render and tick chunks in the most optimized way possible...
 		final float  centerX            = TGraphics.WORLD_PROJ_MAT.position.x;
 		final float  centerY            = TGraphics.WORLD_PROJ_MAT.position.y;

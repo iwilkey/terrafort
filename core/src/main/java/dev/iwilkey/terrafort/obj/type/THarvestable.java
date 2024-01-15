@@ -29,6 +29,11 @@ public abstract class THarvestable extends TEntity {
 	}
 	
 	/**
+	 * Returns the monetary value of this harvestable.
+	 */
+	public abstract int getValue();
+	
+	/**
 	 * Returns the amount of particles that will be spawned the moment this {@link THarvestable} ceases to exist.
 	 */
 	public abstract int getParticleCountAtDeath();

@@ -15,6 +15,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kotcrab.vis.ui.VisUI;
 
 import dev.iwilkey.terrafort.gui.container.TContainer;
+import dev.iwilkey.terrafort.gui.container.TPopupContainer;
 import dev.iwilkey.terrafort.gui.container.TStaticContainer;
 
 /**
@@ -25,13 +26,18 @@ import dev.iwilkey.terrafort.gui.container.TStaticContainer;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TUserInterface implements Disposable {
+
+	public static final Texture           DEFAULT_NINE_PATCH_TEXTURE         = new Texture(Gdx.files.internal("ui/default.9.png"));
+	public static final Texture           BUTTON_DEFAULT_NINE_PATCH_TEXTURE  = new Texture(Gdx.files.internal("ui/node.9.png"));
+	public static final Texture           BUTTON_DISABLED_NINE_PATCH_TEXTURE = new Texture(Gdx.files.internal("ui/node-disabled.9.png"));
 	
-	/**
-	 * The nine-patch texture used to render the background of some UI components.
-	 */
-	public static final Texture           DEFAULT_NINE_PATCH_TEXTURE = new Texture(Gdx.files.internal("ui/default.9.png"));
-	public static final NinePatch         DEFAULT_NINE_PATCH         = new NinePatch(DEFAULT_NINE_PATCH_TEXTURE, 5, 5, 5, 5);
-	public static final NinePatchDrawable DEFAULT_BG                 = new NinePatchDrawable(DEFAULT_NINE_PATCH);
+	public static final NinePatch         DEFAULT_NINE_PATCH                 = new NinePatch(DEFAULT_NINE_PATCH_TEXTURE, 5, 5, 5, 5);
+	public static final NinePatch         BUTTON_DEFAULT_NINE_PATCH          = new NinePatch(BUTTON_DEFAULT_NINE_PATCH_TEXTURE, 6, 6, 6, 6);
+	public static final NinePatch         BUTTON_DISABLED_NINE_PATCH         = new NinePatch(BUTTON_DISABLED_NINE_PATCH_TEXTURE, 6, 6, 6, 6);
+	
+	public static final NinePatchDrawable DEFAULT_BG                         = new NinePatchDrawable(DEFAULT_NINE_PATCH);
+	public static final NinePatchDrawable BUTTON_DEFAULT_BG                  = new NinePatchDrawable(BUTTON_DEFAULT_NINE_PATCH);
+	public static final NinePatchDrawable BUTTON_DISABLED_BG                 = new NinePatchDrawable(BUTTON_DISABLED_NINE_PATCH);
 	
 	/**
 	 * The global text style (the game font.)
@@ -53,9 +59,10 @@ public final class TUserInterface implements Disposable {
 	 */
 	private static final Array<TContainer> ACTIVE_CONTAINERS = new Array<>();
 
-	private static BitmapFont gameFont;
-	private static Stage      io;
-	private static float      scale;
+	private static BitmapFont      gameFont;
+	private static Stage           io;
+	private static TPopupContainer currentPopup;
+	private static float           scale;
 	
 	public TUserInterface() {
 		VisUI.load();
@@ -73,6 +80,34 @@ public final class TUserInterface implements Disposable {
 	/////////////////////////////////////////////////////////
 	// BEGIN TUSERINTERFACE API
 	/////////////////////////////////////////////////////////
+	
+	/**
+	 * Begins and renders a new {@link TPopup} until {@link TUserInterface}.endPopup() is called. 
+	 * 
+	 * <p>
+	 * NOTE: This function forces any current rendering {@link TPopup} to be disposed of.
+	 * </p>
+	 * @param text
+	 */
+	public static void mAllocPopup(String header, String body) {
+		if(currentPopup != null)
+			mFreePopup();
+		currentPopup = new TPopupContainer(header, body);
+		io.addActor(currentPopup.get());
+	}
+	
+	/**
+	 * Ends the current {@link TPopup}, if applicable. Nothing happens if there is no active {@link TPopup}.
+	 */
+	public static void mFreePopup() {
+		if(currentPopup == null)
+			return;
+		if(currentPopup.get() != null) {
+			currentPopup.get().remove();
+			currentPopup.dispose();
+		}
+		currentPopup = null;
+	}
 	
 	/**
 	 * Adds a static container to the current managed user interface. Nothing happens if the container is already in context.
@@ -132,6 +167,8 @@ public final class TUserInterface implements Disposable {
 	 * each frame to ensure the UI is consistently updated and drawn to the screen.
 	 */
 	public void render(float dt) {
+		if(currentPopup != null)
+			currentPopup.update(dt);
 		for(final TContainer c : ACTIVE_CONTAINERS) {
 			c.update(dt);
 			// make sure the containers are positioned right on the screen...
@@ -157,6 +194,8 @@ public final class TUserInterface implements Disposable {
 	
 	@Override
 	public void dispose() {
+		if(currentPopup != null)
+			mFreePopup();
 		for(final TContainer c : ACTIVE_CONTAINERS) {
 			c.get().remove();
 			c.dispose();
@@ -166,6 +205,8 @@ public final class TUserInterface implements Disposable {
 		gameFont.dispose();
 		VisUI.dispose();
 		DEFAULT_NINE_PATCH_TEXTURE.dispose();
+		BUTTON_DEFAULT_NINE_PATCH_TEXTURE.dispose();
+		BUTTON_DISABLED_NINE_PATCH_TEXTURE.dispose();
 	}
 
 }

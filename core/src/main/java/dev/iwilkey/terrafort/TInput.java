@@ -127,24 +127,14 @@ public final class TInput implements InputProcessor {
 	public static boolean moveLeft = false;
 	
 	/**
-	 * Whether or not the user is trying to perform an up action.
+	 * Whether or not the user is trying to move to the Knowledge slot directly to the right of the current.
 	 */
-	public static boolean upAction = false;
+	public static boolean slotRight = false;
 	
 	/**
-	 * Whether or not the user is trying to perform a down action.
+	 * Whether or not the user is trying to move to the Knowledge slot directly to the left of the current.
 	 */
-	public static boolean downAction = false;
-	
-	/**
-	 * Whether or not the user is trying to perform a left action.
-	 */
-	public static boolean leftAction = false;
-	
-	/**
-	 * Whether or not the user is trying to perform a right action.
-	 */
-	public static boolean rightAction = false;
+	public static boolean slotLeft = false;
 	
 	/**
 	 * Whether or not the user is requesting the tech tree.
@@ -218,18 +208,6 @@ public final class TInput implements InputProcessor {
 				case 10: // RB
 					zoomIn = true;
 					break;
-				case 11: // DPAD UP
-					upAction = true;
-					break;
-				case 12: // DPAD DOWN
-					downAction = true;
-					break;
-				case 13: // DPAD LEFT
-					leftAction = true;
-					break;
-				case 14: // DPAD RIGHT
-					rightAction = true;
-					break;
 			}
 			return false; 
 		}
@@ -257,18 +235,6 @@ public final class TInput implements InputProcessor {
 					break;
 				case 10:
 					zoomIn = false;
-					break;
-				case 11:
-					upAction = false;
-					break;
-				case 12:
-					downAction = false;
-					break;
-				case 13:
-					leftAction = false;
-					break;
-				case 14:
-					rightAction = false;
 					break;
 			}
 			return false;
@@ -326,14 +292,11 @@ public final class TInput implements InputProcessor {
 			case Keys.D:
 				moveRight = true;
 				break;
-			case Keys.F:
+			case Keys.SPACE:
 				techTree = true;
 				break;
 			case Keys.SHIFT_LEFT:
 				run = true;
-				break;
-			case Keys.SPACE:
-				slide = true;
 				break;
 			case Keys.Q:
 				zoomOut = true;
@@ -343,18 +306,6 @@ public final class TInput implements InputProcessor {
 				break;
 			case Keys.ENTER:
 				interact = true;
-				break;
-			case Keys.UP:
-				upAction = true;
-				break;
-			case Keys.DOWN:
-				downAction = true;
-				break;
-			case Keys.LEFT:
-				leftAction = true;
-				break;
-			case Keys.RIGHT:
-				rightAction = true;
 				break;
 		}
 		return false;
@@ -378,14 +329,11 @@ public final class TInput implements InputProcessor {
 			case Keys.D:
 				moveRight = false;
 				break;
-			case Keys.F:
+			case Keys.SPACE:
 				techTree = false;
 				break;
 			case Keys.SHIFT_LEFT:
 				run = false;
-				break;
-			case Keys.SPACE:
-				slide = false;
 				break;
 			case Keys.Q:
 				zoomOut = false;
@@ -395,18 +343,6 @@ public final class TInput implements InputProcessor {
 				break;
 			case Keys.ENTER:
 				interact = false;
-				break;
-			case Keys.UP:
-				upAction = false;
-				break;
-			case Keys.DOWN:
-				downAction = false;
-				break;
-			case Keys.LEFT:
-				leftAction = false;
-				break;
-			case Keys.RIGHT:
-				rightAction = false;
 				break;
 		}
 		return false;
@@ -503,6 +439,14 @@ public final class TInput implements InputProcessor {
 		if(!focused)
 			return;
 		Gdx.input.setCursorCatched(true);
+		if(scroll > 0) {
+			slotRight = true;
+		} else if(scroll < 0) {
+			slotLeft = true;
+		} else {
+			slotRight = false;
+			slotLeft = false;
+		}
 		scroll = 0;
 		handleUIInteraction();
 		clampCursorToScreenSpace();

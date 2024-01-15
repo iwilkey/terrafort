@@ -13,7 +13,7 @@ import dev.iwilkey.terrafort.world.TWorld;
  */
 public interface TRenderableSprite {
 	
-	public static final float CULL_PADDING = TWorld.TILE_SIZE;
+	public static final float CULL_PADDING = TWorld.TILE_SIZE * 4f;
 	
 	/**
 	 * A path to the registered sprite sheet (TGraphics.mAllocSpriteSheet(path)) that will be referenced when rendering this sprite.
