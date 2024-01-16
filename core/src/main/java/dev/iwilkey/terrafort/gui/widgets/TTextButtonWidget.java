@@ -22,11 +22,12 @@ public final class TTextButtonWidget extends VisTextButton {
 		getLabel().setFontScale(0.16f * TUserInterface.getGlobalScale());
 		getLabel().setText(text);
 		setFocusBorderEnabled(false);
-		addListener(new ClickListener() {
-			public void clicked(InputEvent event, float x, float y) {
-				clickEvent.fire();
-			}
-		});
+		if(clickEvent != null)
+			addListener(new ClickListener() {
+				public void clicked(InputEvent event, float x, float y) {
+					clickEvent.fire();
+				}
+			});
 	}
 
 }

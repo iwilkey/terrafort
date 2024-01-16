@@ -49,7 +49,7 @@ public final class TAdvancedMathematicsKnowledge implements TKnowledge {
 
 	@Override
 	public long getLearnValue() {
-		return 256;
+		return 2560000;
 	}
 	
 }

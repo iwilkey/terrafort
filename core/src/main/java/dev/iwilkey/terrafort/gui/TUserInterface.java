@@ -1,22 +1,31 @@
 package dev.iwilkey.terrafort.gui;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator.FreeTypeFontParameter;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.kotcrab.vis.ui.VisUI;
 
+import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gui.container.TContainer;
 import dev.iwilkey.terrafort.gui.container.TPopupContainer;
+import dev.iwilkey.terrafort.gui.container.TPromptContainer;
 import dev.iwilkey.terrafort.gui.container.TStaticContainer;
+import dev.iwilkey.terrafort.gui.text.TImmediateModeText;
+import dev.iwilkey.terrafort.gui.text.TImmediateModeTextParticle;
 
 /**
  * Manages the primary user interface layer in the Terrafort engine, providing methods for rendering 
@@ -40,6 +49,11 @@ public final class TUserInterface implements Disposable {
 	public static final NinePatchDrawable BUTTON_DISABLED_BG                 = new NinePatchDrawable(BUTTON_DISABLED_NINE_PATCH);
 	
 	/**
+	 * The graphical batch used for rendering SAFs (Stand-alone fonts.)
+	 */
+	public static final SpriteBatch FONT_BATCH = new SpriteBatch();
+	
+	/**
 	 * The global text style (the game font.)
 	 */
 	public static final LabelStyle TEXT = new LabelStyle();
@@ -55,6 +69,16 @@ public final class TUserInterface implements Disposable {
 	public static int guiModuleMutexReferences = 0;
 	
 	/**
+	 * Pool for immediate text requests. Cleared after each frame.
+	 */
+	private static final Array<TImmediateModeText> IMMEDIATE_TEXT_REQUESTS = new Array<>();
+	
+	/**
+	 * Managed text particles.
+	 */
+	private static final Array<TImmediateModeTextParticle> ACTIVE_TEXT_PARTICLES            = new Array<>();
+	private static final Array<TImmediateModeTextParticle> TEXT_PARTICLE_GARBAGE_COLLECTION = new Array<>();
+	/**
 	 * Current active static containers managed by user interface module.
 	 */
 	private static final Array<TContainer> ACTIVE_CONTAINERS = new Array<>();
@@ -62,6 +86,7 @@ public final class TUserInterface implements Disposable {
 	private static BitmapFont      gameFont;
 	private static Stage           io;
 	private static TPopupContainer currentPopup;
+	private static TPromptContainer currentPrompt;
 	private static float           scale;
 	
 	public TUserInterface() {
@@ -110,6 +135,29 @@ public final class TUserInterface implements Disposable {
 	}
 	
 	/**
+	 * Allocate a new prompt container. There can only be one active at a time.
+	 */
+	public static void mAllocPromptContainer(TPromptContainer container) {
+		if(currentPrompt != null)
+			mFreePrompt();
+		currentPrompt = container;
+		io.addActor(currentPrompt.get());
+	}
+	
+	/**
+	 * Disposes of the current active prompt container.
+	 */
+	public static void mFreePrompt() {
+		if(currentPrompt == null)
+			return;
+		if(currentPrompt.get() != null) {
+			currentPrompt.get().remove();
+			currentPrompt.dispose();
+		}
+		currentPrompt = null;
+	}
+	
+	/**
 	 * Adds a static container to the current managed user interface. Nothing happens if the container is already in context.
 	 */
 	public static void mAllocContainer(TContainer container) {
@@ -127,6 +175,37 @@ public final class TUserInterface implements Disposable {
 			return;
 		container.get().remove();
 		ACTIVE_CONTAINERS.removeValue(container, false);
+	}
+	
+	/**
+	 * Draw text in world or screen-space at (x, y) with given point size and color.
+	 */
+	public static void drawText(String text, int x, int y, int point, int color, boolean worldSpace) {
+		IMMEDIATE_TEXT_REQUESTS.add(new TImmediateModeText() {
+			@Override
+			public String getData()     { return text; }
+			@Override
+			public boolean worldSpace() { return worldSpace; }
+			@Override
+			public boolean dropShadow() { return true; }
+			@Override
+			public int getX()           { return x; }
+			@Override
+			public int getY()           { return y; }
+			@Override
+			public int getColor()       { return color; }
+			@Override
+			public int getPoint()       { return point; }
+			@Override
+			public int getWrapping()    { return 0; }
+		});
+	}
+	
+	/**
+	 * Submits a text particle to be managed and rendered by the UI system.
+	 */
+	public static void submitTextParticle(TImmediateModeTextParticle particle) {
+		ACTIVE_TEXT_PARTICLES.add(particle);
 	}
 	
 	/**
@@ -162,11 +241,19 @@ public final class TUserInterface implements Disposable {
 	// END TUSERINTERFACE API
 	/////////////////////////////////////////////////////////
 	
+	private GlyphLayout layout  = new GlyphLayout();
+	private Color       textCol = new Color();
+	
 	/**
 	 * Updates and renders the UI elements within the stage. This method should be called 
 	 * each frame to ensure the UI is consistently updated and drawn to the screen.
 	 */
 	public void render(float dt) {
+		// if mutex ref goes below zero then there DEFINITLEY isn't any UI cursor focus.
+		if(guiModuleMutexReferences < 0)
+			guiModuleMutexReferences = 0;
+		if(currentPrompt != null)
+			currentPrompt.update(dt);
 		if(currentPopup != null)
 			currentPopup.update(dt);
 		for(final TContainer c : ACTIVE_CONTAINERS) {
@@ -176,6 +263,80 @@ public final class TUserInterface implements Disposable {
 				((TStaticContainer)c).anchor();
 			c.get().pack();
 		}
+		// Manage text particles...
+		for(final TImmediateModeTextParticle textParticle : ACTIVE_TEXT_PARTICLES) {
+			textParticle.tick(dt);
+			if(textParticle.done()) {
+				// add to trash...
+				TEXT_PARTICLE_GARBAGE_COLLECTION.add(textParticle);
+				continue;
+			}
+			// submit for rendering (still alive)...
+			IMMEDIATE_TEXT_REQUESTS.add(textParticle);
+		}
+		// Do garbage collection on text particles...
+		ACTIVE_TEXT_PARTICLES.removeAll(TEXT_PARTICLE_GARBAGE_COLLECTION, false);
+		TEXT_PARTICLE_GARBAGE_COLLECTION.clear();
+		// Draw immediate text requests...
+		FONT_BATCH.begin();
+		for(final TImmediateModeText textRequest : IMMEDIATE_TEXT_REQUESTS) {
+			// set metadata...
+			gameFont.getData().setScale((float)textRequest.getPoint() / BASE_FONT_SIZE);
+			textCol.set(textRequest.getColor());
+			gameFont.setColor(textCol);
+			// figure out the final position to render the text...
+			int x;
+			int y;
+			if(textRequest.worldSpace()) {
+				// project from world-space to screen-space...
+				final Vector3 projCoords = new Vector3(textRequest.getX(), textRequest.getY(), 0);
+				TGraphics.WORLD_PROJ_MAT.project(projCoords);
+				x = Math.round(projCoords.x);
+				y = Math.round(projCoords.y);
+			} else {
+				x = textRequest.getX();
+				y = textRequest.getY();
+			}
+			// Check if the text should be rendered...
+			layout.setText(gameFont, textRequest.getData());
+	        int   screenWidth  = Gdx.graphics.getWidth();
+	        int   screenHeight = Gdx.graphics.getHeight();
+	        float textWidth    = layout.width;
+	        // Check horizontal bounds...
+	        if(x + textWidth / 2 < 0 || x - textWidth / 2 > screenWidth)
+	            continue;
+	        // Check vertical bounds...
+	        float textHeight = layout.height;
+	        if(y + textHeight / 2 < 0 || y - textHeight / 2 > screenHeight)
+	             continue;
+	        // Render...
+	        if(textRequest.dropShadow()) {
+	        	// Render drop shadow first...
+	        	textCol.set(textRequest.getColor() & 0x000000ff);
+	        	gameFont.setColor(textCol);
+	        	gameFont.draw(FONT_BATCH, 
+	        		      textRequest.getData(), 
+	        		      x - (textWidth / 2f) + 2f, 
+	        		      y - (textHeight / 2f) - 2f, 
+	        		      (textRequest.getWrapping() > 0) ? textRequest.getWrapping() : textWidth, 
+	        		      Align.center, 
+	        		      textRequest.getWrapping() > 0);
+	        	textCol.set(textRequest.getColor());
+	        	gameFont.setColor(textCol);
+	        }
+	        gameFont.draw(FONT_BATCH, 
+	        		      textRequest.getData(), 
+	        		      x - (textWidth / 2f), 
+	        		      y - (textHeight / 2f), 
+	        		      (textRequest.getWrapping() > 0) ? textRequest.getWrapping() : textWidth, 
+	        		      Align.center, 
+	        		      textRequest.getWrapping() > 0);
+		}
+		gameFont.getData().setScale(1f);
+		gameFont.setColor(Color.WHITE);
+		FONT_BATCH.end();
+		IMMEDIATE_TEXT_REQUESTS.clear();
+		// draw and listen to the rest of the UI...
 		io.act(dt);
 		io.draw();
 	}
@@ -189,7 +350,10 @@ public final class TUserInterface implements Disposable {
 	 * @param nh The new height that the screen has been resized to.
 	 */
 	public void resize(final int nw, final int nh) {
+		FONT_BATCH.getProjectionMatrix().setToOrtho2D(0, 0, nw, nh);
 	    io.getViewport().update(nw, nh, true);
+	    mFreePrompt();
+	    mFreePopup();
 	}
 	
 	@Override
@@ -201,6 +365,9 @@ public final class TUserInterface implements Disposable {
 			c.dispose();
 		}
 		ACTIVE_CONTAINERS.clear();
+		FONT_BATCH.dispose();
+		ACTIVE_TEXT_PARTICLES.clear();
+		IMMEDIATE_TEXT_REQUESTS.clear();
 		io.dispose();
 		gameFont.dispose();
 		VisUI.dispose();

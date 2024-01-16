@@ -4,10 +4,12 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.kotcrab.vis.ui.widget.VisImageButton;
 import com.kotcrab.vis.ui.widget.VisTable;
 
 import dev.iwilkey.terrafort.gui.TUserInterface;
+import dev.iwilkey.terrafort.gui.interfaces.TKnowledgeNodeInterface;
 import dev.iwilkey.terrafort.gui.lang.TLocale;
 import dev.iwilkey.terrafort.knowledge.tree.TKnowledgeTreeNode;
 
@@ -55,6 +57,11 @@ public final class TKnowledgeTreeNodeWidget extends VisTable {
 		    	TUserInterface.mFreePopup();
 		    }
 		});
+		addListener(new ClickListener() {
+			public void clicked(InputEvent event, float x, float y) {
+				TUserInterface.mAllocPromptContainer(new TKnowledgeNodeInterface(abstractNode));
+			}
+		});
 	}
 	
 	/**
@@ -98,6 +105,13 @@ public final class TKnowledgeTreeNodeWidget extends VisTable {
 	 */
 	public void requires(TKnowledgeTreeNodeWidget widget) {
 		requires = widget;
+	}
+	
+	/**
+	 * Sets the node as learned.
+	 */
+	public void learn() {
+		this.background(TUserInterface.BUTTON_DEFAULT_BG);
 	}
 	
 }

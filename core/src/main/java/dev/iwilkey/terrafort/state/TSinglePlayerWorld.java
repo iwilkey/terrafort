@@ -7,6 +7,8 @@ import dev.iwilkey.terrafort.TState;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.gui.interfaces.TSettingsInterface;
+import dev.iwilkey.terrafort.gui.widgets.TKnowledgeTreeWidget;
+import dev.iwilkey.terrafort.obj.mob.TPlayer;
 import dev.iwilkey.terrafort.gui.interfaces.TGameStateInterface;
 import dev.iwilkey.terrafort.gui.interfaces.TKnowledgeBarInterface;
 import dev.iwilkey.terrafort.gui.interfaces.TKnowledgeTreeInterface;
@@ -19,11 +21,12 @@ import dev.iwilkey.terrafort.world.TWorld;
  */
 public final class TSinglePlayerWorld implements TState {
 	
+	private static TWorld                  world         = null;
+	private static TKnowledgeTreeInterface knowledgeTree = null;
+	
 	private TKnowledgeBarInterface  knowledgeBar  = null;
-	private TKnowledgeTreeInterface knowledgeTree = null;
 	private TGameStateInterface     gameState     = null;
 	private TSettingsInterface      settings      = null;
-	private TWorld                  world         = null;
 	
 	@Override
 	public void start() {
@@ -53,6 +56,8 @@ public final class TSinglePlayerWorld implements TState {
 			} else {
 				TUserInterface.mFreeContainer(knowledgeTree);
 				knowledgeTree = null;
+				TUserInterface.mFreePrompt();
+				TUserInterface.guiModuleMutexReferences -= 2;
 			}
 			TInput.techTree = false;
 		}
@@ -78,6 +83,20 @@ public final class TSinglePlayerWorld implements TState {
 		}
 		if(!settings.getState())
 			settings.setState(false);
+	}
+	
+	/**
+	 * Get the knowledge tree widget for rebuilding (if needed.) May return null.
+	 */
+	public static TKnowledgeTreeWidget getTree() {
+		return knowledgeTree.tree;
+	}
+	
+	/**
+	 * Get the player.
+	 */
+	public static TPlayer getClient() {
+		return world.getClient();
 	}
 
 }

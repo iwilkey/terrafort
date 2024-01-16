@@ -41,7 +41,7 @@ public abstract class TContainer implements Disposable {
 				focused = true;
 				TUserInterface.guiModuleMutexReferences++;
 			}
-			public void exit (InputEvent event, float x, float y, int pointer, @Null Actor toActor) {
+			public void exit(InputEvent event, float x, float y, int pointer, @Null Actor toActor) {
 				focused = false;
 				TUserInterface.guiModuleMutexReferences--;
 			}
@@ -82,6 +82,10 @@ public abstract class TContainer implements Disposable {
 	 */
 	public final VisWindow get() {
 		return window;
+	}
+	
+	public final boolean isFocused() {
+		return focused;
 	}
 	
 	@Override

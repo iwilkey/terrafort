@@ -1,5 +1,6 @@
 package dev.iwilkey.terrafort.gui;
 
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
@@ -25,4 +26,17 @@ public final class TDrawable {
 													dataHeight * TGraphics.DATA_HEIGHT);
 		return new TextureRegionDrawable(reg);
 	}
+	
+	/**
+	 * Returns a {@link TDrawable} from a specified color (RGBA int format.)
+	 */
+	public static final Drawable solidColor(int color) {
+	    final Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+	    pixmap.setColor(color);
+	    pixmap.fill();
+	    final Texture texture = new Texture(pixmap);
+	    pixmap.dispose();
+	    return new TextureRegionDrawable(new TextureRegion(texture));
+	}
+	
 }

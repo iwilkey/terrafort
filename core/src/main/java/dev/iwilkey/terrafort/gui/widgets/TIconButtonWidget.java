@@ -21,11 +21,12 @@ public final class TIconButtonWidget extends VisImageButton {
 		super(imageUp);
 		getImage().setTouchable(Touchable.disabled);
 		setFocusBorderEnabled(false);
-		addListener(new ClickListener() {
-			public void clicked(InputEvent event, float x, float y) {
-				clickEvent.fire();
-			}
-		});
+		if(clickEvent != null)
+			addListener(new ClickListener() {
+				public void clicked(InputEvent event, float x, float y) {
+					clickEvent.fire();
+				}
+			});
 	}
 
 }

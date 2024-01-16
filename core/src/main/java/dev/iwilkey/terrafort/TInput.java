@@ -476,8 +476,8 @@ public final class TInput implements InputProcessor {
 	private void clampCursorToScreenSpace() {
 		final float vpw   = Gdx.graphics.getWidth();
 		final float vph   = Gdx.graphics.getHeight();
-		final float cursW = cursor.getWidth() / 2f;
-		final float cursH = cursor.getHeight() / 2f;
+		final float cursW = cursor.getWidth() / 8f;
+		final float cursH = cursor.getHeight() / 8f;
 		cursorX = TMath.clamp(cursorX, cursW, vpw - cursW);
 		cursorY = TMath.clamp(cursorY, cursH, vph - cursH);
 		Gdx.input.setCursorPosition((int)cursorX, (int)cursorY);

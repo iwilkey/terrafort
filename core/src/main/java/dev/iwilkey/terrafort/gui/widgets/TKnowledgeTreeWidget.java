@@ -9,12 +9,14 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.badlogic.gdx.utils.Align;
 import com.kotcrab.vis.ui.widget.VisScrollPane;
 import com.kotcrab.vis.ui.widget.VisTable;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
+import dev.iwilkey.terrafort.gui.TDrawable;
 import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.gui.lang.TLocale;
 import dev.iwilkey.terrafort.knowledge.tree.TKnowledgeTreeNode;
@@ -25,6 +27,8 @@ import dev.iwilkey.terrafort.knowledge.tree.TKnowledgeTreeStructure;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TKnowledgeTreeWidget extends VisTable {
+	
+	public static final Drawable SOLID_BLACK = TDrawable.solidColor(0x333333ff);
 	
 	/**
 	 * The location of the Terrafort Tech Tree widget structure.
@@ -66,6 +70,8 @@ public final class TKnowledgeTreeWidget extends VisTable {
 		addSeparator().padBottom(16f);
 		tree = new VisTable();
 		internal = new VisScrollPane(tree);
+		tree.pad(32f);
+		internal.getStyle().background = SOLID_BLACK;
 		internal.setScrollbarsVisible(true);
 		buildTree();
 		add(internal).top().fill().center().prefSize(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f);
@@ -122,6 +128,8 @@ public final class TKnowledgeTreeWidget extends VisTable {
 	    boolean  first        = true;
 	    for(final TKnowledgeTreeNodeWidget n : TREE_NODES) {
 	    	if(n.getAbstractNode().learned || (n.getAbstractNodeRequirement().learned && !n.getAbstractNode().learned)) {
+	    		if(n.getAbstractNode().learned)
+	    			n.learn();
 		        if (n.getNodeLevel() != currentLevel) {
 		            if (levelTable != null) {
 		                tree.add(levelTable).center().expandX().fillX();

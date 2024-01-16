@@ -5,6 +5,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import dev.iwilkey.terrafort.TAudio;
 import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.gfx.TGraphics;
+import dev.iwilkey.terrafort.gui.TUserInterface;
+import dev.iwilkey.terrafort.gui.text.TMobTextParticle;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.runtime.TObjectRuntime;
 import dev.iwilkey.terrafort.obj.type.TEntity;
@@ -166,6 +168,7 @@ public final class TPlayer extends TMob {
 	 */
 	public void giveFunds(long amount) {
 		funds += amount;
+		TUserInterface.submitTextParticle(new TMobTextParticle("+ " + amount + " F", this, 0x00ff00ff));
 		TAudio.playFx("sound/give_funds.wav", true);
 	}
 	
@@ -175,6 +178,7 @@ public final class TPlayer extends TMob {
 	public boolean takeFunds(long amount) {
 		if(funds - amount < 0L)
 			return false;
+		TUserInterface.submitTextParticle(new TMobTextParticle("- " + amount + " F", this, 0xff0000ff));
 		funds -= amount;
 		return true;
 	}
