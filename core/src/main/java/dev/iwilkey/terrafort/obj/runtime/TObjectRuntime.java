@@ -153,12 +153,12 @@ public final class TObjectRuntime implements TRenderableSprite {
 
 	@Override
 	public float getX() {
-		return Math.round(abstractState.worldX + abstractState.colliderOffX);
+		return abstractState.worldX + abstractState.colliderOffX;
 	}
 
 	@Override
 	public float getY() {
-		return Math.round(abstractState.worldY + abstractState.colliderOffY);
+		return abstractState.worldY + abstractState.colliderOffY;
 	}
 
 	@Override
@@ -222,17 +222,18 @@ public final class TObjectRuntime implements TRenderableSprite {
         float rotationDegrees = (float)Math.toDegrees(getRotationInRadians());
         if(shouldUseAdditiveBlending())
         	batch.setBlendFunction(GL20.GL_SRC_ALPHA, GL20.GL_ONE);
+        
         // draw orig sprite...
         batch.draw(
             TGraphics.getSheetGLTex(getSpriteSheet()), 
             getX() - originX, 
             getY() - originY, 
-            originX, 
-            originY, 
+            originX,
+            originY,
             getWidth(), 
             getHeight(), 
-            1, 
-            1, 
+            1f, 
+            1f, 
             rotationDegrees,
             getDataSelectionOffsetX() * TGraphics.DATA_WIDTH, 
             getDataSelectionOffsetY() * TGraphics.DATA_HEIGHT,

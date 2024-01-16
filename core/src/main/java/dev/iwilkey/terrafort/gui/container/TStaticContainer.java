@@ -22,8 +22,6 @@ public abstract class TStaticContainer extends TContainer {
 	 */
 	public TStaticContainer(Object... objReference) {
 		super(objReference);
-		pack(internal, objReference);
-		window.add(internal);
 	}
 	
 	/**

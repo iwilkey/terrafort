@@ -84,4 +84,9 @@ public final class TBush extends THarvestable {
 		return ThreadLocalRandom.current().nextInt(10, 25);
 	}
 
+	@Override
+	public String getShakeSoundPath() {
+		return "sound/leaves_hit.wav";
+	}
+
 }

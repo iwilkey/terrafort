@@ -21,6 +21,7 @@ public final class TAudio implements Disposable {
 	static {
 		
 		TAudio.mAllocFx("sound/give_funds.wav");
+		TAudio.mAllocFx("sound/leaves_hit.wav");
 		
 	}
 	
@@ -61,15 +62,12 @@ public final class TAudio implements Disposable {
 	///////////////////////////////////////////////////////
 	// END API
 	///////////////////////////////////////////////////////
-	
-	public void tick() {
-		
-	}
 
 	@Override
 	public void dispose() {
 		for(final String e : SFX_MEMORY.keySet())
-			mFreeFx(e);
+			SFX_MEMORY.get(e).dispose();
+		SFX_MEMORY.clear();
 	}
 
 }

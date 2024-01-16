@@ -59,7 +59,7 @@ public final class TKnowledgeTreeWidget extends VisTable {
 	private final VisTable        tree;
 	
 	public TKnowledgeTreeWidget() {
-		final TTextWidget text = new TTextWidget("[PLAYER NAME]'s " + TLocale.getLine(34));
+		final TTextWidget text = new TTextWidget("[YELLOW]" + TLocale.getLine(34) + "[]");
 		text.setAlignment(Align.center);
 		add(text).center().prefSize(Gdx.graphics.getWidth() / 2f, 32 * TUserInterface.getGlobalScale());
 		row();
@@ -130,7 +130,7 @@ public final class TKnowledgeTreeWidget extends VisTable {
 		            levelTable = new VisTable(true);
 		            currentLevel = n.getNodeLevel();
 		        }
-		        levelTable.add(n).padTop((first) ? 0f : 64f * TUserInterface.getGlobalScale()).padLeft(4 * TUserInterface.getGlobalScale()).padRight(4 * TUserInterface.getGlobalScale());
+		        levelTable.add(n).padTop((first) ? 0f : 64f * TUserInterface.getGlobalScale()).padLeft(64f * TUserInterface.getGlobalScale()).padRight(64f * TUserInterface.getGlobalScale());
 		        first = false;
 	    	}
 	    }

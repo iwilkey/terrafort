@@ -52,7 +52,12 @@ public final class TKnowledgeBarInterface extends TStaticContainer {
 	 */
 	private TKnowledgeSlotWidget[] slots;
 	
-	public void pack(VisTable window, Object... objReference) {
+	public TKnowledgeBarInterface(Object... objReference) {
+		super(objReference);
+		pack(internal);
+	}
+	
+	public void pack(VisTable internal, Object... objReference) {
 		setAnchor(TAnchor.BOTTOM_CENTER);
 		setExternalPadding(0, 4, 0, 0);
 		setInternalPadding(8, 8, 16, 16);
@@ -74,9 +79,10 @@ public final class TKnowledgeBarInterface extends TStaticContainer {
 			float pad = SLOT_PADDING * TUserInterface.getGlobalScale();
 			slotTable.add(slots[i]).pad(0, pad, 0, pad).center().pad(SLOT_PADDING);
 		}
-		window.add(knowledgeButtonTable).top().expand().fillX().prefHeight(8f).padTop(4f);
-		window.row();
-		window.add(slotTable).center();
+		internal.add(knowledgeButtonTable).top().expand().fillX().prefHeight(8f).padTop(4f);
+		internal.row();
+		internal.add(slotTable).center();
+		window.add(internal);
 		selected = 0;
 		slots[selected].select();
 	}

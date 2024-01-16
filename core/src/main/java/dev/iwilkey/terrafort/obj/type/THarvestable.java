@@ -1,5 +1,6 @@
 package dev.iwilkey.terrafort.obj.type;
 
+import dev.iwilkey.terrafort.TAudio;
 import dev.iwilkey.terrafort.obj.particulate.TParticle;
 import dev.iwilkey.terrafort.obj.runtime.TObjectRuntime;
 
@@ -29,6 +30,11 @@ public abstract class THarvestable extends TEntity {
 	}
 	
 	/**
+	 * Returns the sound effect path to play when this harvestable is shook.
+	 */
+	public abstract String getShakeSoundPath();
+	
+	/**
 	 * Returns the monetary value of this harvestable.
 	 */
 	public abstract int getValue();
@@ -44,6 +50,7 @@ public abstract class THarvestable extends TEntity {
 	public final void shake(final TObjectRuntime concrete) {
 		for(int i = 0; i < 1; i++)
 			concrete.getWorld().addObject(new TParticle(worldX, worldY + (colliderHeight * 2), debrisColor));
+		TAudio.playFx(getShakeSoundPath(), true);
 	}
 	
 	@Override

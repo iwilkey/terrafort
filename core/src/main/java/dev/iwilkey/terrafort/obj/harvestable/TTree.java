@@ -84,4 +84,9 @@ public final class TTree extends THarvestable {
 		return ThreadLocalRandom.current().nextInt(50, 100);
 	}
 
+	@Override
+	public String getShakeSoundPath() {
+		return "sound/leaves_hit.wav";
+	}
+
 }

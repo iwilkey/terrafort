@@ -168,10 +168,12 @@ public abstract class TObject implements Serializable {
 			// Abstract follows simulated physical implementation.
 			worldX          = concrete.getPhysical().getPosition().x;
 			worldY          = concrete.getPhysical().getPosition().y;
-			refuseGraphicalArtifacts();
+			if(this instanceof TMob)
+				refuseGraphicalArtifacts();
 			rotationRadians = (float)concrete.getPhysical().getAngle();
 		} else {
-			refuseGraphicalArtifacts();
+			if(this instanceof TMob)
+				refuseGraphicalArtifacts();
 			// Forces the physical representation of the object to follow this abstract one.
 			concrete.getPhysical().setTransform(new Vector2(worldX, worldY), rotationRadians);
 		}

@@ -43,18 +43,18 @@ public final class TGameStateInterface extends TStaticContainer {
 		player = (TPlayer)objReference[0];
 		playerFunds = new TInterpolator(player.getFunds());
 		playerFunds.setSpeed(32.0f);
+		pack(internal);
 	}
 	
 	@Override
 	public void pack(VisTable internal, Object... objReference) {
 		setAnchor(TAnchor.BOTTOM_LEFT);
 		setExternalPadding(0, 4, 0, 4);
-		setInternalPadding(8, 8, 8, 8);
-		funds = new TTextWidget("[YELLOW]0[] Funds (F)");
+		setInternalPadding(8, 8, 16, 16);
+		funds = new TTextWidget("[GREEN]1,203[] Funds");
 		funds.setFontScale(0.18f);
 		internal.add(funds);
 		window.add(internal);
-		window.pack();
 	}
 	
 	@Override
@@ -62,7 +62,7 @@ public final class TGameStateInterface extends TStaticContainer {
 		playerFunds.set(player.getFunds());
 		playerFunds.update(dt);
         final String pf = NumberFormat.getNumberInstance().format((int)playerFunds.get());
-		funds.setText("[YELLOW]" + pf + "[] Funds (F)");
+		funds.setText("[GREEN]" + pf + "[] Funds");
 	}
 
 }

@@ -12,16 +12,22 @@ import dev.iwilkey.terrafort.gui.widgets.TKnowledgeTreeWidget;
  */
 public final class TKnowledgeTreeInterface extends TStaticContainer {
 	
+	public TKnowledgeTreeInterface(Object... objReference) {
+		super(objReference);
+		pack(internal);
+	}
+	
 	@Override
 	public void pack(VisTable internal, Object... objReference) {
 		setAnchor(TAnchor.CENTER_CENTER);
 		setExternalPadding(0, 32, 0, 0);
-		window.add(new TKnowledgeTreeWidget()).center();
+		internal.add(new TKnowledgeTreeWidget()).center();
+		window.add(internal);
 		get().setVisible(false);
 	}
 	
 	boolean up = false;
-	float t = 0.0f;
+	float   t  = 0.0f;
 
 	@Override
 	public void update(float dt) {

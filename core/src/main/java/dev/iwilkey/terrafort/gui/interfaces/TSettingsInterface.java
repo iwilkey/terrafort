@@ -31,6 +31,11 @@ public final class TSettingsInterface extends TStaticContainer {
 	
 	private boolean currentState = true;
 	
+	public TSettingsInterface(Object... objReference) {
+		super(objReference);
+		pack(internal);
+	}
+	
 	@Override
 	public void pack(VisTable internal, Object... objReference) {
 		setAnchor(TAnchor.TOP_RIGHT);
