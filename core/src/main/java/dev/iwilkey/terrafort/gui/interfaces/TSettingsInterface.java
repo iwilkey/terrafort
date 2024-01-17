@@ -16,6 +16,7 @@ import dev.iwilkey.terrafort.gui.container.TStaticContainer;
 import dev.iwilkey.terrafort.gui.lang.TLanguage;
 import dev.iwilkey.terrafort.gui.lang.TLocale;
 import dev.iwilkey.terrafort.gui.widgets.TIconButtonWidget;
+import dev.iwilkey.terrafort.gui.widgets.TKnowledgeTreeWidget;
 import dev.iwilkey.terrafort.gui.widgets.TTextButtonWidget;
 import dev.iwilkey.terrafort.gui.widgets.TTextWidget;
 
@@ -93,9 +94,10 @@ public final class TSettingsInterface extends TStaticContainer {
 			internal.row();
 			final VisTable      settings = new VisTable();
 			final VisScrollPane pane     = new VisScrollPane(settings);
+			pane.getStyle().background = TKnowledgeTreeWidget.SOLID_BLACK;
 			pane.setFadeScrollBars(false);
-			internal.add(new TTextWidget("[YELLOW]LOCALE: []" + TEngine.getPref().locale.name())).pad(8f);
-			internal.row();
+			settings.add(new TTextWidget("[YELLOW]LOCALE: []" + TEngine.getPref().locale.name())).pad(8f);
+			settings.row();
 	        for(TLanguage lang : TLanguage.values()) {
 	        	final TTextButtonWidget togLang = new TTextButtonWidget(lang.name(), new TEvent() {
 	        		final TLanguage l = lang;
@@ -107,12 +109,19 @@ public final class TSettingsInterface extends TStaticContainer {
 					}
 	        	});
 	        	togLang.addListener(new TPopable("[RED]" + TLocale.getLine(38) + "[]", TLocale.getLine(36)));
-	        	internal.add(togLang).pad(2f).fillX();
-	        	internal.row();
+	        	settings.add(togLang).pad(2f).fillX();
+	        	settings.row();
 	        }
-	        internal.addSeparator().pad(2);
-			internal.add(pane).center().fill().expand().prefSize(Gdx.graphics.getWidth() * 0.2f, Gdx.graphics.getHeight() / 2f).pad(4f);
+	        settings.addSeparator().pad(6f);
+	        
+	        for(int i = 0; i < 64; i++) {
+	        	settings.add(new TTextWidget("Other settings..."));
+	        	settings.row();
+	        }
+	        
+	        internal.add(pane).fill().expand().prefSize(Gdx.graphics.getWidth() * 0.2f, Gdx.graphics.getHeight() / 2f).pad(4f);
 		}
+		internal.pack();
 		window.add(internal);
 		window.pack();
 		currentState = minimized;

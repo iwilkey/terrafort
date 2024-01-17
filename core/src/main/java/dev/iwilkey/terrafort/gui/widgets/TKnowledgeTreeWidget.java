@@ -28,7 +28,7 @@ import dev.iwilkey.terrafort.knowledge.tree.TKnowledgeTreeStructure;
  */
 public final class TKnowledgeTreeWidget extends VisTable {
 	
-	public static final Drawable SOLID_BLACK = TDrawable.solidColor(0x333333ff);
+	public static final Drawable SOLID_BLACK = TDrawable.solidColor(0x111111ff);
 	
 	/**
 	 * The location of the Terrafort Tech Tree widget structure.
