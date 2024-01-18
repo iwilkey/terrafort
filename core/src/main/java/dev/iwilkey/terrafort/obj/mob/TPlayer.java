@@ -1,12 +1,14 @@
 package dev.iwilkey.terrafort.obj.mob;
 
+import java.text.NumberFormat;
 import java.util.concurrent.ThreadLocalRandom;
 
 import dev.iwilkey.terrafort.TAudio;
 import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.gfx.TGraphics;
+import dev.iwilkey.terrafort.gui.TAnchor;
 import dev.iwilkey.terrafort.gui.TUserInterface;
-import dev.iwilkey.terrafort.gui.text.TMobTextParticle;
+import dev.iwilkey.terrafort.gui.text.TScreenTextParticle;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.runtime.TObjectRuntime;
 import dev.iwilkey.terrafort.obj.type.TEntity;
@@ -102,6 +104,7 @@ public final class TPlayer extends TMob {
 	
 	@Override
 	public void task(final TObjectRuntime concrete, float dt) {
+		rotationRadians = 0;
 		// Camera follows the player...
 		TGraphics.setCameraTargetPosition(concrete.getX(), concrete.getY());
 		TGraphics.setZoomLevel(zoomLevel);
@@ -157,6 +160,13 @@ public final class TPlayer extends TMob {
 	}
 	
 	/**
+	 * Formats given a funds amount to a renderable string.
+	 */
+	public String fundsToString(long amount) {
+		return NumberFormat.getNumberInstance().format(amount);
+	}
+	
+	/**
 	 * Get the amount of funds that belong to this player.
 	 */
 	public long getFunds() {
@@ -168,7 +178,7 @@ public final class TPlayer extends TMob {
 	 */
 	public void giveFunds(long amount) {
 		funds += amount;
-		TUserInterface.submitTextParticle(new TMobTextParticle("+ " + amount + " F", this, 0x00ff00ff));
+		TUserInterface.submitTextParticle(new TScreenTextParticle("+ " + fundsToString(amount) + " F", TAnchor.BOTTOM_LEFT, 72, 64, 16, 0x3eff35ff));
 		TAudio.playFx("sound/give_funds.wav", true);
 	}
 	
@@ -178,7 +188,7 @@ public final class TPlayer extends TMob {
 	public boolean takeFunds(long amount) {
 		if(funds - amount < 0L)
 			return false;
-		TUserInterface.submitTextParticle(new TMobTextParticle("- " + amount + " F", this, 0xff0000ff));
+		TUserInterface.submitTextParticle(new TScreenTextParticle("- " + fundsToString(amount) + " F", TAnchor.BOTTOM_LEFT, 72, 64, 16, 0xff0000ff));
 		funds -= amount;
 		return true;
 	}

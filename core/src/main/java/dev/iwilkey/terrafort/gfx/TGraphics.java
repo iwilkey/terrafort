@@ -22,6 +22,9 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.crashinvaders.vfx.VfxManager;
+import com.crashinvaders.vfx.effects.GaussianBlurEffect;
+import com.crashinvaders.vfx.effects.RadialDistortionEffect;
 
 import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.TInput;
@@ -37,35 +40,94 @@ import dev.iwilkey.terrafort.persistent.TPersistent;
  */
 public final class TGraphics implements Disposable {
 
-	public static final  int                           MAX_RENDERABLES      = 8191;
-	public static final  int                           DATA_WIDTH           = 16;
-	public static final  int                           DATA_HEIGHT          = 16;
-	public static final  float                         SCREENSHOT_TIME      = 1.0f;
-	public static final  HashMap<String, TSpriteSheet> SPRITE_SHEETS        = new HashMap<>();
-	public static final  OrthographicCamera            WORLD_PROJ_MAT       = new OrthographicCamera();
-	public static final  OrthographicCamera            SCREEN_PROJ_MAT      = new OrthographicCamera();
-	public static final  TInterpolator                 CAMERA_X             = new TInterpolator(0);
-	public static final  TInterpolator                 CAMERA_Y             = new TInterpolator(0);
-	public static final  TInterpolator                 CAMERA_ZOOM          = new TInterpolator(1);
 	
-	private static final Array<TRenderableSprite>      SPRITE_REQUESTS      = new Array<>();
-	private static final Array<TRenderableShape>       GEOMETRIC_REQUESTS   = new Array<>();
-	private static final Array<TRenderable>            RENDER_REQUESTS      = new Array<>();
-	private static final Array<SpriteBatch>            SPRITE_BATCH_POOL    = new Array<>();
-	private static final SpriteBatch                   UI_BATCH             = new SpriteBatch();
-	public  static final ShapeRenderer                 GEOMETRIC_RENDERER   = new ShapeRenderer();
-	private static final Box2DDebugRenderer            PHYSICS_RENDERER     = new Box2DDebugRenderer();
+	/**
+	 * NUMERICAL CONSTANTS
+	 */
 	
-	private static       World                         physicsDebugRender   = null;
-	private static       int                           currentZoomTwoFactor = 1;
+	public static final  int                           MAX_RENDERABLES        = 0x1fff;
+	public static final  int                           DATA_WIDTH             = 0x10;
+	public static final  int                           DATA_HEIGHT            = 0x10;
+	public static final  float                         SCREENSHOT_TIME        = 1.0f;
+	public static final  float                         FOCUS_BLINK_TIME       = 0.2f;
 	
+	/**
+	 * DATA STRUCTURES FOR MANAGING INTERNAL DATA AND RENDER PERPSECTIVE
+	 */
+	
+	public static final  HashMap<String, TSpriteSheet> SPRITE_SHEETS          = new HashMap<>();
+	public static final  OrthographicCamera            WORLD_PROJ_MAT         = new OrthographicCamera();
+	public static final  OrthographicCamera            SCREEN_PROJ_MAT        = new OrthographicCamera();
+	public static final  TInterpolator                 CAMERA_X               = new TInterpolator(0);
+	public static final  TInterpolator                 CAMERA_Y               = new TInterpolator(0);
+	public static final  TInterpolator                 CAMERA_ZOOM            = new TInterpolator(1);
+	
+	/**
+	 * DATA STRUCTURES FOR MANAGING RENDER REQUESTS AND OPENGL STATE
+	 */
+	
+	private static final Array<TRenderableSprite>      SPRITE_REQUESTS        = new Array<>();
+	private static final Array<TRenderableShape>       GEOMETRIC_REQUESTS     = new Array<>();
+	private static final Array<TRenderable>            RENDER_REQUESTS        = new Array<>();
+	private static final Array<SpriteBatch>            SPRITE_BATCH_POOL      = new Array<>();
+	private static final SpriteBatch                   UI_BATCH               = new SpriteBatch();
+	private static final ShapeRenderer                 GEOMETRIC_RENDERER     = new ShapeRenderer();
+	private static final Box2DDebugRenderer            PHYSICS_RENDERER       = new Box2DDebugRenderer();
+	
+	/**
+	 * DATA STRUCTURES TO MANAGE THE STATE OF POST-PROCESSING EFFECTS
+	 */
+	
+	private static final VfxManager                    POST_PROC_BUFFER       = new VfxManager(Pixmap.Format.RGBA8888);
+	private static final GaussianBlurEffect            POST_GAUSSIAN_BLUR     = new GaussianBlurEffect();
+	private static final RadialDistortionEffect        POST_RADIAL_DIST       = new RadialDistortionEffect();
+	
+	/**
+	 * USED FOR PHYSICAL DEBUGGING
+	 */
+	private static       World                         physicsDebugRender     = null;
+	
+	/**
+	 * CURRENT ZOOM FACTOR FOR WORLD RENDERING
+	 */
+	private static       int                           currentZoomTwoFactor   = 0x1;
+	
+	/**
+	 * INTERNAL VARIABLES TO MANAGE BLUR STATE
+	 */
+	
+	private static       byte                          postFxBlurState        = 0x0;
+	private static       int                           postFxBlurStatePointer = 0x0;
+	private static       TInterpolator                 postFxBlurPasses       = new TInterpolator(0x1);
+	
+	/**
+	 * INTERNAL VARIABLES TO MANAGE "CLICK TO FOCUS" STATE
+	 */
+	
+	private static       boolean                       focusRendered          = true;
+	private static       float                         focusTimer             = 0.0f;
+	
+	/**
+	 * INTERNAL VARIABLES TO FACILLIATE THE PROCESS OF TAKING A SCREENSHOT
+	 */
+	
+	private static       boolean                       takingShot             = false;
+	private static       float                         screenshotTimer        = SCREENSHOT_TIME;
+	
+	/**
+	 * DEFAULT CONFIGURATION TO BE CREATED AT RUNTIME.
+	 */
 	static {
 		CAMERA_X.setEquation(Interpolation.linear);
 		CAMERA_Y.setEquation(Interpolation.linear);
 		CAMERA_ZOOM.setEquation(Interpolation.linear);
 		CAMERA_ZOOM.setSpeed(2.0f);
+		
 	}
 	
+	/**
+	 * Creates the graphics module by loading submitted Sprite Sheets into memory...
+	 */
 	public TGraphics() {
 		mAllocSpriteSheet("sheets/natural.png");
 		mAllocSpriteSheet("sheets/items-icons.png");
@@ -77,7 +139,7 @@ public final class TGraphics implements Disposable {
 	///////////////////////////////////////////////////////
 	
 	/**
-	 * Allocates memory for a {@link TSpriteSheet} with given name and internal path. Name must be unique.
+	 * Allocates memory for a {@link TSpriteSheet} with given name and internal path. Name must be unique!
 	 */
 	public static void mAllocSpriteSheet(String internalPath) {
 		// check if the sheet is already registered, ignore if so.
@@ -87,7 +149,7 @@ public final class TGraphics implements Disposable {
 	}
 	
 	/**
-	 * Returns a {@link TSpriteSheet} texture. Must be registered.
+	 * Returns a {@link TSpriteSheet} texture. Must be registered!
 	 */
 	public static Texture getSheetGLTex(String internalPath) {
 		if(!SPRITE_SHEETS.containsKey(internalPath))
@@ -113,12 +175,7 @@ public final class TGraphics implements Disposable {
 	}
 	
 	/**
-	 * Draw a {@link TFrame} at given location with given dimensions.
-	 * @param frame the Sprite Sheet frame.
-	 * @param x the world location x.
-	 * @param y the world location y.
-	 * @param width the world width.
-	 * @param height the world height.
+	 * Draw a {@link TFrame} at given location with given dimensions. Basically, quickly creates a renderable sprite without having to declare a type.
 	 */
 	public static void draw(String sheet, TFrame frame, float x, float y, int z, float width, float height, Color tint) {
 		draw(new TRenderableSprite() {
@@ -159,9 +216,6 @@ public final class TGraphics implements Disposable {
 	public static void setDebug(World world) {
 		physicsDebugRender = world;
 	}
-	
-	static boolean takingShot    = false;
-	static float   screenshotTimer = SCREENSHOT_TIME;
 	
 	/**
 	 * If accepted, resets the screenshot timer, removes all GUI, and snaps a picture.
@@ -215,21 +269,53 @@ public final class TGraphics implements Disposable {
 		CAMERA_ZOOM.set(val);
 	}
 	
+	/**
+	 * Returns the immediate mode renderer responsible for rendering shapes.
+	 */
+	public static ShapeRenderer getGeometricRenderer() {
+		return GEOMETRIC_RENDERER;
+	}
+	
+	/**
+	 * Changes the post blur state from true to false or false to true. Does nothing if the current state is the same as requested.
+	 */
+	public static void requestBlurState(boolean on) {
+		postFxBlurStatePointer += (on) ? 1 : -1;
+		if(on) {
+			if(postFxBlurState == 1)
+				return;
+			postFxBlurState = 1;
+			postFxBlurPasses.set(0x10);
+			POST_PROC_BUFFER.addEffect(POST_GAUSSIAN_BLUR);
+			POST_PROC_BUFFER.addEffect(POST_RADIAL_DIST);
+		} else {
+			if(postFxBlurStatePointer > 0)
+				return;
+			if(postFxBlurState == 0 || postFxBlurState == 2)
+				return;
+			postFxBlurState = 2;
+			postFxBlurPasses.set(0x0);
+		}
+	}
+	
 	///////////////////////////////////////////////////////
 	// END API
 	///////////////////////////////////////////////////////
 	
 	public void render(TUserInterface ui, float dt) {
-		// pre-render...
 		sortAndCombineRenderRequests();
 		calculateTileBatchPool();
 		calculatePerspective();
 		clearScreen();
-		// render...
+		calculateFx(dt);
+		if(shouldUsePost()) {
+			POST_PROC_BUFFER.cleanUpBuffers(new Color(0.15f, 0.15f, 0.2f, 1f));
+			POST_PROC_BUFFER.beginInputCapture();
+		}
 		if(RENDER_REQUESTS.size != 0) {
-			int                      batch         = 0;
-	        int                      tileIDInBatch = 0;
-			TRenderable.TRendererType renderer      = null;
+			int batch = 0;
+	        int tileIDInBatch = 0;
+			TRenderable.TRendererType renderer = null;
 			for(final TRenderable renderable : RENDER_REQUESTS) {
 				// handle switching the rendering context...
 				if(renderable.type != renderer) {
@@ -277,7 +363,6 @@ public final class TGraphics implements Disposable {
 			        	tileIDInBatch++;
 						break;
 					case SHAPE:
-						// draw 2 times (filled and line)...
 						GEOMETRIC_RENDERER.set(ShapeRenderer.ShapeType.Filled);
 						renderable.shape.drawFilled(WORLD_PROJ_MAT, GEOMETRIC_RENDERER);
 						GEOMETRIC_RENDERER.set(ShapeRenderer.ShapeType.Line);
@@ -290,11 +375,9 @@ public final class TGraphics implements Disposable {
 				SPRITE_BATCH_POOL.get(batch).end();
 			else GEOMETRIC_RENDERER.end();
 			Gdx.gl.glDisable(GL20.GL_BLEND);
-			// render the physics engine if debug is on...
 			if(physicsDebugRender != null)
 				PHYSICS_RENDERER.render(physicsDebugRender, WORLD_PROJ_MAT.combined);
 		}
-		// Do not render UI if taking screenshot...
 		if(screenshotTimer < SCREENSHOT_TIME) {
 			screenshotTimer += dt;
 			if(screenshotTimer >= (SCREENSHOT_TIME / 2f) && takingShot) {
@@ -303,18 +386,38 @@ public final class TGraphics implements Disposable {
 				takingShot = false;
 			}
 		} else {
-			ui.render(dt);
+			if(shouldUsePost()) {
+				POST_PROC_BUFFER.endInputCapture();
+				POST_PROC_BUFFER.applyEffects();
+				POST_PROC_BUFFER.renderToScreen();
+			}
 			if(TInput.focused && Gdx.input.isCursorCatched()) {
-				// render cursor and other special UI items (special)...
+				ui.render(dt);
 				UI_BATCH.begin();
 				UI_BATCH.setProjectionMatrix(SCREEN_PROJ_MAT.combined);
 				TInput.cursor.render(SCREEN_PROJ_MAT, UI_BATCH);
 				UI_BATCH.end();
+			} else {
+				// Just render immediate mode text if not focused...
+				focusTimer += dt;
+				if(focusTimer >= FOCUS_BLINK_TIME) {
+					focusRendered = !focusRendered;
+					focusTimer = 0.0f;
+				}
+				if(focusRendered)
+					TUserInterface.drawText(" CLICK TO FOCUS! ", Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, 32, 0xffffffff, false, true);
+				ui.renderImmediateModeText(dt);
 			}
 			screenshotTimer = SCREENSHOT_TIME;
 		}
-		// post-render...
 		flush();
+	}
+	
+	/**
+	 * Returns whether or not to render to a seperate buffer.
+	 */
+	private boolean shouldUsePost() {
+		return (screenshotTimer >= SCREENSHOT_TIME) && (postFxBlurState != 0);
 	}
 	
 	/**
@@ -326,6 +429,26 @@ public final class TGraphics implements Disposable {
 		WORLD_PROJ_MAT.update();
 		SCREEN_PROJ_MAT.update();
     }
+	
+	/**
+	 * Based on graphics module calls, calculate the state of the visual effects.
+	 */
+	private void calculateFx(float dt) {
+		if(postFxBlurState == 0)
+			return;
+		postFxBlurPasses.update(dt);
+		int passes = Math.round(postFxBlurPasses.get());
+		POST_GAUSSIAN_BLUR.setPasses(Math.max(1, passes));
+		POST_GAUSSIAN_BLUR.setAmount(2f);
+		POST_RADIAL_DIST.setDistortion(postFxBlurPasses.get() / 128f);
+		if(postFxBlurState == 2){
+			if(passes <= 0x0) {
+				POST_PROC_BUFFER.removeEffect(POST_GAUSSIAN_BLUR);
+				POST_PROC_BUFFER.removeEffect(POST_RADIAL_DIST);
+				postFxBlurState = 0;
+			}
+		}
+	}
 	
 	/**
 	 * Writes a snapshot of the frame buffer to the Terrafort screenshot directory.

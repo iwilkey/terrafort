@@ -46,4 +46,9 @@ public final class TMobTextParticle extends TImmediateModeTextParticle {
 		y = Math.round(offY);
 	}
 
+	@Override
+	public boolean inWorldSpace() {
+		return true;
+	}
+
 }

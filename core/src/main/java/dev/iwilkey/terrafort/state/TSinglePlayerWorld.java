@@ -24,9 +24,9 @@ public final class TSinglePlayerWorld implements TState {
 	private static TWorld                  world         = null;
 	private static TKnowledgeTreeInterface knowledgeTree = null;
 	
-	private TKnowledgeBarInterface  knowledgeBar  = null;
-	private TGameStateInterface     gameState     = null;
-	private TSettingsInterface      settings      = null;
+	private TKnowledgeBarInterface         knowledgeBar  = null;
+	private TGameStateInterface            gameState     = null;
+	private TSettingsInterface             settings      = null;
 	
 	@Override
 	public void start() {
@@ -53,11 +53,13 @@ public final class TSinglePlayerWorld implements TState {
 			if(knowledgeTree == null) {
 				knowledgeTree = new TKnowledgeTreeInterface();
 				TUserInterface.mAllocContainer(knowledgeTree);
+				TGraphics.requestBlurState(true);
 			} else {
 				TUserInterface.mFreeContainer(knowledgeTree);
 				knowledgeTree = null;
 				TUserInterface.mFreePrompt();
 				TUserInterface.guiModuleMutexReferences -= 2;
+				TGraphics.requestBlurState(false);
 			}
 			TInput.techTree = false;
 		}

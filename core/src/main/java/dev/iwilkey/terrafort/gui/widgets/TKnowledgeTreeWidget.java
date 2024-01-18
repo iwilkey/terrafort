@@ -65,7 +65,7 @@ public final class TKnowledgeTreeWidget extends VisTable {
 	public TKnowledgeTreeWidget() {
 		final TTextWidget text = new TTextWidget("[YELLOW]" + TLocale.getLine(34) + "[]");
 		text.setAlignment(Align.center);
-		add(text).center().prefSize(Gdx.graphics.getWidth() / 2f, 32 * TUserInterface.getGlobalScale());
+		add(text).center().prefSize(Gdx.graphics.getWidth() / 3f, 32 * TUserInterface.getGlobalScale());
 		row();
 		addSeparator().padBottom(16f);
 		tree = new VisTable();
@@ -74,7 +74,7 @@ public final class TKnowledgeTreeWidget extends VisTable {
 		internal.getStyle().background = SOLID_BLACK;
 		internal.setScrollbarsVisible(true);
 		buildTree();
-		add(internal).top().fill().center().prefSize(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f);
+		add(internal).top().fill().center().prefSize(Gdx.graphics.getWidth() / 3f, Gdx.graphics.getHeight() / 2f);
 		start  = false;
 		internal.setFlingTime(2.0f);
 	}
@@ -88,7 +88,7 @@ public final class TKnowledgeTreeWidget extends VisTable {
 	    final Rectangle clipBounds = new Rectangle(internal.getX(), internal.getY(), internal.getWidth(), internal.getHeight() + (16f * TUserInterface.getGlobalScale()));
 	    ScissorStack.calculateScissors(getStage().getCamera(), batch.getTransformMatrix(), clipBounds, scissors);
 	    if(ScissorStack.pushScissors(scissors)) {
-	        final ShapeRenderer re = TGraphics.GEOMETRIC_RENDERER;
+	        final ShapeRenderer re = TGraphics.getGeometricRenderer();
 	        re.setProjectionMatrix(getStage().getCamera().combined);
 	        re.begin(ShapeRenderer.ShapeType.Filled);
 	        for(final TKnowledgeTreeNodeWidget node : TREE_NODES) {

@@ -1,7 +1,5 @@
 package dev.iwilkey.terrafort.gui.interfaces;
 
-import java.text.NumberFormat;
-
 import com.kotcrab.vis.ui.widget.VisTable;
 
 import dev.iwilkey.terrafort.gui.TAnchor;
@@ -61,7 +59,7 @@ public final class TGameStateInterface extends TStaticContainer {
 	public void update(float dt) {
 		playerFunds.set(player.getFunds());
 		playerFunds.update(dt);
-        final String pf = NumberFormat.getNumberInstance().format((int)playerFunds.get());
+        final String pf = player.fundsToString((long)playerFunds.get());
 		funds.setText("[GREEN]" + pf + "[] Funds");
 	}
 

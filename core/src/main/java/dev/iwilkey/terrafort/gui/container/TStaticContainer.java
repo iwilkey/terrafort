@@ -56,48 +56,50 @@ public abstract class TStaticContainer extends TContainer {
 	public final void anchor() {
 	    int screenWidth  = Gdx.graphics.getWidth();
 	    int screenHeight = Gdx.graphics.getHeight();
+	    int padX         = externalPadLeft - externalPadRight;
+	    int padY         = -externalPadTop + externalPadBottom;
 	    float x, y;
 	    switch(anchor) {
 	        case TOP_RIGHT:
-	            x = screenWidth - get().getWidth() - externalPadRight;
-	            y = screenHeight - get().getHeight() - externalPadTop;
+	            x = screenWidth - get().getWidth();
+	            y = screenHeight - get().getHeight();
 	            break;
 	        case TOP_CENTER:
 	            x = (screenWidth - get().getWidth()) / 2;
-	            y = screenHeight - get().getHeight() - externalPadTop;
+	            y = screenHeight - get().getHeight();
 	            break;
 	        case TOP_LEFT:
-	            x = externalPadLeft;
-	            y = screenHeight - get().getHeight() - externalPadTop;
+	            x = 0;
+	            y = screenHeight - get().getHeight();
 	            break;
 	        case CENTER_RIGHT:
-	            x = screenWidth - get().getWidth() - externalPadRight;
+	            x = screenWidth - get().getWidth();
 	            y = (screenHeight - get().getHeight()) / 2;
 	            break;
 	        case CENTER_CENTER:
-	            x = ((screenWidth - get().getWidth()) / 2) + externalPadLeft - externalPadRight;
-	            y = ((screenHeight - get().getHeight()) / 2) - externalPadTop + externalPadBottom;
+	            x = ((screenWidth - get().getWidth()) / 2);
+	            y = ((screenHeight - get().getHeight()) / 2);
 	            break;
 	        case CENTER_LEFT:
-	            x = externalPadLeft;
+	            x = 0;
 	            y = (screenHeight - get().getHeight()) / 2;
 	            break;
 	        case BOTTOM_RIGHT:
-	            x = screenWidth - get().getWidth() - externalPadRight;
-	            y = externalPadBottom;
+	            x = screenWidth - get().getWidth();
+	            y = 0;
 	            break;
 	        case BOTTOM_CENTER:
 	            x = (screenWidth - get().getWidth()) / 2;
-	            y = externalPadBottom;
+	            y = 0;
 	            break;
 	        case BOTTOM_LEFT:
-	            x = externalPadLeft;
-	            y = externalPadBottom;
+	            x = 0;
+	            y = 0;
 	            break;
 	        default:
 	            throw new IllegalStateException("Unexpected TAnchor in TContainer: " + hashCode());
 	    }
-	    get().setPosition(x, y);
+	    get().setPosition(x + padX, y + padY);
 	}
 	
 }

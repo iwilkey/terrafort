@@ -15,6 +15,7 @@ public abstract class TImmediateModeTextParticle implements TImmediateModeText {
 	protected int point;
 	protected int color;
 	
+	
 	private float aliveTime;
 	
 	/**
@@ -34,6 +35,11 @@ public abstract class TImmediateModeTextParticle implements TImmediateModeText {
 	 * Called every tick. Should define the text particle's physical behavior.
 	 */
 	public abstract void behavior(float dt);
+	
+	/**
+	 * Returns whether or not this text particle is rendered in screen or world-space.
+	 */
+	public abstract boolean inWorldSpace();
 	
 	/**
 	 * Updates the text particle.
@@ -70,7 +76,7 @@ public abstract class TImmediateModeTextParticle implements TImmediateModeText {
 
 	@Override
 	public boolean worldSpace() {
-		return true;
+		return inWorldSpace();
 	}
 
 	@Override

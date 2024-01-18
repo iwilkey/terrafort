@@ -17,6 +17,9 @@ public final class TKnowledgeTreeInterface extends TStaticContainer {
 	
 	public TKnowledgeTreeWidget tree;
 	
+	private boolean up   = false;
+	private float   time = 0.0f;
+	
 	public TKnowledgeTreeInterface(Object... objReference) {
 		super(objReference);
 		pack(internal);
@@ -37,20 +40,16 @@ public final class TKnowledgeTreeInterface extends TStaticContainer {
 			}
 		});
 	}
-	
-	boolean up = false;
-	float   t  = 0.0f;
 
 	@Override
 	public void update(float dt) {
 		if(!up) {
-			t += dt;
-			if(t > 0.1f) {
+			time += dt;
+			if(time > 0.5f) {
 				get().setVisible(true);
-				 t = 0.0f;
+				 time = 0.0f;
 				 up = true;
 			}
 		}
 	}
-
 }

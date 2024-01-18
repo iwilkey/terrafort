@@ -13,10 +13,10 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
 import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
-import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+
 import com.kotcrab.vis.ui.VisUI;
 
 import dev.iwilkey.terrafort.gfx.TGraphics;
@@ -35,6 +35,8 @@ import dev.iwilkey.terrafort.gui.text.TImmediateModeTextParticle;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TUserInterface implements Disposable {
+	
+	public static final int               DROP_SHADOW_DISTANCE               = 4;
 
 	public static final Texture           DEFAULT_NINE_PATCH_TEXTURE         = new Texture(Gdx.files.internal("ui/default.9.png"));
 	public static final Texture           BUTTON_DEFAULT_NINE_PATCH_TEXTURE  = new Texture(Gdx.files.internal("ui/node.9.png"));
@@ -180,14 +182,14 @@ public final class TUserInterface implements Disposable {
 	/**
 	 * Draw text in world or screen-space at (x, y) with given point size and color.
 	 */
-	public static void drawText(String text, int x, int y, int point, int color, boolean worldSpace) {
+	public static void drawText(String text, int x, int y, int point, int color, boolean worldSpace, boolean dropShadow) {
 		IMMEDIATE_TEXT_REQUESTS.add(new TImmediateModeText() {
 			@Override
 			public String getData()     { return text; }
 			@Override
 			public boolean worldSpace() { return worldSpace; }
 			@Override
-			public boolean dropShadow() { return true; }
+			public boolean dropShadow() { return dropShadow; }
 			@Override
 			public int getX()           { return x; }
 			@Override
@@ -236,13 +238,23 @@ public final class TUserInterface implements Disposable {
 	public static boolean guiFocused() {
 		return guiModuleMutexReferences != 0;
 	}
-		
+	
+	/**
+	 * A tool that can calculate the width and height of any given text using the game font.
+	 */
+	private static GlyphLayout layout = new GlyphLayout();
+	public static GlyphLayout getGlyphLayout() {
+		return layout;
+	}
+
 	/////////////////////////////////////////////////////////
 	// END TUSERINTERFACE API
 	/////////////////////////////////////////////////////////
 	
-	private GlyphLayout layout  = new GlyphLayout();
-	private Color       textCol = new Color();
+	/**
+	 * The actual rendered color of the immediate mode text...
+	 */
+	private Color textCol = new Color();
 	
 	/**
 	 * Updates and renders the UI elements within the stage. This method should be called 
@@ -263,82 +275,87 @@ public final class TUserInterface implements Disposable {
 				((TStaticContainer)c).anchor();
 			c.get().pack();
 		}
-		// Manage text particles...
-		for(final TImmediateModeTextParticle textParticle : ACTIVE_TEXT_PARTICLES) {
-			textParticle.tick(dt);
-			if(textParticle.done()) {
-				// add to trash...
-				TEXT_PARTICLE_GARBAGE_COLLECTION.add(textParticle);
-				continue;
-			}
-			// submit for rendering (still alive)...
-			IMMEDIATE_TEXT_REQUESTS.add(textParticle);
-		}
-		// Do garbage collection on text particles...
-		ACTIVE_TEXT_PARTICLES.removeAll(TEXT_PARTICLE_GARBAGE_COLLECTION, false);
-		TEXT_PARTICLE_GARBAGE_COLLECTION.clear();
-		// Draw immediate text requests...
-		FONT_BATCH.begin();
-		for(final TImmediateModeText textRequest : IMMEDIATE_TEXT_REQUESTS) {
-			// set metadata...
-			gameFont.getData().setScale((float)textRequest.getPoint() / BASE_FONT_SIZE);
-			textCol.set(textRequest.getColor());
-			gameFont.setColor(textCol);
-			// figure out the final position to render the text...
-			int x;
-			int y;
-			if(textRequest.worldSpace()) {
-				// project from world-space to screen-space...
-				final Vector3 projCoords = new Vector3(textRequest.getX(), textRequest.getY(), 0);
-				TGraphics.WORLD_PROJ_MAT.project(projCoords);
-				x = Math.round(projCoords.x);
-				y = Math.round(projCoords.y);
-			} else {
-				x = textRequest.getX();
-				y = textRequest.getY();
-			}
-			// Check if the text should be rendered...
-			layout.setText(gameFont, textRequest.getData());
-	        int   screenWidth  = Gdx.graphics.getWidth();
-	        int   screenHeight = Gdx.graphics.getHeight();
-	        float textWidth    = layout.width;
-	        // Check horizontal bounds...
-	        if(x + textWidth / 2 < 0 || x - textWidth / 2 > screenWidth)
-	            continue;
-	        // Check vertical bounds...
-	        float textHeight = layout.height;
-	        if(y + textHeight / 2 < 0 || y - textHeight / 2 > screenHeight)
-	             continue;
-	        // Render...
-	        if(textRequest.dropShadow()) {
-	        	// Render drop shadow first...
-	        	textCol.set(textRequest.getColor() & 0x000000ff);
-	        	gameFont.setColor(textCol);
-	        	gameFont.draw(FONT_BATCH, 
-	        		      textRequest.getData(), 
-	        		      x - (textWidth / 2f) + 2f, 
-	        		      y - (textHeight / 2f) - 2f, 
-	        		      (textRequest.getWrapping() > 0) ? textRequest.getWrapping() : textWidth, 
-	        		      Align.center, 
-	        		      textRequest.getWrapping() > 0);
-	        	textCol.set(textRequest.getColor());
-	        	gameFont.setColor(textCol);
-	        }
-	        gameFont.draw(FONT_BATCH, 
-	        		      textRequest.getData(), 
-	        		      x - (textWidth / 2f), 
-	        		      y - (textHeight / 2f), 
-	        		      (textRequest.getWrapping() > 0) ? textRequest.getWrapping() : textWidth, 
-	        		      Align.center, 
-	        		      textRequest.getWrapping() > 0);
-		}
-		gameFont.getData().setScale(1f);
-		gameFont.setColor(Color.WHITE);
-		FONT_BATCH.end();
-		IMMEDIATE_TEXT_REQUESTS.clear();
-		// draw and listen to the rest of the UI...
+		renderImmediateModeText(dt);
 		io.act(dt);
 		io.draw();
+	}
+	
+	/**
+	 * Manages and renders immediate mode text requests, including particles.
+	 */
+	public void renderImmediateModeText(float dt) {
+		// Manage text particles...
+			for(final TImmediateModeTextParticle textParticle : ACTIVE_TEXT_PARTICLES) {
+				textParticle.tick(dt);
+				if(textParticle.done()) {
+					// add to trash...
+					TEXT_PARTICLE_GARBAGE_COLLECTION.add(textParticle);
+					continue;
+				}
+				// submit for rendering (still alive)...
+				IMMEDIATE_TEXT_REQUESTS.add(textParticle);
+			}
+			// Do garbage collection on text particles...
+			ACTIVE_TEXT_PARTICLES.removeAll(TEXT_PARTICLE_GARBAGE_COLLECTION, false);
+			TEXT_PARTICLE_GARBAGE_COLLECTION.clear();
+			// Draw immediate text requests...
+			FONT_BATCH.begin();
+			for(final TImmediateModeText textRequest : IMMEDIATE_TEXT_REQUESTS) {
+				// set metadata...
+				gameFont.getData().setScale((float)textRequest.getPoint() / BASE_FONT_SIZE);
+				textCol.set(textRequest.getColor());
+				gameFont.setColor(textCol);
+				// figure out the final position to render the text...
+				int x;
+				int y;
+				if(textRequest.worldSpace()) {
+					// project from world-space to screen-space...
+					final Vector3 projCoords = new Vector3(textRequest.getX(), textRequest.getY(), 0);
+					TGraphics.WORLD_PROJ_MAT.project(projCoords);
+					x = Math.round(projCoords.x);
+					y = Math.round(projCoords.y);
+				} else {
+					x = textRequest.getX();
+					y = textRequest.getY();
+				}
+				// Check if the text should be rendered...
+		        int   screenWidth  = Gdx.graphics.getWidth();
+		        int   screenHeight = Gdx.graphics.getHeight();
+		        float textWidth    = textRequest.getDimensions().x;
+		        // Check horizontal bounds...
+		        if(x + textWidth / 2 < 0 || x - textWidth / 2 > screenWidth)
+		            continue;
+		        // Check vertical bounds...
+		        float textHeight = textRequest.getDimensions().y;
+		        if(y + textHeight / 2 < 0 || y - textHeight / 2 > screenHeight)
+		             continue;
+		        // Render...
+		        if(textRequest.dropShadow()) {
+		        	// Render drop shadow first...
+		        	textCol.set(textRequest.getColor() & 0x000000ff);
+		        	gameFont.setColor(textCol);
+		        	gameFont.draw(FONT_BATCH, 
+		        		      textRequest.getData(), 
+		        		      x - (textWidth / 2f) + DROP_SHADOW_DISTANCE, 
+		        		      y - (textHeight / 2f) - DROP_SHADOW_DISTANCE, 
+		        		      (textRequest.getWrapping() > 0) ? textRequest.getWrapping() : textWidth, 
+		        		      textRequest.getAlignment(), 
+		        		      textRequest.getWrapping() > 0);
+		        	textCol.set(textRequest.getColor());
+		        	gameFont.setColor(textCol);
+		        }
+		        gameFont.draw(FONT_BATCH, 
+		        		      textRequest.getData(), 
+		        		      x - (textWidth / 2f), 
+		        		      y - (textHeight / 2f), 
+		        		      (textRequest.getWrapping() > 0) ? textRequest.getWrapping() : textWidth, 
+		        		      textRequest.getAlignment(), 
+		        		      textRequest.getWrapping() > 0);
+			}
+			gameFont.getData().setScale(1f);
+			gameFont.setColor(Color.WHITE);
+			FONT_BATCH.end();
+			IMMEDIATE_TEXT_REQUESTS.clear();
 	}
 	
 	/**

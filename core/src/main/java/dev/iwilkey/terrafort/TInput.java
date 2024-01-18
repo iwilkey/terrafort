@@ -10,6 +10,7 @@ import com.badlogic.gdx.controllers.Controllers;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 
+import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gfx.TRenderableSprite;
 import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.math.TMath;
@@ -275,6 +276,7 @@ public final class TInput implements InputProcessor {
 		if(keycode == Keys.ESCAPE) {
 			Gdx.input.setCursorCatched(false);
 			focused = false;
+			TGraphics.requestBlurState(true);
 			return false;
 		}
 		if(TUserInterface.guiFocused())
@@ -365,6 +367,7 @@ public final class TInput implements InputProcessor {
 			if(button == Buttons.LEFT) {
 				Gdx.input.setCursorCatched(true);
 				focused = true;
+				TGraphics.requestBlurState(false);
 				return false;
 			} else return true;
 		}

@@ -261,7 +261,7 @@ public final class TObjectRuntime implements TRenderableSprite {
                 getHeight(),
                 1, 
                 1, 
-                rotationDegrees,
+                0,
                 clothingFrame.getDataOffsetX() * TGraphics.DATA_WIDTH, 
                 clothingFrame.getDataOffsetY() * TGraphics.DATA_HEIGHT,
                 getDataSelectionSquareWidth() * TGraphics.DATA_WIDTH, 

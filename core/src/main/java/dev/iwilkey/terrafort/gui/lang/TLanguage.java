@@ -7,8 +7,8 @@ package dev.iwilkey.terrafort.gui.lang;
 public enum TLanguage {
 	
 	English("locale/english.lang"),
-	Español("locale/spanish.lang"),
-	Français("locale/french.lang"),
+	Espanol("locale/spanish.lang"),
+	Francais("locale/french.lang"),
 	Deutsch("locale/german.lang");
 	
 	private final String path;
