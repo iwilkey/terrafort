@@ -112,6 +112,7 @@ public final class TKnowledgeTreeWidget extends VisTable {
 	    }
 	    if(!start) {
 	    	internal.setScrollY(internal.getMaxY());
+	    	internal.setScrollX(internal.getMaxX() / 2);
 	    	start = true;
 	    }
 	    batch.begin();

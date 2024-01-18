@@ -337,7 +337,7 @@ public final class TUserInterface implements Disposable {
 		        	gameFont.draw(FONT_BATCH, 
 		        		      textRequest.getData(), 
 		        		      x - (textWidth / 2f) + DROP_SHADOW_DISTANCE, 
-		        		      y - (textHeight / 2f) - DROP_SHADOW_DISTANCE, 
+		        		      y + (textHeight / 2f) - DROP_SHADOW_DISTANCE, 
 		        		      (textRequest.getWrapping() > 0) ? textRequest.getWrapping() : textWidth, 
 		        		      textRequest.getAlignment(), 
 		        		      textRequest.getWrapping() > 0);
@@ -347,7 +347,7 @@ public final class TUserInterface implements Disposable {
 		        gameFont.draw(FONT_BATCH, 
 		        		      textRequest.getData(), 
 		        		      x - (textWidth / 2f), 
-		        		      y - (textHeight / 2f), 
+		        		      y + (textHeight / 2f), 
 		        		      (textRequest.getWrapping() > 0) ? textRequest.getWrapping() : textWidth, 
 		        		      textRequest.getAlignment(), 
 		        		      textRequest.getWrapping() > 0);

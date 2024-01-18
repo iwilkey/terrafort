@@ -404,8 +404,7 @@ public final class TGraphics implements Disposable {
 					focusRendered = !focusRendered;
 					focusTimer = 0.0f;
 				}
-				if(focusRendered)
-					TUserInterface.drawText(" CLICK TO FOCUS! ", Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, 32, 0xffffffff, false, true);
+				TUserInterface.drawText("[ CLICK TO FOCUS! ]", Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, 32, ((focusRendered) ? 0xffffffff : 0x999999ff), false, true);
 				ui.renderImmediateModeText(dt);
 			}
 			screenshotTimer = SCREENSHOT_TIME;

@@ -102,9 +102,20 @@ public final class TPlayer extends TMob {
 		}
 	}
 	
+	float t = 0.0f;
+	
 	@Override
 	public void task(final TObjectRuntime concrete, float dt) {
 		rotationRadians = 0;
+		
+		t += dt;
+		if(t > Math.random()) {
+			if(Math.random() > 0.5f)
+				giveFunds(ThreadLocalRandom.current().nextInt(32, 2024));
+			else takeFunds(ThreadLocalRandom.current().nextInt(32, 2024));
+			t = 0.0f;
+		}
+		
 		// Camera follows the player...
 		TGraphics.setCameraTargetPosition(concrete.getX(), concrete.getY());
 		TGraphics.setZoomLevel(zoomLevel);
@@ -178,7 +189,13 @@ public final class TPlayer extends TMob {
 	 */
 	public void giveFunds(long amount) {
 		funds += amount;
-		TUserInterface.submitTextParticle(new TScreenTextParticle("+ " + fundsToString(amount) + " F", TAnchor.BOTTOM_LEFT, 72, 64, 16, 0x3eff35ff));
+		if(TInput.focused)
+			TUserInterface.submitTextParticle(new TScreenTextParticle("+ " + fundsToString(amount) + " F", 
+					TAnchor.BOTTOM_LEFT, 
+					ThreadLocalRandom.current().nextInt(32, 128), 
+					48, 
+					16, 
+					0x3eff35ff));
 		TAudio.playFx("sound/give_funds.wav", true);
 	}
 	
@@ -188,7 +205,13 @@ public final class TPlayer extends TMob {
 	public boolean takeFunds(long amount) {
 		if(funds - amount < 0L)
 			return false;
-		TUserInterface.submitTextParticle(new TScreenTextParticle("- " + fundsToString(amount) + " F", TAnchor.BOTTOM_LEFT, 72, 64, 16, 0xff0000ff));
+		if(TInput.focused)
+			TUserInterface.submitTextParticle(new TScreenTextParticle("- " + fundsToString(amount) + " F", 
+					TAnchor.BOTTOM_LEFT, 
+					ThreadLocalRandom.current().nextInt(32, 128), 
+					48, 
+					16, 
+					0xff0000ff));
 		funds -= amount;
 		return true;
 	}
