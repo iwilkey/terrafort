@@ -52,4 +52,14 @@ public final class TCommonSenseKnowledge implements TKnowledge {
 		return 0;
 	}
 
+	@Override
+	public boolean requestPractice() {
+		return false;
+	}
+
+	@Override
+	public void equipped() {
+
+	}
+
 }

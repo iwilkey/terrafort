@@ -3,7 +3,7 @@ package dev.iwilkey.terrafort.gui.container;
 import com.badlogic.gdx.Gdx;
 
 import dev.iwilkey.terrafort.TInput;
-import dev.iwilkey.terrafort.gui.TEvent;
+import dev.iwilkey.terrafort.clk.TEvent;
 import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.gui.widgets.TTextButtonWidget;
 
@@ -21,9 +21,9 @@ public abstract class TPromptContainer extends TContainer {
 		super(objReference);
 		internal.add(new TTextButtonWidget("x", new TEvent() {
 			@Override
-			public void fire() {
+			public boolean fire() {
 				TUserInterface.mFreePrompt();
-				TUserInterface.guiModuleMutexReferences -= 2;
+				return false;
 			}
 		})).right();
 		internal.row();
@@ -44,6 +44,7 @@ public abstract class TPromptContainer extends TContainer {
 	    final float y  = (cursorY + 16) - ((py < 0.65f) ? 0f : window.getHeight() + 32f);
 	    window.setPosition(x, y);
 	    window.toFront();
+	    behavior(dt);
 	}
 
 }

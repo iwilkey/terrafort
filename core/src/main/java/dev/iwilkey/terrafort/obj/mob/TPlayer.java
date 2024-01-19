@@ -5,16 +5,21 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import dev.iwilkey.terrafort.TAudio;
 import dev.iwilkey.terrafort.TInput;
+import dev.iwilkey.terrafort.clk.TClock;
+import dev.iwilkey.terrafort.clk.TEvent;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gui.TAnchor;
 import dev.iwilkey.terrafort.gui.TUserInterface;
+import dev.iwilkey.terrafort.gui.lang.TLocale;
 import dev.iwilkey.terrafort.gui.text.TScreenTextParticle;
+import dev.iwilkey.terrafort.knowledge.TKnowledge;
 import dev.iwilkey.terrafort.math.TMath;
 import dev.iwilkey.terrafort.obj.runtime.TObjectRuntime;
 import dev.iwilkey.terrafort.obj.type.TEntity;
 import dev.iwilkey.terrafort.obj.type.THarvestable;
 import dev.iwilkey.terrafort.obj.type.TMob;
 import dev.iwilkey.terrafort.obj.type.TObject;
+import dev.iwilkey.terrafort.state.TSinglePlayerWorld;
 import dev.iwilkey.terrafort.world.TWorld;
 
 /**
@@ -22,6 +27,18 @@ import dev.iwilkey.terrafort.world.TWorld;
  * @author Ian Wilkey (iwilkey)
  */
 public final class TPlayer extends TMob {
+	
+	/**
+	 * GRAPHICAL BEHAVIORS
+	 */
+	
+	public transient static final float ZOOM_TIME = 0.5f;
+	public transient static final int   ZOOM_MIN  = -2;
+	public transient static final int   ZOOM_MAX  = 1;
+	
+	/**
+	 * MOB SPECIFIC BEHAVIORS...
+	 */
 	
 	public transient static final int   MAX_HEALTH        = 0xff;
 	public transient static final float ACTION_COOLDOWN   = 0.25f;
@@ -91,39 +108,54 @@ public final class TPlayer extends TMob {
 		if(TInput.moveDown)  moveDown();
 		potentialMoveSpeedMultiplier = (TInput.run) ? 2.0f : 1.0f;
 		if(TInput.zoomIn) {
-			zoomLevel--;
-			zoomLevel     = (byte)TMath.clamp(zoomLevel, -2, 0);
+			if(zoomLevel - 1 >= ZOOM_MIN) {
+				TGraphics.requestDarkState(true, ZOOM_TIME);
+				TClock.schedule(new TEvent() {
+					@Override
+					public boolean fire() {
+						zoomLevel--;
+						zoomLevel = (byte)TMath.clamp(zoomLevel, ZOOM_MIN, ZOOM_MAX);
+						TGraphics.requestDarkState(false, ZOOM_TIME);
+						return false;
+					}
+				}, 1, (ZOOM_TIME / 2f));
+			}
 			TInput.zoomIn = false;
 		}
 		if(TInput.zoomOut) {
-			zoomLevel++;
-			zoomLevel      = (byte)TMath.clamp(zoomLevel, -2, 0);
+			if(zoomLevel + 1 <= ZOOM_MAX) {
+				TGraphics.requestDarkState(true, ZOOM_TIME);
+				TClock.schedule(new TEvent() {
+					@Override
+					public boolean fire() {
+						zoomLevel++;
+						zoomLevel = (byte)TMath.clamp(zoomLevel, ZOOM_MIN, ZOOM_MAX);
+						TGraphics.requestDarkState(false, ZOOM_TIME);
+						return false;
+					}
+				}, 1, (ZOOM_TIME / 2f));
+			}
 			TInput.zoomOut = false;
 		}
 	}
-	
-	float t = 0.0f;
-	
 	@Override
 	public void task(final TObjectRuntime concrete, float dt) {
 		rotationRadians = 0;
-		
-		t += dt;
-		if(t > Math.random()) {
-			if(Math.random() > 0.5f)
-				giveFunds(ThreadLocalRandom.current().nextInt(32, 2024));
-			else takeFunds(ThreadLocalRandom.current().nextInt(32, 2024));
-			t = 0.0f;
-		}
-		
 		// Camera follows the player...
 		TGraphics.setCameraTargetPosition(concrete.getX(), concrete.getY());
 		TGraphics.setZoomLevel(zoomLevel);
+		// Call the knowledge equipped function if applicable...
+		if(TSinglePlayerWorld.getKnowlegeBar().getSelected() != null)
+			TSinglePlayerWorld.getKnowlegeBar().getSelected().equipped();
 	}
 	
 	@Override
 	public boolean requestAction() {
-		return TInput.interact;
+		// Simple punch request if no knowledge is equipped happens as quickly as possible...
+		if(TSinglePlayerWorld.getKnowlegeBar().getSelected() == null)
+			return TInput.interact;
+		else return TSinglePlayerWorld.getKnowlegeBar().getSelected().requestPractice(); // Do the action request of the knowledge!
+		
 	}
 	
 	@Override
@@ -141,16 +173,28 @@ public final class TPlayer extends TMob {
 	
 	@Override
 	public void actionProcedure(final TObjectRuntime concrete, int direction) {
-		TObject obj = sense(concrete, 16f, (float)Math.PI / 16f, 2);
-		if(obj != null) {
-			// interact.
-			if(obj instanceof TEntity)
-				((TEntity)obj).hurt(1);
-			if(obj instanceof THarvestable) {
-				((THarvestable)obj).shake(concrete);
-				if(((THarvestable)obj).currentHealthPoints <= 0) {
-					giveFunds(((THarvestable)obj).getValue());
+		// Punch stuff if you have no knowledge equipped...
+		if(TSinglePlayerWorld.getKnowlegeBar().getSelected() == null) {
+			TObject obj = sense(concrete, 16f, (float)Math.PI / 16f, 2);
+			if(obj != null) {
+				// punch!
+				if(obj instanceof TEntity)
+					((TEntity)obj).hurt(1);
+				if(obj instanceof THarvestable) {
+					((THarvestable)obj).shake(concrete);
+					if(((THarvestable)obj).currentHealthPoints <= 0) {
+						giveFunds(((THarvestable)obj).getValue());
+					}
 				}
+			}
+		} else {
+			// Do the practice routine of the knowledge (if the player has the funds to do so.)
+			final TKnowledge knowledge = TSinglePlayerWorld.getKnowlegeBar().getSelected();
+			if(getFunds() - knowledge.getPracticeValue() >= 0)
+				knowledge.practice(this, concrete.getWorld());
+			else {
+				// create a text particle saying that you can't practice the skill!
+				TUserInterface.submitTextParticle(new TScreenTextParticle(TLocale.getLine(56), TAnchor.BOTTOM_CENTER, 0, 128, 16, 0xff0000ff));
 			}
 		}
 	}
@@ -190,11 +234,11 @@ public final class TPlayer extends TMob {
 	public void giveFunds(long amount) {
 		funds += amount;
 		if(TInput.focused)
-			TUserInterface.submitTextParticle(new TScreenTextParticle("+ " + fundsToString(amount) + " F", 
+			TUserInterface.submitTextParticle(new TScreenTextParticle("+".repeat(TMath.getFigures(amount)), 
 					TAnchor.BOTTOM_LEFT, 
-					ThreadLocalRandom.current().nextInt(32, 128), 
+					ThreadLocalRandom.current().nextInt(38, 110), 
 					48, 
-					16, 
+					14, 
 					0x3eff35ff));
 		TAudio.playFx("sound/give_funds.wav", true);
 	}
@@ -206,11 +250,11 @@ public final class TPlayer extends TMob {
 		if(funds - amount < 0L)
 			return false;
 		if(TInput.focused)
-			TUserInterface.submitTextParticle(new TScreenTextParticle("- " + fundsToString(amount) + " F", 
+			TUserInterface.submitTextParticle(new TScreenTextParticle("-".repeat(TMath.getFigures(amount)), 
 					TAnchor.BOTTOM_LEFT, 
-					ThreadLocalRandom.current().nextInt(32, 128), 
+					ThreadLocalRandom.current().nextInt(38, 110), 
 					48, 
-					16, 
+					14, 
 					0xff0000ff));
 		funds -= amount;
 		return true;

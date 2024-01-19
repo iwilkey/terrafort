@@ -121,6 +121,19 @@ public final class TMath {
 	}
 	
 	/**
+	 * Returns the order of magnitude (figures) of a given number, base 10. For example, 100,000 has an order of 6 because it takes 6 arranged numbers to
+	 * represent it.
+	 */
+	public static int getFigures(long number) {
+		int fig = 0;
+		while(number != 0) {
+			number /= 10;
+			fig++;
+		}
+		return fig;
+	}
+	
+	/**
 	 * The inverse "fast inverse square root" from the Quake 3 engine. Just for fun :)
 	 * 
 	 * <p>

@@ -2,6 +2,7 @@ package dev.iwilkey.terrafort.knowledge;
 
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 
+import dev.iwilkey.terrafort.TInput;
 import dev.iwilkey.terrafort.gui.TDrawable;
 import dev.iwilkey.terrafort.gui.lang.TLocale;
 import dev.iwilkey.terrafort.obj.mob.TPlayer;
@@ -50,6 +51,16 @@ public final class TGeneralMathematicsKnowledge implements TKnowledge {
 	@Override
 	public long getLearnValue() {
 		return 128;
+	}
+
+	@Override
+	public boolean requestPractice() {
+		return TInput.interact;
+	}
+
+	@Override
+	public void equipped() {
+
 	}
 
 }

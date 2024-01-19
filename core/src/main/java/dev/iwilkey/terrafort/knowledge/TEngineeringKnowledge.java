@@ -51,4 +51,14 @@ public final class TEngineeringKnowledge implements TKnowledge {
 		return 512;
 	}
 
+	@Override
+	public boolean requestPractice() {
+		return false;
+	}
+
+	@Override
+	public void equipped() {
+
+	}
+
 }

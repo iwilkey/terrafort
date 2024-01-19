@@ -148,11 +148,6 @@ public final class TInput implements InputProcessor {
 	public static boolean run = false;
 	
 	/**
-	 * Whether or not the user is trying to perform a slide action.
-	 */
-	public static boolean slide = false;
-	
-	/**
 	 * Whether or not the user is trying to perform an attack action.
 	 */
 	public static boolean interact = false;
@@ -167,6 +162,21 @@ public final class TInput implements InputProcessor {
 	 */
 	public static boolean zoomOut = false;
 	
+	/**
+	 * A reference to the last recorded button pressed on the controller.
+	 */
+	public static int lastButtonPressedOnController = -1;
+	
+	/**
+	 * A reference to the last recorded button pressed on the mouse.
+	 */
+	public static int lastButtonPressedOnMouse = -1;
+	
+	/**
+	 * A reference to the last recorded key pressed on the keyboard.
+	 */
+	public static int lastKeyPressed = -1;
+
 	/**
 	 * Terrafort controller support.
 	 * @author Ian Wilkey (iwilkey)
@@ -188,14 +198,17 @@ public final class TInput implements InputProcessor {
 			if(!focused)
 				return true;
 			System.out.println("Button down: " + buttonCode);
+			lastButtonPressedOnController = buttonCode;
 			switch(buttonCode) {
 				case 0: // A
-					if(TUserInterface.guiFocused())
-						TUserInterface.getIO().touchDown((int)cursorX, (int)cursorY, 0, 0);
-					else interact = true;
+					TUserInterface.getIO().touchDown((int)cursorX, (int)cursorY, 0, 0);
+					interact = true;
 					break;
-				case 2: // X
-					slide = true;
+				case 2:
+					zoomOut = true;
+					break;
+				case 3:
+					zoomIn = true;
 					break;
 				case 6: // start button
 					techTree = true;
@@ -204,10 +217,10 @@ public final class TInput implements InputProcessor {
 					run = true;
 					break;
 				case 9:  // LB
-					zoomOut = true;
+					slotLeft = true;
 					break;
 				case 10: // RB
-					zoomIn = true;
+					slotRight = true;
 					break;
 			}
 			return false; 
@@ -217,25 +230,29 @@ public final class TInput implements InputProcessor {
 		public boolean buttonUp(Controller controller, int buttonCode) {
 			if(!focused)
 				return true;
+			lastButtonPressedOnController = 0;
 			switch(buttonCode) {
 				case 0:
 					TUserInterface.getIO().touchUp((int)cursorX, (int)cursorY, 0, 0);
 					interact = false;
 					break;
 				case 2:
-					slide = false;
+					zoomOut = false;
 					break;
-				case 6: // start button
+				case 3:
+					zoomIn = false;
+					break;
+				case 6:
 					techTree = false;
 					break;
 				case 7:
 					run = false;
 					break;
 				case 9:
-					zoomOut = false;
+					slotLeft = false;
 					break;
 				case 10:
-					zoomIn = false;
+					slotRight = false;
 					break;
 			}
 			return false;
@@ -273,14 +290,15 @@ public final class TInput implements InputProcessor {
 	public boolean keyDown(int keycode) {
 		if(!focused)
 			return true;
+		lastKeyPressed = keycode;
 		if(keycode == Keys.ESCAPE) {
 			Gdx.input.setCursorCatched(false);
 			focused = false;
-			TGraphics.requestBlurState(true);
+			TGraphics.requestBlurState(true, 1.0f);
+			resetState();
 			return false;
 		}
-		if(TUserInterface.guiFocused())
-			TUserInterface.getIO().keyDown(keycode);
+		TUserInterface.getIO().keyDown(keycode);
 		switch(keycode) {
 			case Keys.W:
 				moveUp = true;
@@ -317,6 +335,7 @@ public final class TInput implements InputProcessor {
 	public boolean keyUp(int keycode) {
 		if(!focused)
 			return true;
+		lastKeyPressed = -1;
 		TUserInterface.getIO().keyUp(keycode);
 		switch(keycode) {
 			case Keys.W:
@@ -354,10 +373,7 @@ public final class TInput implements InputProcessor {
 	public boolean keyTyped(char character) {
 		if(!focused)
 			return true;
-		if(TUserInterface.guiFocused()) {
-			TUserInterface.getIO().keyTyped(character);
-			return false;
-		}
+		TUserInterface.getIO().keyTyped(character);	
 		return false;
 	}
 
@@ -367,15 +383,17 @@ public final class TInput implements InputProcessor {
 			if(button == Buttons.LEFT) {
 				Gdx.input.setCursorCatched(true);
 				focused = true;
-				TGraphics.requestBlurState(false);
+				TGraphics.requestBlurState(false, 1.0f);
+				cursorX = Gdx.input.getX();
+				cursorY = Gdx.input.getY();
 				return false;
 			} else return true;
 		}
+		lastButtonPressedOnMouse = button;
 		switch(button) {
 			case Buttons.LEFT:
-				if(TUserInterface.guiFocused())
-					TUserInterface.getIO().touchDown((int)cursorX, (int)cursorY, 0, 0);
-				else interact = true;
+				TUserInterface.getIO().touchDown((int)cursorX, (int)cursorY, 0, 0);
+				interact = true;
 				break;
 		}
 		cursorX = screenX;
@@ -387,6 +405,7 @@ public final class TInput implements InputProcessor {
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
 		if(!focused)
 			return true;
+		lastButtonPressedOnMouse = -1;
 		switch(button) {
 			case Buttons.LEFT:
 				TUserInterface.getIO().touchUp((int)cursorX, (int)cursorY, 0, 0);
@@ -402,8 +421,7 @@ public final class TInput implements InputProcessor {
 	public boolean touchDragged(int screenX, int screenY, int pointer) {
 		if(!focused)
 			return true;
-		if(TUserInterface.guiFocused())
-			TUserInterface.getIO().touchDragged(screenX, screenY, pointer);
+		TUserInterface.getIO().touchDragged(screenX, screenY, pointer);
 		cursorX = screenX;
 		cursorY = screenY;
 		return false;
@@ -413,8 +431,7 @@ public final class TInput implements InputProcessor {
 	public boolean mouseMoved(int screenX, int screenY) {
 		if(!focused)
 			return true;
-		if(TUserInterface.guiFocused())
-			TUserInterface.getIO().mouseMoved(screenX, screenY);
+		TUserInterface.getIO().mouseMoved(screenX, screenY);
 		cursorX = screenX;
 		cursorY = screenY;
 		return false;
@@ -424,8 +441,7 @@ public final class TInput implements InputProcessor {
 	public boolean scrolled(float amountX, float amountY) {
 		if(!focused)
 			return true;
-		if(TUserInterface.guiFocused())
-			TUserInterface.getIO().scrolled(amountX, amountY);
+		TUserInterface.getIO().scrolled(amountX, amountY);
 		scroll = amountY;
 		return false;
 	}
@@ -446,9 +462,6 @@ public final class TInput implements InputProcessor {
 			slotRight = true;
 		} else if(scroll < 0) {
 			slotLeft = true;
-		} else {
-			slotRight = false;
-			slotLeft = false;
 		}
 		scroll = 0;
 		handleUIInteraction();
@@ -460,8 +473,7 @@ public final class TInput implements InputProcessor {
 	public boolean touchCancelled(int screenX, int screenY, int pointer, int button) {
 		if(!focused)
 			return true;
-		if(TUserInterface.guiFocused())
-			TUserInterface.getIO().touchCancelled(screenX, screenY, pointer, button);
+		TUserInterface.getIO().touchCancelled(screenX, screenY, pointer, button);
 		return false;
 	}
 	
@@ -499,6 +511,35 @@ public final class TInput implements InputProcessor {
 			if(cursorRight) dx += cursorSpeed;
 			Gdx.input.setCursorPosition(Gdx.input.getX() + dx, Gdx.input.getY() + dy);
 		}
+	}
+	
+	/**
+	 * Resets all {@link TInput} state variables.
+	 */
+	private void resetState() {
+		cursorSpeed = 8.0f;
+		scroll = 0.0f;
+		cursorX = 0.0f;
+		cursorY = 0.0f;
+		focused = false;
+		cursorLeft = false;
+		cursorRight = false;
+		cursorUp = false;
+		cursorDown = false;
+		moveUp = false;
+	    moveDown = false;
+		moveRight = false; 
+		moveLeft = false;
+		slotRight = false;
+		slotLeft = false;
+		techTree = false;
+		run = false;
+		interact = false;
+		zoomIn = false;
+		zoomOut = false;
+		lastButtonPressedOnController = -1;
+		lastButtonPressedOnMouse = -1;
+		lastKeyPressed = -1;
 	}
 
 }

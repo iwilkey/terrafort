@@ -4,7 +4,7 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.kotcrab.vis.ui.widget.VisTextButton;
 
-import dev.iwilkey.terrafort.gui.TEvent;
+import dev.iwilkey.terrafort.clk.TEvent;
 import dev.iwilkey.terrafort.gui.TUserInterface;
 
 /**

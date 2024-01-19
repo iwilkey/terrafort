@@ -32,6 +32,17 @@ public interface TKnowledge {
 	public boolean practical();
 	
 	/**
+	 * Procedure called while the knowledge is equipped.
+	 */
+	public void equipped();
+	
+	/**
+	 * Called if this skill is practical and the player has the knowledge equipped. Let's the engine know if the use of the knowledge is allowed
+	 * based on internal factors.
+	 */
+	public boolean requestPractice();
+	
+	/**
 	 * Called if this skill is practical, the player has the knowledge equipped, is allowed to use it, and requests to do so.
 	 */
 	public void practice(TPlayer player, TWorld world);

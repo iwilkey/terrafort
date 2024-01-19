@@ -23,8 +23,8 @@ public final class TSinglePlayerWorld implements TState {
 	
 	private static TWorld                  world         = null;
 	private static TKnowledgeTreeInterface knowledgeTree = null;
+	private static TKnowledgeBarInterface  knowledgeBar  = null;
 	
-	private TKnowledgeBarInterface         knowledgeBar  = null;
 	private TGameStateInterface            gameState     = null;
 	private TSettingsInterface             settings      = null;
 	
@@ -46,20 +46,19 @@ public final class TSinglePlayerWorld implements TState {
 		settings = new TSettingsInterface();
 		TUserInterface.mAllocContainer(settings);
 	}
-
+	
 	@Override
 	public void render(float dt) {
 		if(TInput.techTree) {
 			if(knowledgeTree == null) {
 				knowledgeTree = new TKnowledgeTreeInterface();
 				TUserInterface.mAllocContainer(knowledgeTree);
-				TGraphics.requestBlurState(true);
+				TGraphics.requestBlurState(true, 1.0f);
 			} else {
 				TUserInterface.mFreeContainer(knowledgeTree);
 				knowledgeTree = null;
 				TUserInterface.mFreePrompt();
-				TUserInterface.guiModuleMutexReferences -= 2;
-				TGraphics.requestBlurState(false);
+				TGraphics.requestBlurState(false, 1.0f);
 			}
 			TInput.techTree = false;
 		}
@@ -88,7 +87,14 @@ public final class TSinglePlayerWorld implements TState {
 	}
 	
 	/**
-	 * Get the knowledge tree widget for rebuilding (if needed.) May return null.
+	 * The player's knowledge bar.
+	 */
+	public static TKnowledgeBarInterface getKnowlegeBar() {
+		return knowledgeBar;
+	}
+	
+	/**
+	 * Get the player's knowledge tree widget for rebuilding (if needed.) May return null.
 	 */
 	public static TKnowledgeTreeWidget getTree() {
 		return knowledgeTree.tree;

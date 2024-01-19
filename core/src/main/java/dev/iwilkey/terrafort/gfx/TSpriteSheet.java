@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.utils.Disposable;
 
 /**
- * A reference to a segment of memory that contains an organized arrangement of sprites.
+ * A reference to a segment of memory that contains an organized arrangement of Sprites.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TSpriteSheet implements Disposable {

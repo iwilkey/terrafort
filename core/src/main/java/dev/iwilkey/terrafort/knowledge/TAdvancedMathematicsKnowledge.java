@@ -51,5 +51,15 @@ public final class TAdvancedMathematicsKnowledge implements TKnowledge {
 	public long getLearnValue() {
 		return 2560000;
 	}
+
+	@Override
+	public boolean requestPractice() {
+		return false;
+	}
+
+	@Override
+	public void equipped() {
+		
+	}
 	
 }

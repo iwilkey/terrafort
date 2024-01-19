@@ -3,6 +3,7 @@ package dev.iwilkey.terrafort;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 
+import dev.iwilkey.terrafort.clk.TClock;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.persistent.TPersistent;

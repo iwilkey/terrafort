@@ -6,12 +6,11 @@ import com.kotcrab.vis.ui.widget.VisScrollPane;
 import com.kotcrab.vis.ui.widget.VisTable;
 
 import dev.iwilkey.terrafort.TEngine;
+import dev.iwilkey.terrafort.clk.TEvent;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gui.TAnchor;
 import dev.iwilkey.terrafort.gui.TDrawable;
-import dev.iwilkey.terrafort.gui.TEvent;
 import dev.iwilkey.terrafort.gui.TPopable;
-import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.gui.container.TStaticContainer;
 import dev.iwilkey.terrafort.gui.lang.TLanguage;
 import dev.iwilkey.terrafort.gui.lang.TLocale;
@@ -63,30 +62,39 @@ public final class TSettingsInterface extends TStaticContainer {
 		internal.reset();
 		internal.remove();
 		if(minimized) {
+			setAnchor(TAnchor.TOP_RIGHT);
+			setExternalPadding(4, 0, 4, 0);
+			setInternalPadding(8, 8, 8, 8);
 			final TIconButtonWidget settingsButton = new TIconButtonWidget(GEAR_ICON, new TEvent() {
 				@Override
-				public void fire() {
+				public boolean fire() {
+					TGraphics.requestBlurState(true, 1.0f);
 					setState(false);
+					return false;
 				}
 			});
 			settingsButton.addListener(new TPopable(TLocale.getLine(43), TLocale.getLine(44)));			
-			
 			final TIconButtonWidget screenshotButton = new TIconButtonWidget(CAMERA_ICON, new TEvent() {
 				@Override
-				public void fire() {
+				public boolean fire() {
 					TGraphics.requestScreenshot();
+					return false;
 				}
 			});
 			screenshotButton.addListener(new TPopable(TLocale.getLine(40), TLocale.getLine(41) + " \n\n" 
 					+ Gdx.files.internal("TerrafortPersistent/screenshots/").file().getAbsolutePath()));
-			
 			internal.add(screenshotButton).center().prefSize(24, 24).padRight(4f);
 			internal.add(settingsButton).center().prefSize(24, 24);
 		} else {
+			setAnchor(TAnchor.CENTER_CENTER);
+			setExternalPadding(0, 32, 0, 0);
+			setInternalPadding(8, 8, 8, 8);
 			internal.add(new TIconButtonWidget(BACK_ICON, new TEvent() {
 				@Override
-				public void fire() {
+				public boolean fire() {
+					TGraphics.requestBlurState(false, 1.0f);
 					setState(true);
+					return false;
 				}
 			})).right().prefSize(24, 24);
 			internal.row();
@@ -102,10 +110,10 @@ public final class TSettingsInterface extends TStaticContainer {
 	        	final TTextButtonWidget togLang = new TTextButtonWidget(lang.name(), new TEvent() {
 	        		final TLanguage l = lang;
 					@Override
-					public void fire() {
+					public boolean fire() {
 						TEngine.getPref().locale = l;
 						setState(false);
-						TUserInterface.guiModuleMutexReferences = 0;
+						return false;
 					}
 	        	});
 	        	togLang.addListener(new TPopable("[RED]" + TLocale.getLine(38) + "[]", TLocale.getLine(36)));
@@ -118,8 +126,7 @@ public final class TSettingsInterface extends TStaticContainer {
 	        	settings.add(new TTextWidget("Other settings..."));
 	        	settings.row();
 	        }
-	        
-	        internal.add(pane).fill().expand().prefSize(Gdx.graphics.getWidth() * 0.2f, Gdx.graphics.getHeight() / 2f).pad(4f);
+	        internal.add(pane).fill().expand().prefSize(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f);
 		}
 		internal.pack();
 		window.add(internal);

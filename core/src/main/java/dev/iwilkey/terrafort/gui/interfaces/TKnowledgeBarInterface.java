@@ -15,6 +15,7 @@ import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.gui.container.TStaticContainer;
 import dev.iwilkey.terrafort.gui.lang.TLocale;
 import dev.iwilkey.terrafort.gui.widgets.TKnowledgeSlotWidget;
+import dev.iwilkey.terrafort.knowledge.TKnowledge;
 
 /**
  * Provides an interface for the user to interact with equipped knowledge.
@@ -98,6 +99,13 @@ public final class TKnowledgeBarInterface extends TStaticContainer {
 	}
 	
 	/**
+	 * Get the current selected knowledge.
+	 */
+	public TKnowledge getSelected() {
+		return slots[selected].getKnowledge();
+	}
+	
+	/**
 	 * Selects an Knowledge Slot in the inventory (mod KNOWLEDGE_SLOTS value.)
 	 */
 	public void select(int index) {
@@ -109,6 +117,28 @@ public final class TKnowledgeBarInterface extends TStaticContainer {
 			slots[index].select();
 			selected = index;
 		}
+	}
+	
+	/**
+	 * Equips a given slot with practical knowledge.
+	 */
+	public void equip(int index, TKnowledge knowledge) {
+		if(index < 0)
+			index = KNOWLEDGE_SLOTS - 1;
+		index %= KNOWLEDGE_SLOTS;
+		// don't do anything if this action has already happened...
+		if(slots[index].getKnowledge() != null)
+			if(slots[index].getKnowledge().equals(knowledge))
+				return;
+		// then, try to relocate already euipped knowledge...
+		for(int i = 0; i < KNOWLEDGE_SLOTS; i++) {
+			if(slots[i].getKnowledge() != null)
+				if(slots[i].getKnowledge().equals(knowledge)) {
+					slots[i].equip(null);
+					break;
+				}
+		}
+		slots[index].equip(knowledge);
 	}
 	
 }

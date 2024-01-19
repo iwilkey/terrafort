@@ -36,7 +36,7 @@ import dev.iwilkey.terrafort.gui.text.TImmediateModeTextParticle;
  */
 public final class TUserInterface implements Disposable {
 	
-	public static final int               DROP_SHADOW_DISTANCE               = 4;
+	public static final int               DROP_SHADOW_DISTANCE               = 2;
 
 	public static final Texture           DEFAULT_NINE_PATCH_TEXTURE         = new Texture(Gdx.files.internal("ui/default.9.png"));
 	public static final Texture           BUTTON_DEFAULT_NINE_PATCH_TEXTURE  = new Texture(Gdx.files.internal("ui/node.9.png"));
@@ -64,11 +64,6 @@ public final class TUserInterface implements Disposable {
 	 * The font point of the glyphs stored in RAM.
 	 */
 	public static final int BASE_FONT_SIZE = 72;
-	
-	/**
-	 * Any value > 0 means that the cursor is currently operating inside of a gui module and so no in-game world action should be made.
-	 */
-	public static int guiModuleMutexReferences = 0;
 	
 	/**
 	 * Pool for immediate text requests. Cleared after each frame.
@@ -231,14 +226,7 @@ public final class TUserInterface implements Disposable {
 	public static BitmapFont getGameFont() {
 		return gameFont;
 	}
-	
-	/**
-	 * Returns whether or not the cursor is currently focused on a gui module.
-	 */
-	public static boolean guiFocused() {
-		return guiModuleMutexReferences != 0;
-	}
-	
+
 	/**
 	 * A tool that can calculate the width and height of any given text using the game font.
 	 */
@@ -261,9 +249,6 @@ public final class TUserInterface implements Disposable {
 	 * each frame to ensure the UI is consistently updated and drawn to the screen.
 	 */
 	public void render(float dt) {
-		// if mutex ref goes below zero then there DEFINITLEY isn't any UI cursor focus.
-		if(guiModuleMutexReferences < 0)
-			guiModuleMutexReferences = 0;
 		if(currentPrompt != null)
 			currentPrompt.update(dt);
 		if(currentPopup != null)

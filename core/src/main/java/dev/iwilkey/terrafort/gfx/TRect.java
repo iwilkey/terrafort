@@ -50,6 +50,10 @@ public class TRect implements TRenderableShape {
 		this.color.set(color);
 	}
 	
+	public void setColor(int color) {
+		this.color.set(color);
+	}
+	
 	public void setFilled(boolean filled) {
 		this.filled = filled;
 	}

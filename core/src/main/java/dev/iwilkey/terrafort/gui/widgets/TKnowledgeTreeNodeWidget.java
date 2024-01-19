@@ -1,5 +1,7 @@
 package dev.iwilkey.terrafort.gui.widgets;
 
+import java.text.NumberFormat;
+
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -47,8 +49,8 @@ public final class TKnowledgeTreeNodeWidget extends VisTable {
 				final String desc = String.format("%s\n"
 						+ "\n[YELLOW]" + TLocale.getLine(26) + ":[] " + ((!learned) ? TLocale.getLine(22) : TLocale.getLine(24))
 						+ "\n[YELLOW]" + TLocale.getLine(28) + ":[] " + ((!practical) ? TLocale.getLine(22) : TLocale.getLine(24))
-						+ "\n[YELLOW]" + TLocale.getLine(30) + ":[] " + abstractNode.getKnowledge().getLearnValue() + " Funds (F)"
-						+ "\n[YELLOW]" + TLocale.getLine(32) + ":[] " + ((!practical) ? "N/A" : abstractNode.getKnowledge().getPracticeValue() + " Funds (F)"),
+						+ "\n[YELLOW]" + TLocale.getLine(30) + ":[] " + NumberFormat.getNumberInstance().format(abstractNode.getKnowledge().getLearnValue()) + " Funds (F)"
+						+ "\n[YELLOW]" + TLocale.getLine(32) + ":[] " + ((!practical) ? "N/A" : NumberFormat.getNumberInstance().format(abstractNode.getKnowledge().getPracticeValue()) + " Funds (F)"),
 						abstractNode.getKnowledge().getDescription());
 				TUserInterface.mAllocPopup(abstractNode.getName(), desc);
 			}

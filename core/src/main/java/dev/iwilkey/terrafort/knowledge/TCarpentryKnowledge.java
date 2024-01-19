@@ -51,5 +51,15 @@ public final class TCarpentryKnowledge implements TKnowledge {
 	public long getLearnValue() {
 		return 128;
 	}
+
+	@Override
+	public boolean requestPractice() {
+		return false;
+	}
+
+	@Override
+	public void equipped() {
+
+	}
 	
 }

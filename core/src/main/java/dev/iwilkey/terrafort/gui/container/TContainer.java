@@ -1,10 +1,6 @@
 package dev.iwilkey.terrafort.gui.container;
 
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.Null;
 
 import com.kotcrab.vis.ui.widget.VisTable;
 import com.kotcrab.vis.ui.widget.VisWindow;
@@ -21,11 +17,6 @@ public abstract class TContainer implements Disposable {
 	protected VisTable  internal = null;
 	
 	/**
-	 * Whether or not the cursor is focused on the gui module.
-	 */
-	protected boolean focused = false;
-	
-	/**
 	 * Initiates a new container. Will not be added to the scene until explicity done so with {@link TUserInterface}{@code .mAllocContainer(this)}.
 	 */
 	public TContainer(Object... objReference) {
@@ -36,16 +27,6 @@ public abstract class TContainer implements Disposable {
 		window.getTitleTable().remove();
 		window.setBackground(TUserInterface.DEFAULT_BG);
 		setInternalPadding(16, 16, 16, 16);
-		window.addListener(new InputListener() {
-			public void enter(InputEvent event, float x, float y, int pointer, @Null Actor fromActor) {
-				focused = true;
-				TUserInterface.guiModuleMutexReferences++;
-			}
-			public void exit(InputEvent event, float x, float y, int pointer, @Null Actor toActor) {
-				focused = false;
-				TUserInterface.guiModuleMutexReferences--;
-			}
-		});
 		internal = new VisTable();
 	}
 	
@@ -82,10 +63,6 @@ public abstract class TContainer implements Disposable {
 	 */
 	public final VisWindow get() {
 		return window;
-	}
-	
-	public final boolean isFocused() {
-		return focused;
 	}
 	
 	@Override

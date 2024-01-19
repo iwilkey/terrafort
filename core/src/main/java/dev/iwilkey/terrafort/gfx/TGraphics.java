@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.World;
@@ -23,11 +24,12 @@ import com.badlogic.gdx.utils.BufferUtils;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.crashinvaders.vfx.VfxManager;
+import com.crashinvaders.vfx.effects.FxaaEffect;
 import com.crashinvaders.vfx.effects.GaussianBlurEffect;
 import com.crashinvaders.vfx.effects.RadialDistortionEffect;
 
-import dev.iwilkey.terrafort.TClock;
 import dev.iwilkey.terrafort.TInput;
+import dev.iwilkey.terrafort.clk.TClock;
 import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.math.TInterpolator;
 import dev.iwilkey.terrafort.math.TMath;
@@ -81,6 +83,7 @@ public final class TGraphics implements Disposable {
 	private static final VfxManager                    POST_PROC_BUFFER       = new VfxManager(Pixmap.Format.RGBA8888);
 	private static final GaussianBlurEffect            POST_GAUSSIAN_BLUR     = new GaussianBlurEffect();
 	private static final RadialDistortionEffect        POST_RADIAL_DIST       = new RadialDistortionEffect();
+	private static final FxaaEffect                    POST_FXAA              = new FxaaEffect();
 	
 	/**
 	 * USED FOR PHYSICAL DEBUGGING
@@ -99,6 +102,15 @@ public final class TGraphics implements Disposable {
 	private static       byte                          postFxBlurState        = 0x0;
 	private static       int                           postFxBlurStatePointer = 0x0;
 	private static       TInterpolator                 postFxBlurPasses       = new TInterpolator(0x1);
+	
+	/**
+	 * INTERNAL VARIABLES TO MANAGE FADE STATE
+	 */
+	
+	private static       byte                          fadeState              = 0x0;
+	private static       int                           fadeStatePointer       = 0x0;
+	private static       TInterpolator                 fadeStateAlpha         = new TInterpolator(0x0);
+	private static       TRect                         gfxBlocker             = new TRect(0, 0, 0, 0);
 	
 	/**
 	 * INTERNAL VARIABLES TO MANAGE "CLICK TO FOCUS" STATE
@@ -122,7 +134,8 @@ public final class TGraphics implements Disposable {
 		CAMERA_Y.setEquation(Interpolation.linear);
 		CAMERA_ZOOM.setEquation(Interpolation.linear);
 		CAMERA_ZOOM.setSpeed(2.0f);
-		
+		gfxBlocker.setFilled(true);
+		gfxBlocker.setColor(0);
 	}
 	
 	/**
@@ -153,7 +166,8 @@ public final class TGraphics implements Disposable {
 	 */
 	public static Texture getSheetGLTex(String internalPath) {
 		if(!SPRITE_SHEETS.containsKey(internalPath))
-			throw new IllegalArgumentException("[Terrafort Game Engine] Trying to reference a sprite sheet that hasn't been registered for bliting: " + internalPath + ". Use TGraphics.mAllocSpriteSheet(path) to register a sheet.");
+			throw new IllegalArgumentException("[Terrafort Game Engine] Trying to reference a sprite sheet that hasn't been registered for bliting: " 
+					+ internalPath + ". Use TGraphics.mAllocSpriteSheet(path) to register a sheet.");
 		return SPRITE_SHEETS.get(internalPath).get();
 	}
 		
@@ -277,24 +291,50 @@ public final class TGraphics implements Disposable {
 	}
 	
 	/**
-	 * Changes the post blur state from true to false or false to true. Does nothing if the current state is the same as requested.
+	 * Sets the post blur state in a given amount of time. Does nothing if the current state is the same as requested.
 	 */
-	public static void requestBlurState(boolean on) {
+	public static void requestBlurState(boolean on, float seconds) {
 		postFxBlurStatePointer += (on) ? 1 : -1;
+		System.out.println(postFxBlurStatePointer);
 		if(on) {
 			if(postFxBlurState == 1)
 				return;
 			postFxBlurState = 1;
+			postFxBlurPasses.setSpeed(1f / seconds);
 			postFxBlurPasses.set(0x10);
 			POST_PROC_BUFFER.addEffect(POST_GAUSSIAN_BLUR);
 			POST_PROC_BUFFER.addEffect(POST_RADIAL_DIST);
+			POST_PROC_BUFFER.addEffect(POST_FXAA);
 		} else {
 			if(postFxBlurStatePointer > 0)
 				return;
 			if(postFxBlurState == 0 || postFxBlurState == 2)
 				return;
 			postFxBlurState = 2;
+			postFxBlurPasses.setSpeed(1f / seconds);
 			postFxBlurPasses.set(0x0);
+		}
+	}
+	
+	/**
+	 * Changes the fade state in a given amount of time. "on" means that all graphics are excluded from the final render, including GUI.
+	 */
+	public static void requestDarkState(boolean on, float seconds) {
+		fadeStatePointer += (on) ? 1 : -1;
+		if(on) {
+			if(fadeState == 1)
+				return;
+			fadeState = 1;
+			fadeStateAlpha.setSpeed(1f / seconds);
+			fadeStateAlpha.set(0x1);
+		} else {
+			if(fadeStatePointer > 0)
+				return;
+			if(fadeState == 0 || fadeState == 2)
+				return;
+			fadeState = 2;
+			fadeStateAlpha.setSpeed(1f / seconds);
+			fadeStateAlpha.set(0x0);
 		}
 	}
 	
@@ -306,8 +346,9 @@ public final class TGraphics implements Disposable {
 		sortAndCombineRenderRequests();
 		calculateTileBatchPool();
 		calculatePerspective();
-		clearScreen();
+		calculateBlocker(dt);
 		calculateFx(dt);
+		clearScreen();
 		if(shouldUsePost()) {
 			POST_PROC_BUFFER.cleanUpBuffers(new Color(0.15f, 0.15f, 0.2f, 1f));
 			POST_PROC_BUFFER.beginInputCapture();
@@ -409,6 +450,14 @@ public final class TGraphics implements Disposable {
 			}
 			screenshotTimer = SCREENSHOT_TIME;
 		}
+		// render blocker after everything...
+		GEOMETRIC_RENDERER.setProjectionMatrix(SCREEN_PROJ_MAT.combined);
+		GEOMETRIC_RENDERER.begin(ShapeType.Filled);
+		Gdx.gl.glEnable(GL20.GL_BLEND);
+		Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+		gfxBlocker.drawFilled(SCREEN_PROJ_MAT, GEOMETRIC_RENDERER);
+		GEOMETRIC_RENDERER.end();
+		Gdx.gl.glDisable(GL20.GL_BLEND);
 		flush();
 	}
 	
@@ -427,10 +476,14 @@ public final class TGraphics implements Disposable {
 		SCREEN_PROJ_MAT.setToOrtho(false, newWidth, newHeight);
 		WORLD_PROJ_MAT.update();
 		SCREEN_PROJ_MAT.update();
+		gfxBlocker.setCX(Gdx.graphics.getWidth() / 2f);
+		gfxBlocker.setCY(Gdx.graphics.getHeight() / 2f);
+		gfxBlocker.setWidth(Gdx.graphics.getWidth());
+		gfxBlocker.setHeight(Gdx.graphics.getHeight());
     }
 	
 	/**
-	 * Based on graphics module calls, calculate the state of the visual effects.
+	 * Calculates the state of the visual effects.
 	 */
 	private void calculateFx(float dt) {
 		if(postFxBlurState == 0)
@@ -444,9 +497,20 @@ public final class TGraphics implements Disposable {
 			if(passes <= 0x0) {
 				POST_PROC_BUFFER.removeEffect(POST_GAUSSIAN_BLUR);
 				POST_PROC_BUFFER.removeEffect(POST_RADIAL_DIST);
+				POST_PROC_BUFFER.removeEffect(POST_FXAA);
 				postFxBlurState = 0;
 			}
 		}
+	}
+	
+	/**
+	 * Calculates the state of the graphics blocker.
+	 */
+	private void calculateBlocker(float dt) {
+		if(fadeState == 0)
+			return;
+		fadeStateAlpha.update(dt);
+		gfxBlocker.setColor(0x000000ff & Math.round(fadeStateAlpha.get() * 0xff));
 	}
 	
 	/**
