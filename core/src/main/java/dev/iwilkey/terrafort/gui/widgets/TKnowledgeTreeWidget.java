@@ -35,6 +35,13 @@ public final class TKnowledgeTreeWidget extends VisTable {
 	 */
 	public static final ArrayList<TKnowledgeTreeNodeWidget> TREE_NODES;
 	
+	/**
+	 * The last saved scroll location in the tree (to make it such that you don't have to scrub back to your location
+	 * every time you open the tree...
+	 */
+	private static float prefScrollX = -1;
+	private static float prefScrollY = -1;
+	
 	// an internal flag used to indicate that this is the first frame the tech tree is active after being dormant.
 	private boolean start;
 	
@@ -65,7 +72,7 @@ public final class TKnowledgeTreeWidget extends VisTable {
 	public TKnowledgeTreeWidget() {
 		final TTextWidget text = new TTextWidget("[YELLOW]" + TLocale.getLine(34) + "[]");
 		text.setAlignment(Align.center);
-		add(text).center().prefSize(Gdx.graphics.getWidth() / 3f, 32 * TUserInterface.getGlobalScale());
+		add(text).center().prefSize(Gdx.graphics.getWidth() / 2.3f, 32 * TUserInterface.getGlobalScale());
 		row();
 		addSeparator().padBottom(16f);
 		tree = new VisTable();
@@ -74,7 +81,7 @@ public final class TKnowledgeTreeWidget extends VisTable {
 		internal.getStyle().background = SOLID_BLACK;
 		internal.setScrollbarsVisible(true);
 		buildTree();
-		add(internal).top().fill().center().prefSize(Gdx.graphics.getWidth() / 3f, Gdx.graphics.getHeight() / 2f);
+		add(internal).top().fill().center().prefSize(Gdx.graphics.getWidth() / 2.3f, Gdx.graphics.getHeight() / 2.4f);
 		start  = false;
 		internal.setFlingTime(2.0f);
 	}
@@ -111,9 +118,13 @@ public final class TKnowledgeTreeWidget extends VisTable {
 	        ScissorStack.popScissors();
 	    }
 	    if(!start) {
-	    	internal.setScrollY(internal.getMaxY());
-	    	internal.setScrollX(internal.getMaxX() / 2);
+	    	internal.setScrollY((prefScrollY == -1) ? internal.getMaxY() : prefScrollY);
+	    	internal.setScrollX((prefScrollX == -1) ? internal.getMaxX() / 2 : prefScrollX);
 	    	start = true;
+	    } else {
+	    	// continually save the player's prefered tree location.
+	    	prefScrollX = internal.getScrollX();
+	    	prefScrollY = internal.getScrollY();
 	    }
 	    batch.begin();
 	}

@@ -56,40 +56,42 @@ public abstract class TStaticContainer extends TContainer {
 	public final void anchor() {
 	    int screenWidth  = Gdx.graphics.getWidth();
 	    int screenHeight = Gdx.graphics.getHeight();
+	    int winWidth     = (int)(get().getWidth() * get().getScaleX());
+	    int winHeight    = (int)(get().getHeight() * get().getScaleY());
 	    int padX         = externalPadLeft - externalPadRight;
 	    int padY         = -externalPadTop + externalPadBottom;
 	    float x, y;
 	    switch(anchor) {
 	        case TOP_RIGHT:
-	            x = screenWidth - get().getWidth();
-	            y = screenHeight - get().getHeight();
+	            x = screenWidth - winWidth;
+	            y = screenHeight - winHeight;
 	            break;
 	        case TOP_CENTER:
-	            x = (screenWidth - get().getWidth()) / 2;
-	            y = screenHeight - get().getHeight();
+	            x = (screenWidth - winWidth) / 2;
+	            y = screenHeight - winHeight;
 	            break;
 	        case TOP_LEFT:
 	            x = 0;
-	            y = screenHeight - get().getHeight();
+	            y = screenHeight - winHeight;
 	            break;
 	        case CENTER_RIGHT:
-	            x = screenWidth - get().getWidth();
-	            y = (screenHeight - get().getHeight()) / 2;
+	            x = screenWidth - winWidth;
+	            y = (screenHeight - winHeight) / 2;
 	            break;
 	        case CENTER_CENTER:
-	            x = ((screenWidth - get().getWidth()) / 2);
-	            y = ((screenHeight - get().getHeight()) / 2);
+	            x = ((screenWidth - winWidth) / 2);
+	            y = ((screenHeight - winHeight) / 2);
 	            break;
 	        case CENTER_LEFT:
 	            x = 0;
-	            y = (screenHeight - get().getHeight()) / 2;
+	            y = (screenHeight - winHeight) / 2;
 	            break;
 	        case BOTTOM_RIGHT:
-	            x = screenWidth - get().getWidth();
+	            x = screenWidth - winWidth;
 	            y = 0;
 	            break;
 	        case BOTTOM_CENTER:
-	            x = (screenWidth - get().getWidth()) / 2;
+	            x = (screenWidth - winWidth) / 2;
 	            y = 0;
 	            break;
 	        case BOTTOM_LEFT:

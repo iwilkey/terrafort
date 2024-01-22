@@ -4,6 +4,7 @@ import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 
 import dev.iwilkey.terrafort.clk.TClock;
+import dev.iwilkey.terrafort.clk.TEvent;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.persistent.TPersistent;
@@ -36,18 +37,25 @@ public final class TEngine implements ApplicationListener {
 	
 	/**
      * Sets the current state of the game, managing the transition between different states.
-     * Stops the current state (if any), clears resources, and starts the new state.
-     * @param toState The new game state to transition to, or null to stop the current state without transitioning.
+     * Stops the current state (if any), clears resources, and starts the new state. Does this all in a given around of time (s) using
+     * a smooth fade effect.
      */
-	public static void setState(final TState toState) {
-		if(state != null)
-			state.stop();
-		TGraphics.gc();
-		System.gc();
-		if(toState == null)
-			return;
-		state = toState;
-		state.start();
+	public static void setState(final TState toState, float transitionTime) {
+		TGraphics.requestDarkState(true, transitionTime / 2f);
+		TClock.schedule(new TEvent() {
+			@Override
+			public boolean fire() {
+				if(state != null)
+					state.stop();
+				TGraphics.gc();
+				System.gc();
+				TGraphics.requestDarkState(false, transitionTime / 2f);
+				state = toState;
+				if(state != null)
+					state.start();
+				return false;
+			}
+		}, 1, transitionTime / 2f);
 	}
 	
 	/**
@@ -83,7 +91,7 @@ public final class TEngine implements ApplicationListener {
     	gfx   = new TGraphics();
     	ui    = new TUserInterface();
     	Gdx.input.setInputProcessor(input);
-    	setState(new TSinglePlayerWorld());
+    	setState(new TSinglePlayerWorld(), 2.0f);
     }
 
     @Override
@@ -124,9 +132,9 @@ public final class TEngine implements ApplicationListener {
 
     @Override
     public void dispose() {
-    	// save preferences.
+    	// save preferences...
     	TPersistent.save(preferences, "pref.dat");
-    	setState(null);
+    	setState(null, 0.0f);
     	audio.dispose();
     	ui.dispose();
     	gfx.dispose();

@@ -176,7 +176,7 @@ public final class TInput implements InputProcessor {
 	 * A reference to the last recorded key pressed on the keyboard.
 	 */
 	public static int lastKeyPressed = -1;
-
+	
 	/**
 	 * Terrafort controller support.
 	 * @author Ian Wilkey (iwilkey)
@@ -202,19 +202,19 @@ public final class TInput implements InputProcessor {
 			switch(buttonCode) {
 				case 0: // A
 					TUserInterface.getIO().touchDown((int)cursorX, (int)cursorY, 0, 0);
-					interact = true;
+					interact = !TGraphics.inBlurState();
 					break;
 				case 2:
-					zoomOut = true;
+					zoomOut = !TGraphics.inBlurState();
 					break;
 				case 3:
-					zoomIn = true;
+					zoomIn = !TGraphics.inBlurState();
 					break;
 				case 6: // start button
-					techTree = true;
+					techTree = !TGraphics.inBlurState();
 					break;
 				case 7: // LS
-					run = true;
+					run = !TGraphics.inBlurState();
 					break;
 				case 9:  // LB
 					slotLeft = true;
@@ -263,11 +263,11 @@ public final class TInput implements InputProcessor {
 			if(!focused)
 				return true;
 	        if (axisCode == 0) {
-	            moveLeft = value < -DEAD_ZONE;
-	            moveRight = value > DEAD_ZONE;
+	            moveLeft  = (!TGraphics.inBlurState()) ? value < -DEAD_ZONE : false;
+	            moveRight = (!TGraphics.inBlurState()) ? value > DEAD_ZONE : false;
 	        } else if (axisCode == 1) {
-	            moveUp = value < -DEAD_ZONE;
-	            moveDown = value > DEAD_ZONE;
+	            moveUp   = (!TGraphics.inBlurState()) ? value < -DEAD_ZONE : false;
+	            moveDown = (!TGraphics.inBlurState()) ? value > DEAD_ZONE : false;
 	        }
 	        if(axisCode == 2) {
 	        	cursorLeft = value < -DEAD_ZONE;
@@ -301,31 +301,31 @@ public final class TInput implements InputProcessor {
 		TUserInterface.getIO().keyDown(keycode);
 		switch(keycode) {
 			case Keys.W:
-				moveUp = true;
+				moveUp = (!TGraphics.inBlurState());
 				break;
 			case Keys.S:
-				moveDown = true;
+				moveDown = (!TGraphics.inBlurState());
 				break;
 			case Keys.A:
-				moveLeft = true;
+				moveLeft = (!TGraphics.inBlurState());
 				break;
 			case Keys.D:
-				moveRight = true;
+				moveRight = (!TGraphics.inBlurState());
 				break;
 			case Keys.SPACE:
 				techTree = true;
 				break;
 			case Keys.SHIFT_LEFT:
-				run = true;
+				run = (!TGraphics.inBlurState());
 				break;
 			case Keys.Q:
-				zoomOut = true;
+				zoomOut = (!TGraphics.inBlurState());
 				break;
 			case Keys.E:
-				zoomIn = true;
+				zoomIn = (!TGraphics.inBlurState());
 				break;
 			case Keys.ENTER:
-				interact = true;
+				interact = (!TGraphics.inBlurState());
 				break;
 		}
 		return false;
@@ -393,7 +393,7 @@ public final class TInput implements InputProcessor {
 		switch(button) {
 			case Buttons.LEFT:
 				TUserInterface.getIO().touchDown((int)cursorX, (int)cursorY, 0, 0);
-				interact = true;
+				interact = (!TGraphics.inBlurState());
 				break;
 		}
 		cursorX = screenX;
@@ -458,15 +458,11 @@ public final class TInput implements InputProcessor {
 		if(!focused)
 			return;
 		Gdx.input.setCursorCatched(true);
-		if(scroll > 0) {
-			slotRight = true;
-		} else if(scroll < 0) {
-			slotLeft = true;
-		}
-		scroll = 0;
+		handleScrollState();
 		handleUIInteraction();
 		clampCursorToScreenSpace();
 		handleControllerCursorMovement();
+		handleRestrictedInput();
 	}
 	
 	@Override
@@ -475,6 +471,33 @@ public final class TInput implements InputProcessor {
 			return true;
 		TUserInterface.getIO().touchCancelled(screenX, screenY, pointer, button);
 		return false;
+	}
+	
+	/**
+	 * Forces certain input states to false during a blurred state.
+	 */
+	private void handleRestrictedInput() {
+		if(TGraphics.inBlurState()) {
+			moveUp   = false;
+			moveDown = false;
+			moveLeft = false;
+			moveUp   = false;
+			interact = false;
+			run      = false;
+			zoomIn   = false;
+			zoomOut  = false;
+		}
+	}
+	
+	/**
+	 * Handles the state of the scroll wheel and knowledge slot selection.
+	 */
+	private void handleScrollState() {
+		if(!TGraphics.inBlurState()) {
+			slotRight = scroll > 0;
+			slotLeft  = scroll < 0;
+		}
+		scroll    = 0;
 	}
 	
 	/**
@@ -514,32 +537,32 @@ public final class TInput implements InputProcessor {
 	}
 	
 	/**
-	 * Resets all {@link TInput} state variables.
+	 * Resets all {@link TInput} state variables to their factory setting.
 	 */
 	private void resetState() {
-		cursorSpeed = 8.0f;
-		scroll = 0.0f;
-		cursorX = 0.0f;
-		cursorY = 0.0f;
-		focused = false;
-		cursorLeft = false;
-		cursorRight = false;
-		cursorUp = false;
-		cursorDown = false;
-		moveUp = false;
-	    moveDown = false;
-		moveRight = false; 
-		moveLeft = false;
-		slotRight = false;
-		slotLeft = false;
-		techTree = false;
-		run = false;
-		interact = false;
-		zoomIn = false;
-		zoomOut = false;
+		cursorSpeed 				  = 8.0f;
+		scroll      			      = 0.0f;
+		cursorX 					  = 0.0f;
+		cursorY 					  = 0.0f;
+		focused 					  = false;
+		cursorLeft 					  = false;
+		cursorRight 				  = false;
+		cursorUp 					  = false;
+		cursorDown 					  = false;
+		moveUp 						  = false;
+	    moveDown 					  = false;
+		moveRight 					  = false; 
+		moveLeft 					  = false;
+		slotRight 					  = false;
+		slotLeft 					  = false;
+		techTree 					  = false;
+		run 						  = false;
+		interact 					  = false;
+		zoomIn 						  = false;
+		zoomOut 					  = false;
 		lastButtonPressedOnController = -1;
-		lastButtonPressedOnMouse = -1;
-		lastKeyPressed = -1;
+		lastButtonPressedOnMouse      = -1;
+		lastKeyPressed  	   		  = -1;
 	}
 
 }

@@ -14,6 +14,7 @@ import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.gui.interfaces.TKnowledgeNodeInterface;
 import dev.iwilkey.terrafort.gui.lang.TLocale;
 import dev.iwilkey.terrafort.knowledge.tree.TKnowledgeTreeNode;
+import dev.iwilkey.terrafort.world.TWorld;
 
 public final class TKnowledgeTreeNodeWidget extends VisTable {
 	
@@ -61,7 +62,7 @@ public final class TKnowledgeTreeNodeWidget extends VisTable {
 		});
 		addListener(new ClickListener() {
 			public void clicked(InputEvent event, float x, float y) {
-				TUserInterface.mAllocPromptContainer(new TKnowledgeNodeInterface(abstractNode));
+				TUserInterface.mAllocPromptContainer(new TKnowledgeNodeInterface(abstractNode, TWorld.client));
 			}
 		});
 	}

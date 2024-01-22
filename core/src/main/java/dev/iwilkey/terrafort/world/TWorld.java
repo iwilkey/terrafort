@@ -68,7 +68,7 @@ public final class TWorld implements TSerializable, Disposable {
 	/**
 	 * The client.
 	 */
-	private transient TPlayer client;
+	public static transient TPlayer client;
 	
 	////////////////////////////////
 	// Serializable attributes.
@@ -275,12 +275,12 @@ public final class TWorld implements TSerializable, Disposable {
 		// mobs are managed at a world level (not chunk) because they always need to be monitored.
 		manageMobs(dt);
 		// render and tick chunks in the most optimized way possible...
-		final float  centerX            = TGraphics.WORLD_PROJ_MAT.position.x;
-		final float  centerY            = TGraphics.WORLD_PROJ_MAT.position.y;
+		final float centerX             = TGraphics.WORLD_PROJ_MAT.position.x;
+		final float centerY             = TGraphics.WORLD_PROJ_MAT.position.y;
 		final float camWidthWorldUnits  = TGraphics.WORLD_PROJ_MAT.viewportWidth * TGraphics.WORLD_PROJ_MAT.zoom;
 	    final float camHeightWorldUnits = TGraphics.WORLD_PROJ_MAT.viewportHeight * TGraphics.WORLD_PROJ_MAT.zoom;
-	    final int   tilesInViewWidth    = (int)(Math.round(camWidthWorldUnits / TILE_SIZE) / 2f);
-	    final int   tilesInViewHeight   = (int)(Math.round(camHeightWorldUnits / TILE_SIZE) / 2f);
+	    final int   tilesInViewWidth    = Math.min(RENDER_DISTANCE, (int)(Math.round(camWidthWorldUnits / TILE_SIZE) / 2f));
+	    final int   tilesInViewHeight   = Math.min(RENDER_DISTANCE, (int)(Math.round(camHeightWorldUnits / TILE_SIZE) / 2f));
 	    final int   cxTileSpace         = (int)Math.round(centerX / TILE_SIZE);
 	    final int   cyTileSpace         = (int)Math.round(centerY / TILE_SIZE);
 	    final int   xTileStart          = cxTileSpace - (tilesInViewWidth + TILE_VIEWPORT_CULL_PADDING);
@@ -288,7 +288,6 @@ public final class TWorld implements TSerializable, Disposable {
 	    final int   yTileStart          = cyTileSpace - (tilesInViewHeight + TILE_VIEWPORT_CULL_PADDING);
 	    final int   yTileEnd            = cyTileSpace + (tilesInViewHeight + TILE_VIEWPORT_CULL_PADDING);
 	    Set<TChunk> ticked              = new HashSet<>();
-	    // loop through in-view tiles and instruct their chunk to tick and render them...
 	    for(int i = xTileStart; i <= xTileEnd; i++) {
 	        for(int j = yTileStart; j <= yTileEnd; j++) {
 	        	int x2 = (i - cxTileSpace) * (i - cxTileSpace);

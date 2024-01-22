@@ -7,8 +7,6 @@ import dev.iwilkey.terrafort.TState;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.gui.interfaces.TSettingsInterface;
-import dev.iwilkey.terrafort.gui.widgets.TKnowledgeTreeWidget;
-import dev.iwilkey.terrafort.obj.mob.TPlayer;
 import dev.iwilkey.terrafort.gui.interfaces.TGameStateInterface;
 import dev.iwilkey.terrafort.gui.interfaces.TKnowledgeBarInterface;
 import dev.iwilkey.terrafort.gui.interfaces.TKnowledgeTreeInterface;
@@ -21,12 +19,7 @@ import dev.iwilkey.terrafort.world.TWorld;
  */
 public final class TSinglePlayerWorld implements TState {
 	
-	private static TWorld                  world         = null;
-	private static TKnowledgeTreeInterface knowledgeTree = null;
-	private static TKnowledgeBarInterface  knowledgeBar  = null;
-	
-	private TGameStateInterface            gameState     = null;
-	private TSettingsInterface             settings      = null;
+	private static TWorld world = null;
 	
 	@Override
 	public void start() {
@@ -39,24 +32,24 @@ public final class TSinglePlayerWorld implements TState {
 			world = (TWorld)TPersistent.load("world/world.dat");
 			world.loadFromPersistent();
 		}
-		knowledgeBar = new TKnowledgeBarInterface();
-		TUserInterface.mAllocContainer(knowledgeBar);
-		gameState = new TGameStateInterface(world.getClient());
-		TUserInterface.mAllocContainer(gameState);
-		settings = new TSettingsInterface();
-		TUserInterface.mAllocContainer(settings);
+		world.getClient().knowledgeBar = new TKnowledgeBarInterface();
+		TUserInterface.mAllocContainer(world.getClient().knowledgeBar);
+		world.getClient().gameState = new TGameStateInterface(world.getClient());
+		TUserInterface.mAllocContainer(world.getClient().gameState);
+		world.getClient().settings = new TSettingsInterface();
+		TUserInterface.mAllocContainer(world.getClient().settings);
 	}
 	
 	@Override
 	public void render(float dt) {
-		if(TInput.techTree) {
-			if(knowledgeTree == null) {
-				knowledgeTree = new TKnowledgeTreeInterface();
-				TUserInterface.mAllocContainer(knowledgeTree);
+		if(TInput.techTree && world.getClient().settings.getState()) {
+			if(world.getClient().knowledgeTree == null) {
+				world.getClient().knowledgeTree = new TKnowledgeTreeInterface();
+				TUserInterface.mAllocContainer(world.getClient().knowledgeTree);
 				TGraphics.requestBlurState(true, 1.0f);
 			} else {
-				TUserInterface.mFreeContainer(knowledgeTree);
-				knowledgeTree = null;
+				TUserInterface.mFreeContainer(world.getClient().knowledgeTree);
+				world.getClient().knowledgeTree = null;
 				TUserInterface.mFreePrompt();
 				TGraphics.requestBlurState(false, 1.0f);
 			}
@@ -67,44 +60,24 @@ public final class TSinglePlayerWorld implements TState {
 
 	@Override
 	public void stop() {
-		TUserInterface.mFreeContainer(knowledgeBar);
-		TUserInterface.mFreeContainer(gameState);
-		TUserInterface.mFreeContainer(settings);
-		if(knowledgeTree != null)
-			TUserInterface.mFreeContainer(knowledgeTree);
+		TUserInterface.mFreeContainer(world.getClient().knowledgeBar);
+		TUserInterface.mFreeContainer(world.getClient().gameState);
+		TUserInterface.mFreeContainer(world.getClient().settings);
+		if(world.getClient().knowledgeTree != null)
+			TUserInterface.mFreeContainer(world.getClient().knowledgeTree);
 		world.dispose();
+		System.out.println("Disposed!");
 	}
 
 	@Override
 	public void resize(int nw, int nh) {
-		if(knowledgeTree != null) {
-			TUserInterface.mFreeContainer(knowledgeTree);
-			knowledgeTree = new TKnowledgeTreeInterface();
-			TUserInterface.mAllocContainer(knowledgeTree);
+		if(world.getClient().knowledgeTree != null) {
+			TUserInterface.mFreeContainer(world.getClient().knowledgeTree);
+			world.getClient().knowledgeTree = new TKnowledgeTreeInterface();
+			TUserInterface.mAllocContainer(world.getClient().knowledgeTree);
 		}
-		if(!settings.getState())
-			settings.setState(false);
+		if(!world.getClient().settings.getState())
+			world.getClient().settings.setState(false);
 	}
 	
-	/**
-	 * The player's knowledge bar.
-	 */
-	public static TKnowledgeBarInterface getKnowlegeBar() {
-		return knowledgeBar;
-	}
-	
-	/**
-	 * Get the player's knowledge tree widget for rebuilding (if needed.) May return null.
-	 */
-	public static TKnowledgeTreeWidget getTree() {
-		return knowledgeTree.tree;
-	}
-	
-	/**
-	 * Get the player.
-	 */
-	public static TPlayer getClient() {
-		return world.getClient();
-	}
-
 }

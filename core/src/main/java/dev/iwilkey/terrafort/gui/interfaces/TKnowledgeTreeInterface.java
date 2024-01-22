@@ -17,9 +17,6 @@ public final class TKnowledgeTreeInterface extends TStaticContainer {
 	
 	public TKnowledgeTreeWidget tree;
 	
-	private boolean up   = false;
-	private float   time = 0.0f;
-	
 	public TKnowledgeTreeInterface(Object... objReference) {
 		super(objReference);
 		pack(internal);
@@ -32,24 +29,17 @@ public final class TKnowledgeTreeInterface extends TStaticContainer {
 		tree = new TKnowledgeTreeWidget();
 		internal.add(tree).center();
 		window.add(internal);
-		get().setVisible(false);
 		window.addListener(new ClickListener() {
 			public boolean touchDown (InputEvent event, float x, float y, int pointer, int button) {
 				TUserInterface.mFreePrompt();
 				return false;
 			}
 		});
+		window.pack();
 	}
 
 	@Override
 	public void update(float dt) {
-		if(!up) {
-			time += dt;
-			if(time > 0.5f) {
-				get().setVisible(true);
-				 time = 0.0f;
-				 up = true;
-			}
-		}
+		
 	}
 }

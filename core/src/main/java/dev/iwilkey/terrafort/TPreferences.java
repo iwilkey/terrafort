@@ -23,6 +23,16 @@ public final class TPreferences implements Serializable {
 	public float masterVolume = 1.0f;
 	
 	/**
+	 * The volume of the sound effects.
+	 */
+	public float sfxVolume = 1.0f;
+	
+	/**
+	 * The volume of background music.
+	 */
+	public float musicVolume = 1.0f;
+	
+	/**
 	 * Creates default preferences (if not found and loaded in persistent data.)
 	 */
 	public TPreferences() {

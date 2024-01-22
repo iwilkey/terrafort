@@ -338,6 +338,20 @@ public final class TGraphics implements Disposable {
 		}
 	}
 	
+	/**
+	 * Whether or not the graphics module is currently rendering a blurred state.
+	 */
+	public static boolean inBlurState() {
+		return postFxBlurStatePointer != 0;
+	}
+	
+	/**
+	 * Whether or not the graphics module is currently in a blocked state (black screen.)
+	 */
+	public static boolean inBlockedState() {
+		return fadeState != 0;
+	}
+	
 	///////////////////////////////////////////////////////
 	// END API
 	///////////////////////////////////////////////////////
@@ -445,7 +459,7 @@ public final class TGraphics implements Disposable {
 					focusRendered = !focusRendered;
 					focusTimer = 0.0f;
 				}
-				TUserInterface.drawText("[ CLICK TO FOCUS! ]", Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, 32, ((focusRendered) ? 0xffffffff : 0x999999ff), false, true);
+				TUserInterface.drawText("[ CLICK TO FOCUS! ]", Gdx.graphics.getWidth() / 2, Gdx.graphics.getHeight() / 2, 32, ((focusRendered) ? 0xffffffff : 0xbbbbbbff), false, true);
 				ui.renderImmediateModeText(dt);
 			}
 			screenshotTimer = SCREENSHOT_TIME;

@@ -1,8 +1,12 @@
 package dev.iwilkey.terrafort.gui.interfaces;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+
 import com.kotcrab.vis.ui.widget.VisScrollPane;
+import com.kotcrab.vis.ui.widget.VisSlider;
 import com.kotcrab.vis.ui.widget.VisTable;
 
 import dev.iwilkey.terrafort.TEngine;
@@ -11,6 +15,7 @@ import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gui.TAnchor;
 import dev.iwilkey.terrafort.gui.TDrawable;
 import dev.iwilkey.terrafort.gui.TPopable;
+import dev.iwilkey.terrafort.gui.TUserInterface;
 import dev.iwilkey.terrafort.gui.container.TStaticContainer;
 import dev.iwilkey.terrafort.gui.lang.TLanguage;
 import dev.iwilkey.terrafort.gui.lang.TLocale;
@@ -47,9 +52,12 @@ public final class TSettingsInterface extends TStaticContainer {
 
 	@Override
 	public void update(float dt) {
-		
+
 	}
 	
+	/**
+	 * Returns the current state of the settings interface.
+	 */
 	public boolean getState() {
 		return currentState;
 	}
@@ -58,6 +66,7 @@ public final class TSettingsInterface extends TStaticContainer {
 	 * Set the state of the settings menu. Minimized just renders a gear.
 	 */
 	public void setState(boolean minimized) {
+		TUserInterface.mFreePrompt();
 		internal.clear();
 		internal.reset();
 		internal.remove();
@@ -102,12 +111,73 @@ public final class TSettingsInterface extends TStaticContainer {
 			internal.row();
 			final VisTable      settings = new VisTable();
 			final VisScrollPane pane     = new VisScrollPane(settings);
-			pane.getStyle().background = TKnowledgeTreeWidget.SOLID_BLACK;
+			pane.getStyle().background   = TKnowledgeTreeWidget.SOLID_BLACK;
 			pane.setFadeScrollBars(false);
-			settings.add(new TTextWidget("[YELLOW]LOCALE: []" + TEngine.getPref().locale.name())).pad(8f);
+			
+			//////////////////////
+			// GRAPHICS SETTINGS
+			//////////////////////
+					
+			//////////////////////
+			// AUDIO SETTINGS
+			//////////////////////
+			
+			settings.add(new TTextWidget(TLocale.getLine(58))).pad(8f);
+			settings.row();
+			
+			final VisTable masterVol = new VisTable();
+			masterVol.add(new TTextWidget("ALL: ")).padRight(4f);
+			final VisSlider masterVolume = new VisSlider(0, 1, 1 / 100f, false);
+			masterVolume.setValue(TEngine.getPref().masterVolume);
+			masterVolume.addListener(new ChangeListener() {
+			    @Override
+			    public void changed(ChangeEvent event, Actor actor) {
+			    	TEngine.getPref().masterVolume = masterVolume.getValue();
+			    }
+			});
+			masterVol.add(masterVolume).expandX().fillX();
+			settings.add(masterVol).pad(4f).expandX().fillX();
+			settings.row().pad(1f);
+			
+			final VisTable fxVol = new VisTable();
+			fxVol.add(new TTextWidget("SFX: ")).padRight(4f);
+			final VisSlider fxVolume = new VisSlider(0, 1, 1 / 100f, false);
+			fxVolume.setValue(TEngine.getPref().sfxVolume);
+			fxVolume.addListener(new ChangeListener() {
+			    @Override
+			    public void changed(ChangeEvent event, Actor actor) {
+			    	TEngine.getPref().sfxVolume = fxVolume.getValue();
+			    }
+			});
+			fxVol.add(fxVolume).expandX().fillX();
+			settings.add(fxVol).pad(4f).expandX().fillX();
+			settings.row().pad(1f);
+			
+			final VisTable musVol = new VisTable();
+			musVol.add(new TTextWidget("MUS: ")).padRight(4f);
+			final VisSlider musVolume = new VisSlider(0, 1, 1 / 100f, false);
+			musVolume.setValue(TEngine.getPref().musicVolume);
+			musVolume.addListener(new ChangeListener() {
+			    @Override
+			    public void changed(ChangeEvent event, Actor actor) {
+			    	TEngine.getPref().musicVolume = musVolume.getValue();
+			    }
+			});
+			musVol.add(musVolume).expandX().fillX();
+			settings.add(musVol).pad(4f).expandX().fillX();
+			settings.row().pad(1f);
+			
+			settings.addSeparator().padTop(3f);
+			
+			//////////////////////
+			// LOCALE SELECTION
+			//////////////////////
+			
+			settings.add(new TTextWidget(TLocale.getLine(60))).pad(8f);
 			settings.row();
 	        for(TLanguage lang : TLanguage.values()) {
-	        	final TTextButtonWidget togLang = new TTextButtonWidget(lang.name(), new TEvent() {
+	        	final String name = (lang == TEngine.getPref().locale) ? (" > " + lang.name() + " < ") : lang.name();
+	        	final TTextButtonWidget togLang = new TTextButtonWidget(name, new TEvent() {
 	        		final TLanguage l = lang;
 					@Override
 					public boolean fire() {
@@ -120,12 +190,12 @@ public final class TSettingsInterface extends TStaticContainer {
 	        	settings.add(togLang).pad(2f).fillX();
 	        	settings.row();
 	        }
-	        settings.addSeparator().pad(6f);
+	        settings.addSeparator().pad(1f);
 	        
-	        for(int i = 0; i < 64; i++) {
-	        	settings.add(new TTextWidget("Other settings..."));
-	        	settings.row();
-	        }
+	        //////////////////////
+			// CONTROLS SETTINGS
+			//////////////////////
+	        
 	        internal.add(pane).fill().expand().prefSize(Gdx.graphics.getWidth() / 2f, Gdx.graphics.getHeight() / 2f);
 		}
 		internal.pack();

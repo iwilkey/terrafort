@@ -56,7 +56,7 @@ public final class TAudio implements Disposable {
 			return;
 		}
 		final Sound fx = SFX_MEMORY.get(path);
-		fx.play(TEngine.getPref().masterVolume, (!random) ? 1f : (float)ThreadLocalRandom.current().nextDouble(0.8, 1.2), 0.0f);
+		fx.play(TEngine.getPref().masterVolume * TEngine.getPref().sfxVolume, (!random) ? 1f : (float)ThreadLocalRandom.current().nextDouble(0.8, 1.2), 0.0f);
 	}
 	
 	///////////////////////////////////////////////////////

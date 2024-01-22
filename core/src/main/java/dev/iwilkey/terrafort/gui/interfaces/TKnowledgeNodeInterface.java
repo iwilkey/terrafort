@@ -12,19 +12,21 @@ import dev.iwilkey.terrafort.gui.lang.TLocale;
 import dev.iwilkey.terrafort.gui.widgets.TTextButtonWidget;
 import dev.iwilkey.terrafort.gui.widgets.TTextWidget;
 import dev.iwilkey.terrafort.knowledge.tree.TKnowledgeTreeNode;
-import dev.iwilkey.terrafort.state.TSinglePlayerWorld;
+import dev.iwilkey.terrafort.obj.mob.TPlayer;
 
 /**
  * An interface that allows the user to learn or manage any knowledge in Terrafort.
  * @author Ian Wilkey (iwilkey)
  */
 public final class TKnowledgeNodeInterface extends TPromptContainer {
-
+	
+	private final TPlayer            client;
 	private final TKnowledgeTreeNode topic;
 	
-	public TKnowledgeNodeInterface(TKnowledgeTreeNode topic, Object... objReference) {
+	public TKnowledgeNodeInterface(TKnowledgeTreeNode topic, TPlayer client, Object... objReference) {
 		super(objReference);
-		this.topic = topic;
+		this.client = client;
+		this.topic  = topic;
 		pack(internal);
 	}
 	
@@ -36,7 +38,7 @@ public final class TKnowledgeNodeInterface extends TPromptContainer {
 			if(lkp != -1) {
 				if(lkp >= 7 && lkp <= 16) {
 					int slot = lkp - 7;
-					TSinglePlayerWorld.getKnowlegeBar().equip(slot - 1, topic.getKnowledge());
+					client.knowledgeBar.equip(slot - 1, topic.getKnowledge());
 					TUserInterface.mFreePrompt();
 				}
 			}
@@ -46,7 +48,7 @@ public final class TKnowledgeNodeInterface extends TPromptContainer {
 	@Override
 	public void pack(VisTable internal, Object... objReference) {
 		if(!topic.learned) {
-			if(TSinglePlayerWorld.getClient().getFunds() > topic.getKnowledge().getLearnValue()) {
+			if(client.getFunds() > topic.getKnowledge().getLearnValue()) {
 				final TTextWidget text = new TTextWidget(TLocale.getLine(46) + " " + topic.getName() + " " + TLocale.getLine(47) + " " + topic.getKnowledge().getLearnValue() + " Funds?");
 				text.setWrap(true);
 				internal.add(text).padBottom(8f).prefWidth(256f);
@@ -54,9 +56,9 @@ public final class TKnowledgeNodeInterface extends TPromptContainer {
 				internal.add(new TTextButtonWidget(TLocale.getLine(24), new TEvent() {
 					@Override
 					public boolean fire() {
-						TSinglePlayerWorld.getClient().takeFunds(topic.getKnowledge().getLearnValue());
+						client.takeFunds(topic.getKnowledge().getLearnValue());
 						topic.learned = true;
-						TSinglePlayerWorld.getTree().buildTree();
+						client.knowledgeTree.tree.buildTree();
 						TUserInterface.mFreePrompt();
 						return false;
 					}	
@@ -81,7 +83,7 @@ public final class TKnowledgeNodeInterface extends TPromptContainer {
 					final int ii = i;
 					slot.addListener(new ClickListener() {
 						public void clicked(InputEvent event, float x, float y) {
-							TSinglePlayerWorld.getKnowlegeBar().equip(ii, topic.getKnowledge());
+							client.knowledgeBar.equip(ii, topic.getKnowledge());
 							TUserInterface.mFreePrompt();
 						}
 					});

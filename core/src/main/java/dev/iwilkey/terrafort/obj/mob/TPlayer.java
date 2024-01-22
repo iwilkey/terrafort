@@ -10,6 +10,10 @@ import dev.iwilkey.terrafort.clk.TEvent;
 import dev.iwilkey.terrafort.gfx.TGraphics;
 import dev.iwilkey.terrafort.gui.TAnchor;
 import dev.iwilkey.terrafort.gui.TUserInterface;
+import dev.iwilkey.terrafort.gui.interfaces.TGameStateInterface;
+import dev.iwilkey.terrafort.gui.interfaces.TKnowledgeBarInterface;
+import dev.iwilkey.terrafort.gui.interfaces.TKnowledgeTreeInterface;
+import dev.iwilkey.terrafort.gui.interfaces.TSettingsInterface;
 import dev.iwilkey.terrafort.gui.lang.TLocale;
 import dev.iwilkey.terrafort.gui.text.TScreenTextParticle;
 import dev.iwilkey.terrafort.knowledge.TKnowledge;
@@ -19,7 +23,6 @@ import dev.iwilkey.terrafort.obj.type.TEntity;
 import dev.iwilkey.terrafort.obj.type.THarvestable;
 import dev.iwilkey.terrafort.obj.type.TMob;
 import dev.iwilkey.terrafort.obj.type.TObject;
-import dev.iwilkey.terrafort.state.TSinglePlayerWorld;
 import dev.iwilkey.terrafort.world.TWorld;
 
 /**
@@ -29,7 +32,7 @@ import dev.iwilkey.terrafort.world.TWorld;
 public final class TPlayer extends TMob {
 	
 	/**
-	 * GRAPHICAL BEHAVIORS
+	 * TRANSIENT GRAPHICAL BEHAVIORS
 	 */
 	
 	public transient static final float ZOOM_TIME = 0.5f;
@@ -37,7 +40,7 @@ public final class TPlayer extends TMob {
 	public transient static final int   ZOOM_MAX  = 1;
 	
 	/**
-	 * MOB SPECIFIC BEHAVIORS...
+	 * TRANSIENT MOB SPECIFIC BEHAVIORS...
 	 */
 	
 	public transient static final int   MAX_HEALTH        = 0xff;
@@ -49,6 +52,15 @@ public final class TPlayer extends TMob {
 	public transient static final float COLLIDER_WIDTH    = TWorld.HALF_TILE_SIZE;
 	public transient static final float COLLIDER_HEIGHT   = 4;
 	public transient static final float COLLIDER_OFFSET_Y = 12;
+	
+	/**
+	 * TRANSIENT USER INTERFACES...
+	 */
+	
+	public transient TKnowledgeTreeInterface knowledgeTree = null;
+	public transient TKnowledgeBarInterface  knowledgeBar  = null;
+	public transient TGameStateInterface     gameState     = null;
+	public transient TSettingsInterface      settings      = null;
 	
 	private static final long serialVersionUID = -5927861991543806097L;
 	
@@ -145,16 +157,16 @@ public final class TPlayer extends TMob {
 		TGraphics.setCameraTargetPosition(concrete.getX(), concrete.getY());
 		TGraphics.setZoomLevel(zoomLevel);
 		// Call the knowledge equipped function if applicable...
-		if(TSinglePlayerWorld.getKnowlegeBar().getSelected() != null)
-			TSinglePlayerWorld.getKnowlegeBar().getSelected().equipped();
+		if(knowledgeBar.getSelected() != null)
+			knowledgeBar.getSelected().equipped();
 	}
 	
 	@Override
 	public boolean requestAction() {
 		// Simple punch request if no knowledge is equipped happens as quickly as possible...
-		if(TSinglePlayerWorld.getKnowlegeBar().getSelected() == null)
+		if(knowledgeBar.getSelected() == null)
 			return TInput.interact;
-		else return TSinglePlayerWorld.getKnowlegeBar().getSelected().requestPractice(); // Do the action request of the knowledge!
+		else return knowledgeBar.getSelected().requestPractice(); // Do the action request of the knowledge!
 		
 	}
 	
@@ -174,7 +186,7 @@ public final class TPlayer extends TMob {
 	@Override
 	public void actionProcedure(final TObjectRuntime concrete, int direction) {
 		// Punch stuff if you have no knowledge equipped...
-		if(TSinglePlayerWorld.getKnowlegeBar().getSelected() == null) {
+		if(knowledgeBar.getSelected() == null) {
 			TObject obj = sense(concrete, 16f, (float)Math.PI / 16f, 2);
 			if(obj != null) {
 				// punch!
@@ -189,7 +201,7 @@ public final class TPlayer extends TMob {
 			}
 		} else {
 			// Do the practice routine of the knowledge (if the player has the funds to do so.)
-			final TKnowledge knowledge = TSinglePlayerWorld.getKnowlegeBar().getSelected();
+			final TKnowledge knowledge = knowledgeBar.getSelected();
 			if(getFunds() - knowledge.getPracticeValue() >= 0)
 				knowledge.practice(this, concrete.getWorld());
 			else {
